@@ -22,12 +22,16 @@ import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
 import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
 import ModeOfTravelIcon from "@mui/icons-material/ModeOfTravel";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import dayjs from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
 import { searchPlaces, type PlaceSuggestion } from "../services/placeService";
 import { getLocationImage } from "../services/imageService";
 import { DestinationSection } from "./DestinationSection";
 import { getTransportLinks, buildAccommodationLinks, type TransportLink } from "../utils/externalLinks";
 import Button from "@mui/material/Button";
+import { TransportDetailsModal } from "./TransportDetailsModal";
 import googleMapsIcon from "../assets/icons/google-maps.svg";
 import googleFlightsIcon from "../assets/icons/google-flights.svg";
 import skyscannerIcon from "../assets/icons/skyscanner.svg";
@@ -61,6 +65,7 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
   const [showCustomNights, setShowCustomNights] = useState(false);
   const [customNightsValue, setCustomNightsValue] = useState("");
   const [locationImageUrl, setLocationImageUrl] = useState<string | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
 
@@ -233,6 +238,31 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
   const handleTransportSelect = (transport: string): void => {
     onDestinationChange({ ...destination, transport });
     handleTransportClose();
+  };
+
+  const getTransportLabel = (transport: string): string => {
+    switch (transport) {
+      case "by plane":
+        return "flight";
+      case "by bus":
+        return "bus";
+      case "by train":
+        return "train";
+      case "by boat":
+        return "voyage";
+      default:
+        return "details";
+    }
+  };
+
+  const handleTransportDetailsSave = (details: DestinationType["transportDetails"]): void => {
+    onDestinationChange({ ...destination, transportDetails: details });
+  };
+
+  const formatDateTime = (dateTimeString?: string): string => {
+    if (!dateTimeString) return "";
+    const date = dayjs(dateTimeString);
+    return date.format("MMM D, YYYY h:mm A");
   };
 
   const getTransportIcon = (): ReactElement => {
@@ -765,26 +795,105 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
           {nextDestination && (
             <DestinationSection title="Onwards">
               {nextDestination.transport ? (
-                (() => {
-                  const links = getTransportLinks(
-                    destination,
-                    nextDestination,
-                    nextDestination.transport || "",
-                    undefined
-                  );
-                  return links.length > 0 ? (
-                    renderTransportLinks(links)
-                  ) : (
-                    "link to transport booking"
-                  );
-                })()
+                nextDestination.transport &&
+                !["by car", "by motorbike", "by bicycle", "on foot", "starting point"].includes(
+                  nextDestination.transport
+                ) &&
+                destination.transportDetails ? (
+                  <Box sx={{ mt: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 1,
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
+                        <Typography variant="body1" component="span">
+                          {destination.transportDetails.departureLocation || "Origin"}
+                        </Typography>
+                        <Typography variant="body1" component="span">
+                          →
+                        </Typography>
+                        <Typography variant="body1" component="span">
+                          {destination.transportDetails.arrivalLocation || "Destination"}
+                        </Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<EditIcon />}
+                        onClick={() => setDetailsModalOpen(true)}
+                      >
+                        Edit
+                      </Button>
+                    </Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDateTime(destination.transportDetails.departureDateTime) || "No departure time"}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDateTime(destination.transportDetails.arrivalDateTime) || "No arrival time"}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : (
+                  <>
+                    {(() => {
+                      const links = getTransportLinks(
+                        destination,
+                        nextDestination,
+                        nextDestination.transport || "",
+                        undefined
+                      );
+                      return links.length > 0 ? (
+                        renderTransportLinks(links)
+                      ) : (
+                        "link to transport booking"
+                      );
+                    })()}
+                    {nextDestination.transport &&
+                      !["by car", "by motorbike", "by bicycle", "on foot", "starting point"].includes(
+                        nextDestination.transport
+                      ) && (
+                        <Button
+                          variant="contained"
+                          startIcon={<AddIcon />}
+                          onClick={() => setDetailsModalOpen(true)}
+                          fullWidth
+                          sx={{ mt: 1 }}
+                        >
+                          Add {getTransportLabel(nextDestination.transport)} details
+                        </Button>
+                      )}
+                  </>
+                )
               ) : (
-                "Add a later destination and travel method to see travel options."
+                "Add a travel method for the next destination to see booking links."
               )}
             </DestinationSection>
           )}
         </CardContent>
       </Collapse>
+      {nextDestination?.transport &&
+        !["by car", "by motorbike", "by bicycle", "on foot", "starting point"].includes(
+          nextDestination.transport
+        ) && (
+          <TransportDetailsModal
+            open={detailsModalOpen}
+            onClose={() => setDetailsModalOpen(false)}
+            onSave={handleTransportDetailsSave}
+            transportMode={nextDestination.transport}
+            initialDetails={destination.transportDetails}
+          />
+        )}
     </Card>
   );
 };

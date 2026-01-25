@@ -10,6 +10,14 @@ export interface PlaceDetails {
   extent?: [number, number, number, number];
 }
 
+export interface TransportDetails {
+  departureDateTime?: string;
+  arrivalDateTime?: string;
+  departureLocation?: string;
+  arrivalLocation?: string;
+  flightNumber?: string;
+}
+
 export interface Destination {
   id: string;
   name: string;
@@ -17,4 +25,5 @@ export interface Destination {
   placeDetails?: PlaceDetails;
   transport?: string | null;
   nights?: number | "none" | null;
+  transportDetails?: TransportDetails;
 }
