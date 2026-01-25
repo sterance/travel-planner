@@ -192,3 +192,26 @@ export function getTransportLinks(
       return [];
   }
 }
+
+export function buildAccommodationLinks(destination: Destination): TransportLink[] {
+  const cityName = getCityName(destination);
+
+  if (!cityName) {
+    return [];
+  }
+
+  const encodedCity = encodeURIComponent(cityName);
+
+  return [
+    {
+      label: "Booking.com",
+      url: `https://www.booking.com/searchresults.html?ss=${encodedCity}`,
+      icon: "booking",
+    },
+    {
+      label: "Hostelworld",
+      url: `https://www.hostelworld.com/s?q=${encodedCity}`,
+      icon: "hostelworld",
+    },
+  ];
+}

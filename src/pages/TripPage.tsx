@@ -10,6 +10,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { Destination } from '../components/Destination';
 import { MapCard } from '../components/MapCard';
+import { SettingsCard } from '../components/SettingsCard';
 import { type Destination as DestinationType } from '../types/destination';
 import { type ViewMode } from '../App';
 
@@ -29,9 +30,20 @@ export const TripPage = (): ReactElement => {
     }
   }, [destinations.length, viewMode, currentIndex]);
 
+  const generateId = (): string => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      try {
+        return crypto.randomUUID();
+      } catch {
+        // fallback for non-secure contexts
+      }
+    }
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+  };
+
   const handleAddDestination = (index?: number): void => {
     const newDestination: DestinationType = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: '',
       displayName: '',
       nights: null,
@@ -89,6 +101,7 @@ export const TripPage = (): ReactElement => {
             scrollbarGutter: 'stable both-edges',
           }}
         >
+          <SettingsCard />
           <MapCard destinations={destinations} />
           {hasDestinations && (
             <Box
@@ -137,7 +150,6 @@ export const TripPage = (): ReactElement => {
             <Destination
               key={currentDestination.id}
               destination={currentDestination}
-              previousDestination={destinations[currentIndex - 1]}
               nextDestination={destinations[currentIndex + 1]}
               onDestinationChange={handleDestinationChange}
               shouldFocus={currentDestination.id === newlyCreatedId}
@@ -176,6 +188,7 @@ export const TripPage = (): ReactElement => {
           scrollbarGutter: 'stable both-edges',
         }}
       >
+        <SettingsCard />
         <MapCard destinations={destinations} />
         {destinations.map((destination, index) => (
           <Box key={destination.id}>
@@ -190,7 +203,6 @@ export const TripPage = (): ReactElement => {
             </Box>
             <Destination
               destination={destination}
-              previousDestination={destinations[index - 1]}
               nextDestination={destinations[index + 1]}
               onDestinationChange={handleDestinationChange}
               shouldFocus={destination.id === newlyCreatedId}

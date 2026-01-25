@@ -26,16 +26,17 @@ import { type Destination as DestinationType } from "../types/destination";
 import { searchPlaces, type PlaceSuggestion } from "../services/placeService";
 import { getLocationImage } from "../services/imageService";
 import { DestinationSection } from "./DestinationSection";
-import { getTransportLinks, type TransportLink } from "../utils/transportLinks";
+import { getTransportLinks, buildAccommodationLinks, type TransportLink } from "../utils/externalLinks";
 import Button from "@mui/material/Button";
 import googleMapsIcon from "../assets/icons/google-maps.svg";
 import googleFlightsIcon from "../assets/icons/google-flights.svg";
 import skyscannerIcon from "../assets/icons/skyscanner.svg";
 import rome2rioIcon from "../assets/icons/rome2rio.svg";
+import bookingIcon from "../assets/icons/booking.svg";
+import hostelworldIcon from "../assets/icons/hostelworld.svg";
 
 interface DestinationProps {
   destination: DestinationType;
-  previousDestination?: DestinationType;
   nextDestination?: DestinationType;
   onDestinationChange: (destination: DestinationType) => void;
   shouldFocus?: boolean;
@@ -43,7 +44,7 @@ interface DestinationProps {
   isFirst?: boolean;
 }
 
-export const Destination = ({ destination, previousDestination, nextDestination, onDestinationChange, shouldFocus = false, alwaysExpanded = false, isFirst = false }: DestinationProps): ReactElement => {
+export const Destination = ({ destination, nextDestination, onDestinationChange, shouldFocus = false, alwaysExpanded = false, isFirst = false }: DestinationProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -339,6 +340,32 @@ export const Destination = ({ destination, previousDestination, nextDestination,
               }}
             />
           )}
+          {link.icon === "booking" && (
+            <Box
+              component="img"
+              src={bookingIcon}
+              alt=""
+              sx={{
+                height: "1.25rem",
+                width: "auto",
+                maxWidth: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
+          {link.icon === "hostelworld" && (
+            <Box
+              component="img"
+              src={hostelworldIcon}
+              alt=""
+              sx={{
+                height: "1.25rem",
+                width: "auto",
+                maxWidth: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
           {link.label}
         </Button>
       );
@@ -417,6 +444,32 @@ export const Destination = ({ destination, previousDestination, nextDestination,
               <Box
                 component="img"
                 src={rome2rioIcon}
+                alt=""
+                sx={{
+                  height: "1.25rem",
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            {link.icon === "booking" && (
+              <Box
+                component="img"
+                src={bookingIcon}
+                alt=""
+                sx={{
+                  height: "1.25rem",
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            {link.icon === "hostelworld" && (
+              <Box
+                component="img"
+                src={hostelworldIcon}
                 alt=""
                 sx={{
                   height: "1.25rem",
@@ -695,27 +748,17 @@ export const Destination = ({ destination, previousDestination, nextDestination,
           )}
           {destination.transport !== "starting point" && (
             <>
-              <DestinationSection title="Getting There">
-                {previousDestination && destination.transport ? (
-                  (() => {
-                    const links = getTransportLinks(
-                      previousDestination,
-                      destination,
-                      destination.transport || "",
-                      undefined
-                    );
-                    return links.length > 0 ? (
-                      renderTransportLinks(links)
-                    ) : (
-                      "link to transport booking"
-                    );
-                  })()
-                ) : (
-                  "link to transport booking"
-                )}
-              </DestinationSection>
               <DestinationSection title="Arrival">link to book uber/grab/taxi etc from arrival location to accommodation</DestinationSection>
-              <DestinationSection title="Accommodation">link to hotel booking</DestinationSection>
+              <DestinationSection title="Accommodation">
+                {(() => {
+                  const links = buildAccommodationLinks(destination);
+                  return links.length > 0 ? (
+                    renderTransportLinks(links)
+                  ) : (
+                    "link to hotel booking"
+                  );
+                })()}
+              </DestinationSection>
               <DestinationSection title="Activities">link to activities</DestinationSection>
             </>
           )}
