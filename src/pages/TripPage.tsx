@@ -11,7 +11,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { Destination } from '../components/Destination';
 import { MapCard } from '../components/MapCard';
 import { type Destination as DestinationType } from '../types/destination';
-import { type ViewMode } from '../components/Layout';
+import { type ViewMode } from '../App';
 
 interface OutletContext {
   viewMode: ViewMode;
@@ -34,6 +34,7 @@ export const TripPage = (): ReactElement => {
       id: crypto.randomUUID(),
       name: '',
       displayName: '',
+      nights: null,
     };
     setNewlyCreatedId(newDestination.id);
     if (index !== undefined) {
@@ -93,81 +94,56 @@ export const TripPage = (): ReactElement => {
             <Box
               sx={{
                 display: 'flex',
-                justifyContent: 'center',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: 2,
               }}
             >
               <IconButton
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
+                onClick={() => handleAddDestination(currentIndex)}
                 color="primary"
+                size="small"
               >
-                <ChevronLeftIcon />
+                <AddIcon />
               </IconButton>
-              <Typography variant="body2">
-                {currentIndex + 1} / {destinations.length}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  color="primary"
+                >
+                  <ChevronLeftIcon />
+                </IconButton>
+                <Typography variant="body2">
+                  {currentIndex + 1} / {destinations.length}
+                </Typography>
+                <IconButton
+                  onClick={handleNext}
+                  disabled={currentIndex === destinations.length - 1}
+                  color="primary"
+                >
+                  <ChevronRightIcon />
+                </IconButton>
+              </Box>
               <IconButton
-                onClick={handleNext}
-                disabled={currentIndex === destinations.length - 1}
+                onClick={() => handleAddDestination(currentIndex + 1)}
                 color="primary"
+                size="small"
               >
-                <ChevronRightIcon />
+                <AddIcon />
               </IconButton>
             </Box>
           )}
           {hasDestinations ? (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                position: 'relative',
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
-                <IconButton
-                  onClick={() => handleAddDestination(currentIndex)}
-                  color="primary"
-                  size="small"
-                >
-                  <AddIcon />
-                </IconButton>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Destination
-                  key={currentDestination.id}
-                  destination={currentDestination}
-                  onDestinationChange={handleDestinationChange}
-                  shouldFocus={currentDestination.id === newlyCreatedId}
-                  alwaysExpanded
-                />
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
-                <IconButton
-                  onClick={() => handleAddDestination(currentIndex + 1)}
-                  color="primary"
-                  size="small"
-                >
-                  <AddIcon />
-                </IconButton>
-              </Box>
-            </Box>
+            <Destination
+              key={currentDestination.id}
+              destination={currentDestination}
+              previousDestination={destinations[currentIndex - 1]}
+              nextDestination={destinations[currentIndex + 1]}
+              onDestinationChange={handleDestinationChange}
+              shouldFocus={currentDestination.id === newlyCreatedId}
+              alwaysExpanded
+              isFirst={currentIndex === 0}
+            />
           ) : (
             <Button
               variant="contained"
@@ -214,8 +190,11 @@ export const TripPage = (): ReactElement => {
             </Box>
             <Destination
               destination={destination}
+              previousDestination={destinations[index - 1]}
+              nextDestination={destinations[index + 1]}
               onDestinationChange={handleDestinationChange}
               shouldFocus={destination.id === newlyCreatedId}
+              isFirst={index === 0}
             />
           </Box>
         ))}

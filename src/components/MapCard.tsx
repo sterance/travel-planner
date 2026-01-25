@@ -72,7 +72,7 @@ export const MapCard = ({ destinations }: MapCardProps): ReactElement => {
               width: "100%",
             }}
           >
-            <Typography variant="h4" component="div">
+            <Typography variant="h5" component="div">
               Trip Map
             </Typography>
             <IconButton

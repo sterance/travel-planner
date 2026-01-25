@@ -15,4 +15,6 @@ export interface Destination {
   name: string;
   displayName: string;
   placeDetails?: PlaceDetails;
+  transport?: string | null;
+  nights?: number | "none" | null;
 }

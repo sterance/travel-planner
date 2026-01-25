@@ -14,7 +14,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import FlightIcon from "@mui/icons-material/Flight";
 import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
-import FlagIcon from "@mui/icons-material/Flag";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
 import TrainIcon from "@mui/icons-material/Train";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
@@ -22,21 +21,31 @@ import DirectionsBoatIcon from "@mui/icons-material/DirectionsBoat";
 import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
 import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ModeOfTravelIcon from "@mui/icons-material/ModeOfTravel";
 import { type Destination as DestinationType } from "../types/destination";
 import { searchPlaces, type PlaceSuggestion } from "../services/placeService";
+import { getLocationImage } from "../services/imageService";
+import { DestinationSection } from "./DestinationSection";
+import { getTransportLinks, type TransportLink } from "../utils/transportLinks";
+import Button from "@mui/material/Button";
+import googleMapsIcon from "../assets/icons/google-maps.svg";
+import googleFlightsIcon from "../assets/icons/google-flights.svg";
+import skyscannerIcon from "../assets/icons/skyscanner.svg";
+import rome2rioIcon from "../assets/icons/rome2rio.svg";
 
 interface DestinationProps {
   destination: DestinationType;
+  previousDestination?: DestinationType;
+  nextDestination?: DestinationType;
   onDestinationChange: (destination: DestinationType) => void;
   shouldFocus?: boolean;
   alwaysExpanded?: boolean;
+  isFirst?: boolean;
 }
 
-export const Destination = ({ destination, onDestinationChange, shouldFocus = false, alwaysExpanded = false }: DestinationProps): ReactElement => {
+export const Destination = ({ destination, previousDestination, nextDestination, onDestinationChange, shouldFocus = false, alwaysExpanded = false, isFirst = false }: DestinationProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
-  
+
   useEffect(() => {
     if (alwaysExpanded) {
       setExpanded(true);
@@ -48,10 +57,9 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
   const [isEditing, setIsEditing] = useState(destination.name === "" || shouldFocus);
   const [calendarAnchorEl, setCalendarAnchorEl] = useState<null | HTMLElement>(null);
   const [transportAnchorEl, setTransportAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedTransport, setSelectedTransport] = useState<string | null>(null);
-  const [selectedNights, setSelectedNights] = useState<number | "none" | null>(null);
   const [showCustomNights, setShowCustomNights] = useState(false);
   const [customNightsValue, setCustomNightsValue] = useState("");
+  const [locationImageUrl, setLocationImageUrl] = useState<string | null>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,6 +102,27 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
     };
   }, [inputValue, isEditing]);
 
+  useEffect(() => {
+    const fetchImage = async (): Promise<void> => {
+      if (!destination.placeDetails && !destination.displayName && !destination.name) {
+        setLocationImageUrl(null);
+        return;
+      }
+
+      const searchQuery = destination.displayName || destination.placeDetails?.city || destination.placeDetails?.country || destination.name;
+
+      if (!searchQuery) {
+        setLocationImageUrl(null);
+        return;
+      }
+
+      const imageUrl = await getLocationImage(searchQuery, { width: 800, height: 400 });
+      setLocationImageUrl(imageUrl);
+    };
+
+    fetchImage();
+  }, [destination.displayName, destination.placeDetails, destination.name]);
+
   const handleExpandClick = (): void => {
     setExpanded(!expanded);
   };
@@ -111,12 +140,7 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
     }
   };
 
-  const handleChange = (
-    _event: unknown,
-    value: string | PlaceSuggestion | null,
-    _reason?: unknown,
-    _details?: unknown
-  ): void => {
+  const handleChange = (_event: unknown, value: string | PlaceSuggestion | null, _reason?: unknown, _details?: unknown): void => {
     if (value && typeof value !== "string") {
       onDestinationChange({
         ...destination,
@@ -174,7 +198,7 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
         customNightsInputRef.current?.focus();
       }, 0);
     } else {
-      setSelectedNights(nights);
+      onDestinationChange({ ...destination, nights });
       handleCalendarClose();
     }
   };
@@ -182,7 +206,7 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
   const handleCustomNightsSubmit = (): void => {
     const parsed = parseInt(customNightsValue, 10);
     if (!isNaN(parsed) && parsed > 0) {
-      setSelectedNights(parsed);
+      onDestinationChange({ ...destination, nights: parsed });
     }
     setShowCustomNights(false);
     setCustomNightsValue("");
@@ -206,12 +230,12 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
   };
 
   const handleTransportSelect = (transport: string): void => {
-    setSelectedTransport(transport);
+    onDestinationChange({ ...destination, transport });
     handleTransportClose();
   };
 
   const getTransportIcon = (): ReactElement => {
-    switch (selectedTransport) {
+    switch (destination.transport) {
       case "starting point":
         return <OutlinedFlagIcon sx={{ fontSize: "2rem" }} />;
       case "by plane":
@@ -220,23 +244,193 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
         return <DirectionsBusIcon sx={{ fontSize: "2rem" }} />;
       case "by train":
         return <TrainIcon sx={{ fontSize: "2rem" }} />;
-      case "by car":
-        return <DirectionsCarIcon sx={{ fontSize: "2rem" }} />;
       case "by boat":
         return <DirectionsBoatIcon sx={{ fontSize: "2rem" }} />;
+      case "by car":
+        return <DirectionsCarIcon sx={{ fontSize: "2rem" }} />;
       case "on foot":
         return <DirectionsWalkIcon sx={{ fontSize: "2rem" }} />;
       case "by bicycle":
         return <DirectionsBikeIcon sx={{ fontSize: "2rem" }} />;
       case "by motorbike":
         return <TwoWheelerIcon sx={{ fontSize: "2rem" }} />;
-      case "unknown":
-        return <HelpOutlineIcon sx={{ fontSize: "2rem" }} />;
-      case "ending point":
-        return <FlagIcon sx={{ fontSize: "2rem" }} />;
       default:
         return <ModeOfTravelIcon sx={{ fontSize: "2rem" }} />;
     }
+  };
+
+  const renderTransportLinks = (links: TransportLink[]): ReactElement | null => {
+    if (links.length === 0) {
+      return null;
+    }
+
+    if (links.length === 1) {
+      const link = links[0];
+      return (
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={() => {
+            window.open(link.url, "_blank", "noopener,noreferrer");
+          }}
+          sx={{
+            bgcolor: "white",
+            color: "black !important",
+            borderColor: "divider",
+            "&:hover": {
+              bgcolor: "grey.50",
+              borderColor: "divider",
+              color: "black !important",
+            },
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          {link.icon === "google-maps" && (
+            <Box
+              component="img"
+              src={googleMapsIcon}
+              alt=""
+              sx={{
+                height: "1.25rem",
+                width: "auto",
+                maxWidth: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
+          {link.icon === "google-flights" && (
+            <Box
+              component="img"
+              src={googleFlightsIcon}
+              alt=""
+              sx={{
+                height: "1.25rem",
+                width: "auto",
+                maxWidth: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
+          {link.icon === "skyscanner" && (
+            <Box
+              component="img"
+              src={skyscannerIcon}
+              alt=""
+              sx={{
+                height: "1.25rem",
+                width: "auto",
+                maxWidth: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
+          {link.icon === "rome2rio" && (
+            <Box
+              component="img"
+              src={rome2rioIcon}
+              alt=""
+              sx={{
+                height: "1.25rem",
+                width: "auto",
+                maxWidth: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
+          {link.label}
+        </Button>
+      );
+    }
+
+    return (
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 1,
+        }}
+      >
+        {links.map((link) => (
+          <Button
+            key={link.label}
+            variant="outlined"
+            fullWidth
+            onClick={() => {
+              window.open(link.url, "_blank", "noopener,noreferrer");
+            }}
+            sx={{
+              bgcolor: "white",
+              color: "black !important",
+              borderColor: "divider",
+              "&:hover": {
+                bgcolor: "grey.50",
+                borderColor: "divider",
+                color: "black !important",
+              },
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            {link.icon === "google-maps" && (
+              <Box
+                component="img"
+                src={googleMapsIcon}
+                alt=""
+                sx={{
+                  height: "1.25rem",
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            {link.icon === "google-flights" && (
+              <Box
+                component="img"
+                src={googleFlightsIcon}
+                alt=""
+                sx={{
+                  height: "1.25rem",
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            {link.icon === "skyscanner" && (
+              <Box
+                component="img"
+                src={skyscannerIcon}
+                alt=""
+                sx={{
+                  height: "1.25rem",
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            {link.icon === "rome2rio" && (
+              <Box
+                component="img"
+                src={rome2rioIcon}
+                alt=""
+                sx={{
+                  height: "1.25rem",
+                  width: "auto",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+            {link.label}
+          </Button>
+        ))}
+      </Box>
+    );
   };
 
   return (
@@ -309,10 +503,12 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
                   {getTransportIcon()}
                 </IconButton>
                 <Menu anchorEl={transportAnchorEl} open={Boolean(transportAnchorEl)} onClose={handleTransportClose}>
-                  <MenuItem onClick={() => handleTransportSelect("starting point")}>
-                    <OutlinedFlagIcon sx={{ mr: 1 }} />
-                    Starting point
-                  </MenuItem>
+                  {isFirst && (
+                    <MenuItem onClick={() => handleTransportSelect("starting point")}>
+                      <OutlinedFlagIcon sx={{ mr: 1 }} />
+                      Starting point
+                    </MenuItem>
+                  )}
                   <MenuItem onClick={() => handleTransportSelect("by plane")}>
                     <FlightIcon sx={{ mr: 1 }} />
                     By plane
@@ -325,34 +521,28 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
                     <TrainIcon sx={{ mr: 1 }} />
                     By train
                   </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by car")}>
-                    <DirectionsCarIcon sx={{ mr: 1 }} />
-                    By car
-                  </MenuItem>
                   <MenuItem onClick={() => handleTransportSelect("by boat")}>
                     <DirectionsBoatIcon sx={{ mr: 1 }} />
                     By boat
                   </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("on foot")}>
-                    <DirectionsWalkIcon sx={{ mr: 1 }} />
-                    On foot
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by bicycle")}>
-                    <DirectionsBikeIcon sx={{ mr: 1 }} />
-                    By bicycle
+                  <MenuItem onClick={() => handleTransportSelect("by car")}>
+                    <DirectionsCarIcon sx={{ mr: 1 }} />
+                    By car
                   </MenuItem>
                   <MenuItem onClick={() => handleTransportSelect("by motorbike")}>
                     <TwoWheelerIcon sx={{ mr: 1 }} />
                     By motorbike
                   </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("unknown")}>
-                    <HelpOutlineIcon sx={{ mr: 1 }} />
-                    Unknown
+                  <MenuItem onClick={() => handleTransportSelect("by bicycle")}>
+                    <DirectionsBikeIcon sx={{ mr: 1 }} />
+                    By bicycle
                   </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("ending point")}>
-                    <FlagIcon sx={{ mr: 1 }} />
-                    Ending point
+                  <MenuItem onClick={() => handleTransportSelect("on foot")}>
+                    <DirectionsWalkIcon sx={{ mr: 1 }} />
+                    On foot
                   </MenuItem>
+
+
                 </Menu>
                 <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
                   <Typography
@@ -429,9 +619,9 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
                 }}
               >
                 <Box sx={{ justifySelf: "start" }}>
-                  {expanded && selectedTransport && (
+                  {expanded && destination.transport && (
                     <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                      {selectedTransport}
+                      {destination.transport}
                     </Typography>
                   )}
                 </Box>
@@ -446,15 +636,7 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
                 >
                   <ExpandMoreIcon />
                 </IconButton>
-                <Box sx={{ justifySelf: "end" }}>
-                  {expanded && selectedNights !== null && (
-                    <Typography variant="body2">
-                      {selectedNights === "none"
-                        ? "None"
-                        : `${selectedNights} ${selectedNights === 1 ? "Night" : "Nights"}`}
-                    </Typography>
-                  )}
-                </Box>
+                <Box sx={{ justifySelf: "end" }}>{expanded && destination.nights !== null && <Typography variant="body2">{destination.nights === "none" ? "None" : `${destination.nights} ${destination.nights === 1 ? "Night" : "Nights"}`}</Typography>}</Box>
               </Box>
             )}
             {alwaysExpanded && (
@@ -464,24 +646,17 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
                   gridTemplateColumns: "1fr 1fr",
                   alignItems: "center",
                   width: "100%",
+                  mt: 1,
                 }}
               >
                 <Box sx={{ justifySelf: "start" }}>
-                  {selectedTransport && (
+                  {destination.transport && (
                     <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                      {selectedTransport}
+                      {destination.transport}
                     </Typography>
                   )}
                 </Box>
-                <Box sx={{ justifySelf: "end" }}>
-                  {selectedNights !== null && (
-                    <Typography variant="body2">
-                      {selectedNights === "none"
-                        ? "None"
-                        : `${selectedNights} ${selectedNights === 1 ? "Night" : "Nights"}`}
-                    </Typography>
-                  )}
-                </Box>
+                <Box sx={{ justifySelf: "end" }}>{destination.nights !== null && <Typography variant="body2">{destination.nights === "none" ? "None" : `${destination.nights} ${destination.nights === 1 ? "Night" : "Nights"}`}</Typography>}</Box>
               </Box>
             )}
           </Box>
@@ -494,7 +669,78 @@ export const Destination = ({ destination, onDestinationChange, shouldFocus = fa
         }}
       />
       <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit>
-        <CardContent>{/* destination content will go here */}</CardContent>
+        <CardContent
+          sx={{
+            padding: alwaysExpanded ? "1rem 0 0" : 0,
+            "&:last-child": { pb: 0 },
+          }}
+        >
+          {locationImageUrl && (
+            <Box
+              component="img"
+              src={locationImageUrl}
+              alt={destination.displayName || destination.name || "Location"}
+              sx={{
+                width: "100%",
+                height: "auto",
+                maxHeight: "250px",
+                objectFit: "cover",
+                borderRadius: "4px 4px 0 0",
+                display: "block",
+              }}
+              onError={() => {
+                setLocationImageUrl(null);
+              }}
+            />
+          )}
+          {destination.transport !== "starting point" && (
+            <>
+              <DestinationSection title="Getting There">
+                {previousDestination && destination.transport ? (
+                  (() => {
+                    const links = getTransportLinks(
+                      previousDestination,
+                      destination,
+                      destination.transport || "",
+                      undefined
+                    );
+                    return links.length > 0 ? (
+                      renderTransportLinks(links)
+                    ) : (
+                      "link to transport booking"
+                    );
+                  })()
+                ) : (
+                  "link to transport booking"
+                )}
+              </DestinationSection>
+              <DestinationSection title="Arrival">link to book uber/grab/taxi etc from arrival location to accommodation</DestinationSection>
+              <DestinationSection title="Accommodation">link to hotel booking</DestinationSection>
+              <DestinationSection title="Activities">link to activities</DestinationSection>
+            </>
+          )}
+          {nextDestination && (
+            <DestinationSection title="Onwards">
+              {nextDestination.transport ? (
+                (() => {
+                  const links = getTransportLinks(
+                    destination,
+                    nextDestination,
+                    nextDestination.transport || "",
+                    undefined
+                  );
+                  return links.length > 0 ? (
+                    renderTransportLinks(links)
+                  ) : (
+                    "link to transport booking"
+                  );
+                })()
+              ) : (
+                "Add a later destination and travel method to see travel options."
+              )}
+            </DestinationSection>
+          )}
+        </CardContent>
       </Collapse>
     </Card>
   );
