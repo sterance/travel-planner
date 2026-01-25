@@ -12,13 +12,17 @@ import Typography from '@mui/material/Typography';
 import MenuIcon from '@mui/icons-material/Menu';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import Switch from '@mui/material/Switch';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import { useThemeMode } from '../theme/ThemeContext';
 
 const DRAWER_WIDTH = 240;
 
+export type ViewMode = 'list' | 'carousel';
+
 export const Layout = (): ReactElement => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const { mode, toggleTheme } = useThemeMode();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,6 +34,10 @@ export const Layout = (): ReactElement => {
   const handleNavigation = (path: string): void => {
     navigate(path);
     setDrawerOpen(false);
+  };
+
+  const handleViewModeToggle = (): void => {
+    setViewMode((prev) => (prev === 'list' ? 'carousel' : 'list'));
   };
 
   const navItems = [
@@ -53,12 +61,9 @@ export const Layout = (): ReactElement => {
             Travel Planner
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Switch
-              checked={false}
-              onChange={() => {}}
-              size="small"
-              color="default"
-            />
+            <IconButton color="inherit" onClick={handleViewModeToggle}>
+              {viewMode === 'list' ? <ViewCarouselIcon /> : <ViewListIcon />}
+            </IconButton>
             <IconButton color="inherit" onClick={toggleTheme}>
               {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
@@ -102,13 +107,14 @@ export const Layout = (): ReactElement => {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          p: 3,
+          px: 1.5,
+          py: 3,
           mt: '64px',
           minHeight: 0,
         }}
       >
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Outlet />
+          <Outlet context={{ viewMode }} />
         </Box>
       </Box>
     </Box>

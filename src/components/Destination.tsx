@@ -5,6 +5,7 @@ import CardContent from "@mui/material/CardContent";
 import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
@@ -22,17 +23,28 @@ import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
 import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import ModeOfTravelIcon from "@mui/icons-material/ModeOfTravel";
 import { type Destination as DestinationType } from "../types/destination";
+import { searchPlaces, type PlaceSuggestion } from "../services/placeService";
 
 interface DestinationProps {
   destination: DestinationType;
-  onNameChange: (id: string, name: string) => void;
+  onDestinationChange: (destination: DestinationType) => void;
   shouldFocus?: boolean;
+  alwaysExpanded?: boolean;
 }
 
-export const Destination = ({ destination, onNameChange, shouldFocus = false }: DestinationProps): ReactElement => {
+export const Destination = ({ destination, onDestinationChange, shouldFocus = false, alwaysExpanded = false }: DestinationProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
-  const [name, setName] = useState(destination.name);
+  
+  useEffect(() => {
+    if (alwaysExpanded) {
+      setExpanded(true);
+    }
+  }, [alwaysExpanded]);
+  const [inputValue, setInputValue] = useState(destination.name);
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(destination.name === "" || shouldFocus);
   const [calendarAnchorEl, setCalendarAnchorEl] = useState<null | HTMLElement>(null);
   const [transportAnchorEl, setTransportAnchorEl] = useState<null | HTMLElement>(null);
@@ -40,45 +52,109 @@ export const Destination = ({ destination, onNameChange, shouldFocus = false }: 
   const [selectedNights, setSelectedNights] = useState<number | "none" | null>(null);
   const [showCustomNights, setShowCustomNights] = useState(false);
   const [customNightsValue, setCustomNightsValue] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setName(destination.name);
+    setInputValue(destination.name);
   }, [destination.name]);
 
   useEffect(() => {
-    if (shouldFocus && inputRef.current) {
-      inputRef.current.focus();
-      setIsEditing(true);
+    if (shouldFocus) {
+      const timeoutId = setTimeout(() => {
+        if (autocompleteRef.current) {
+          const input = autocompleteRef.current.querySelector("input");
+          if (input) {
+            input.focus();
+            setIsEditing(true);
+          }
+        }
+      }, 50);
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [shouldFocus]);
+
+  useEffect(() => {
+    if (!isEditing || inputValue.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setIsLoading(true);
+      const results = await searchPlaces(inputValue);
+      setSuggestions(results);
+      setIsLoading(false);
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [inputValue, isEditing]);
 
   const handleExpandClick = (): void => {
     setExpanded(!expanded);
   };
 
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const newName = event.target.value;
-    setName(newName);
-    onNameChange(destination.id, newName);
+  const handleInputChange = (_event: unknown, newValue: string | null): void => {
+    const value = newValue || "";
+    setInputValue(value);
+    if (!value) {
+      onDestinationChange({
+        ...destination,
+        name: "",
+        displayName: "",
+        placeDetails: undefined,
+      });
+    }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === "Enter") {
+  const handleChange = (
+    _event: unknown,
+    value: string | PlaceSuggestion | null,
+    _reason?: unknown,
+    _details?: unknown
+  ): void => {
+    if (value && typeof value !== "string") {
+      onDestinationChange({
+        ...destination,
+        name: value.name,
+        displayName: value.displayName,
+        placeDetails: value.placeDetails,
+      });
       setIsEditing(false);
-      inputRef.current?.blur();
+    } else if (typeof value === "string") {
+      const cityName = value.includes(",") ? value.split(",")[0].trim() : value;
+      onDestinationChange({
+        ...destination,
+        name: value,
+        displayName: cityName,
+        placeDetails: undefined,
+      });
     }
   };
 
   const handleBlur = (): void => {
+    if (inputValue && !destination.placeDetails) {
+      const cityName = inputValue.includes(",") ? inputValue.split(",")[0].trim() : inputValue;
+      onDestinationChange({
+        ...destination,
+        name: inputValue,
+        displayName: cityName,
+      });
+    }
     setIsEditing(false);
   };
 
   const handleEditClick = (): void => {
     setIsEditing(true);
     setTimeout(() => {
-      inputRef.current?.focus();
+      const input = autocompleteRef.current?.querySelector("input");
+      if (input) {
+        input.focus();
+      }
     }, 0);
   };
 
@@ -159,7 +235,7 @@ export const Destination = ({ destination, onNameChange, shouldFocus = false }: 
       case "ending point":
         return <FlagIcon sx={{ fontSize: "2rem" }} />;
       default:
-        return <FlightIcon sx={{ fontSize: "2rem" }} />;
+        return <ModeOfTravelIcon sx={{ fontSize: "2rem" }} />;
     }
   };
 
@@ -169,26 +245,55 @@ export const Destination = ({ destination, onNameChange, shouldFocus = false }: 
         title={
           <Box sx={{ width: "100%" }}>
             {isEditing ? (
-              <TextField
-                inputRef={inputRef}
-                value={name}
-                onChange={handleNameChange}
-                onKeyDown={handleKeyDown}
-                onBlur={handleBlur}
-                placeholder="Destination name"
-                variant="standard"
-                sx={{
-                  width: "100%",
-                  "& .MuiInputBase-input": {
-                    textAlign: "center",
-                  },
-                }}
-                slotProps={{
-                  input: {
-                    disableUnderline: true,
-                  },
-                }}
-              />
+              <Box sx={{ position: "relative", width: "100%" }}>
+                <Autocomplete
+                  ref={autocompleteRef}
+                  freeSolo
+                  options={suggestions}
+                  getOptionLabel={(option) => {
+                    if (typeof option === "string") {
+                      return option;
+                    }
+                    return option.name;
+                  }}
+                  inputValue={inputValue}
+                  onInputChange={handleInputChange}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  loading={isLoading}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Destination name"
+                      variant="standard"
+                      sx={{
+                        width: "100%",
+                        "& .MuiInputBase-input": {
+                          textAlign: "center",
+                        },
+                      }}
+                      InputProps={{
+                        ...params.InputProps,
+                        disableUnderline: true,
+                      }}
+                    />
+                  )}
+                  sx={{
+                    width: "100%",
+                    "& .MuiAutocomplete-endAdornment": {
+                      position: "absolute",
+                      right: "8px",
+                    },
+                    "& .MuiInputBase-root": {
+                      paddingRight: "0 !important",
+                    },
+                    "& .MuiInputBase-input": {
+                      paddingLeft: "40px !important",
+                      paddingRight: "40px !important",
+                    },
+                  }}
+                />
+              </Box>
             ) : (
               <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
                 <IconButton
@@ -259,7 +364,7 @@ export const Destination = ({ destination, onNameChange, shouldFocus = false }: 
                       cursor: "text",
                     }}
                   >
-                    {name || "Destination name"}
+                    {destination.displayName || destination.name || "Destination name"}
                   </Typography>
                 </Box>
                 <IconButton
@@ -314,42 +419,71 @@ export const Destination = ({ destination, onNameChange, shouldFocus = false }: 
                 )}
               </Box>
             )}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "1fr auto 1fr",
-                alignItems: "center",
-                width: "100%",
-              }}
-            >
-              <Box sx={{ justifySelf: "start" }}>
-                {expanded && selectedTransport && (
-                  <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                    {selectedTransport}
-                  </Typography>
-                )}
-              </Box>
-              <IconButton
-                onClick={handleExpandClick}
-                aria-expanded={expanded}
-                aria-label="show more"
+            {!alwaysExpanded && (
+              <Box
                 sx={{
-                  transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 0.2s",
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto 1fr",
+                  alignItems: "center",
+                  width: "100%",
                 }}
               >
-                <ExpandMoreIcon />
-              </IconButton>
-              <Box sx={{ justifySelf: "end" }}>
-                {expanded && selectedNights !== null && (
-                  <Typography variant="body2">
-                    {selectedNights === "none"
-                      ? "None"
-                      : `${selectedNights} ${selectedNights === 1 ? "Night" : "Nights"}`}
-                  </Typography>
-                )}
+                <Box sx={{ justifySelf: "start" }}>
+                  {expanded && selectedTransport && (
+                    <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
+                      {selectedTransport}
+                    </Typography>
+                  )}
+                </Box>
+                <IconButton
+                  onClick={handleExpandClick}
+                  aria-expanded={expanded}
+                  aria-label="show more"
+                  sx={{
+                    transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s",
+                  }}
+                >
+                  <ExpandMoreIcon />
+                </IconButton>
+                <Box sx={{ justifySelf: "end" }}>
+                  {expanded && selectedNights !== null && (
+                    <Typography variant="body2">
+                      {selectedNights === "none"
+                        ? "None"
+                        : `${selectedNights} ${selectedNights === 1 ? "Night" : "Nights"}`}
+                    </Typography>
+                  )}
+                </Box>
               </Box>
-            </Box>
+            )}
+            {alwaysExpanded && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                <Box sx={{ justifySelf: "start" }}>
+                  {selectedTransport && (
+                    <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
+                      {selectedTransport}
+                    </Typography>
+                  )}
+                </Box>
+                <Box sx={{ justifySelf: "end" }}>
+                  {selectedNights !== null && (
+                    <Typography variant="body2">
+                      {selectedNights === "none"
+                        ? "None"
+                        : `${selectedNights} ${selectedNights === 1 ? "Night" : "Nights"}`}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            )}
           </Box>
         }
         sx={{
@@ -359,7 +493,7 @@ export const Destination = ({ destination, onNameChange, shouldFocus = false }: 
           pb: 0,
         }}
       />
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
+      <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit>
         <CardContent>{/* destination content will go here */}</CardContent>
       </Collapse>
     </Card>
