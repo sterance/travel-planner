@@ -1,21 +1,22 @@
-import { useState, useEffect, useMemo, type ReactElement } from 'react';
-import { useOutletContext, useParams } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import AddIcon from '@mui/icons-material/Add';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import dayjs, { type Dayjs } from 'dayjs';
-import { Destination } from '../components/Destination';
-import { MapCard } from '../components/MapCard';
-import { SettingsCard } from '../components/SettingsCard';
-import { type Destination as DestinationType } from '../types/destination';
-import { type ViewMode, type LayoutMode } from '../App';
-import { useTripContext } from '../context/TripContext';
-import { calculateDestinationDates, calculateTripEndDate, hasDateErrors } from '../utils/dateCalculation';
+import { useState, useEffect, useMemo, type ReactElement } from "react";
+import { useOutletContext, useParams } from "react-router-dom";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import AddIcon from "@mui/icons-material/Add";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import dayjs, { type Dayjs } from "dayjs";
+import { Destination } from "../components/Destination";
+import { MapCard } from "../components/MapCard";
+import { SettingsCard } from "../components/SettingsCard";
+import { type Destination as DestinationType } from "../types/destination";
+import { type ViewMode, type LayoutMode } from "../App";
+import { useTripContext } from "../context/TripContext";
+import { calculateDestinationDates, calculateTripEndDate, hasDateErrors } from "../utils/dateCalculation";
 
 interface OutletContext {
   viewMode: ViewMode;
@@ -32,6 +33,7 @@ export const TripPage = (): ReactElement => {
   const { currentTrip, updateTrip, setCurrentTrip } = useTripContext();
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const isNarrowScreen = useMediaQuery(`(max-width: 399px)`);
 
   useEffect(() => {
     if (tripId && tripId !== currentTrip?.id) {
@@ -43,35 +45,26 @@ export const TripPage = (): ReactElement => {
   const tripStartDate = currentTrip?.startDate ? dayjs(currentTrip.startDate) : null;
 
   const startDateDayjs = tripStartDate;
-  const destinationDates = useMemo(
-    () => calculateDestinationDates(startDateDayjs, destinations),
-    [startDateDayjs, destinations]
-  );
-  const tripEndDate = useMemo(
-    () => calculateTripEndDate(startDateDayjs, destinations),
-    [startDateDayjs, destinations]
-  );
-  const dateErrorsExist = useMemo(
-    () => hasDateErrors(startDateDayjs, destinations),
-    [startDateDayjs, destinations]
-  );
+  const destinationDates = useMemo(() => calculateDestinationDates(startDateDayjs, destinations), [startDateDayjs, destinations]);
+  const tripEndDate = useMemo(() => calculateTripEndDate(startDateDayjs, destinations), [startDateDayjs, destinations]);
+  const dateErrorsExist = useMemo(() => hasDateErrors(startDateDayjs, destinations), [startDateDayjs, destinations]);
 
   useEffect(() => {
-    if ((viewMode === 'carousel' || (viewMode === 'list' && layoutMode === 'desktop')) && destinations.length > 0) {
+    if ((viewMode === "carousel" || (viewMode === "list" && layoutMode === "desktop")) && destinations.length > 0) {
       setCurrentIndex(Math.min(currentIndex, destinations.length - 1));
     }
   }, [destinations.length, viewMode, layoutMode, currentIndex]);
 
   if (!currentTrip) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
+      <Box sx={{ p: 3, textAlign: "center" }}>
         <Typography>No trip selected</Typography>
       </Box>
     );
   }
 
   const generateId = (): string => {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
       try {
         return crypto.randomUUID();
       } catch {
@@ -85,20 +78,20 @@ export const TripPage = (): ReactElement => {
     if (!currentTrip) return;
     const newDestination: DestinationType = {
       id: generateId(),
-      name: '',
-      displayName: '',
+      name: "",
+      displayName: "",
       nights: null,
     };
     setNewlyCreatedId(newDestination.id);
     const newDestinations = [...destinations];
     if (index !== undefined) {
       newDestinations.splice(index, 0, newDestination);
-      if (viewMode === 'carousel') {
+      if (viewMode === "carousel") {
         setCurrentIndex(index);
       }
     } else {
       newDestinations.push(newDestination);
-      if (viewMode === 'carousel') {
+      if (viewMode === "carousel") {
         setCurrentIndex(destinations.length);
       }
     }
@@ -113,7 +106,7 @@ export const TripPage = (): ReactElement => {
   };
 
   const handleNext = (): void => {
-    if (layoutMode === 'desktop' && viewMode === 'list') {
+    if (layoutMode === "desktop" && viewMode === "list") {
       setCurrentIndex((prev) => Math.min(Math.max(0, destinations.length - columns), prev + 1));
     } else {
       setCurrentIndex((prev) => Math.min(destinations.length - 1, prev + 1));
@@ -130,9 +123,7 @@ export const TripPage = (): ReactElement => {
 
   const handleDestinationChange = (updatedDestination: DestinationType): void => {
     if (!currentTrip) return;
-    const updatedDestinations = destinations.map((dest) =>
-      dest.id === updatedDestination.id ? updatedDestination : dest
-    );
+    const updatedDestinations = destinations.map((dest) => (dest.id === updatedDestination.id ? updatedDestination : dest));
     updateTrip({
       ...currentTrip,
       destinations: updatedDestinations,
@@ -150,227 +141,113 @@ export const TripPage = (): ReactElement => {
     });
   };
 
-  if (viewMode === 'carousel') {
+  if (viewMode === "carousel") {
     const hasDestinations = destinations.length > 0;
-
-    if (layoutMode === 'desktop') {
-      const totalSlots = maxAdjacent * 2 + 1;
-
-      return (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-          }}
-        >
-          <Stack
-            sx={{
-              flex: 1,
-              overflow: 'auto',
-              gap: 2,
-              scrollbarGutter: 'stable both-edges',
-            }}
-          >
-            <SettingsCard
-              startDate={tripStartDate}
-              endDate={tripEndDate}
-              onStartDateChange={handleStartDateChange}
-              hasDateErrors={dateErrorsExist}
-            />
-            <MapCard destinations={destinations} />
-            {hasDestinations && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 2,
-                }}
-              >
-                <IconButton
-                  onClick={handlePrevious}
-                  disabled={currentIndex === 0}
-                  color="primary"
-                >
-                  <ChevronLeftIcon />
-                </IconButton>
-                <Typography variant="body2">
-                  {currentIndex + 1} / {destinations.length}
-                </Typography>
-                <IconButton
-                  onClick={handleNext}
-                  disabled={currentIndex >= destinations.length - 1}
-                  color="primary"
-                >
-                  <ChevronRightIcon />
-                </IconButton>
-              </Box>
-            )}
-            {hasDestinations ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'stretch',
-                  gap: 2,
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}
-              >
-                {Array.from({ length: totalSlots }).map((_, slotIndex) => {
-                  const relativeIndex = slotIndex - maxAdjacent;
-                  const absoluteIndex = currentIndex + relativeIndex;
-
-                  if (absoluteIndex < 0 || absoluteIndex >= destinations.length) {
-                    return (
-                      <Box
-                        key={`empty-${slotIndex}`}
-                        sx={{
-                          width: '400px',
-                          flexShrink: 0,
-                        }}
-                      />
-                    );
-                  }
-
-                  const isCurrent = absoluteIndex === currentIndex;
-
-                  return (
-                    <Box
-                      key={destinations[absoluteIndex].id}
-                      sx={{
-                        width: isCurrent ? '450px' : '400px',
-                        flexShrink: 0,
-                        opacity: isCurrent ? 1 : 0.6,
-                        transform: isCurrent ? 'scale(1)' : 'scale(0.9)',
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
-                      <Destination
-                        destination={destinations[absoluteIndex]}
-                        nextDestination={destinations[absoluteIndex + 1]}
-                        previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
-                        onDestinationChange={handleDestinationChange}
-                        shouldFocus={destinations[absoluteIndex].id === newlyCreatedId}
-                        alwaysExpanded
-                        isFirst={absoluteIndex === 0}
-                        arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null}
-                        departureDate={destinationDates[absoluteIndex]?.departureDate ?? null}
-                        dateError={destinationDates[absoluteIndex]?.error}
-                        layoutMode={layoutMode}
-                        tripStartDate={tripStartDate}
-                      />
-                    </Box>
-                  );
-                })}
-              </Box>
-            ) : (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => handleAddDestination()}
-                sx={{ mt: 2 }}
-                fullWidth
-              >
-                Add Destination
-              </Button>
-            )}
-          </Stack>
-        </Box>
-      );
-    }
+    const totalSlots = maxAdjacent * 2 + 1;
 
     return (
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
         }}
       >
         <Stack
           sx={{
             flex: 1,
-            overflow: 'auto',
+            overflow: "auto",
             gap: 2,
-            scrollbarGutter: 'stable both-edges',
+            scrollbarGutter: "stable both-edges",
           }}
         >
-          <SettingsCard
-            startDate={tripStartDate}
-            endDate={tripEndDate}
-            onStartDateChange={handleStartDateChange}
-            hasDateErrors={dateErrorsExist}
-          />
+          <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
           <MapCard destinations={destinations} />
           {hasDestinations && (
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                display: "flex",
+                alignItems: "center",
               }}
             >
-              <IconButton
-                onClick={() => handleAddDestination(currentIndex)}
-                color="primary"
-                size="small"
-              >
-                <AddIcon />
-              </IconButton>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <IconButton
-                  onClick={handlePrevious}
-                  disabled={currentIndex === 0}
-                  color="primary"
-                >
+              <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 1 }}>
+                <IconButton onClick={() => handleAddDestination(currentIndex)} color="primary" size="small">
+                  <AddIcon />
+                  <span style={{ fontSize: "0.9rem" }}>Before</span>
+                </IconButton>
+              </Box>
+              <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                <IconButton onClick={handlePrevious} disabled={currentIndex === 0} color="primary">
                   <ChevronLeftIcon />
                 </IconButton>
                 <Typography variant="body2">
                   {currentIndex + 1} / {destinations.length}
                 </Typography>
-                <IconButton
-                  onClick={handleNext}
-                  disabled={currentIndex >= destinations.length - 1}
-                  color="primary"
-                >
+                <IconButton onClick={handleNext} disabled={currentIndex >= destinations.length - 1} color="primary">
                   <ChevronRightIcon />
                 </IconButton>
               </Box>
-              <IconButton
-                onClick={() => handleAddDestination(currentIndex + 1)}
-                color="primary"
-                size="small"
-              >
-                <AddIcon />
-              </IconButton>
+              <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 1 }}>
+                {currentIndex === destinations.length - 1 ? (
+                  <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination(currentIndex + 1)} sx={{ fontSize: "0.8rem" }}>
+                    New
+                  </Button>
+                ) : (
+                  <IconButton onClick={() => handleAddDestination(currentIndex + 1)} color="primary" size="small">
+                    <span style={{ fontSize: "0.9rem" }}>After</span>
+                    <AddIcon />
+                  </IconButton>
+                )}
+              </Box>
             </Box>
           )}
           {hasDestinations ? (
-            <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
-              <Destination
-                destination={destinations[currentIndex]}
-                nextDestination={destinations[currentIndex + 1]}
-                previousDestination={currentIndex > 0 ? destinations[currentIndex - 1] : undefined}
-                onDestinationChange={handleDestinationChange}
-                shouldFocus={destinations[currentIndex].id === newlyCreatedId}
-                alwaysExpanded
-                isFirst={currentIndex === 0}
-                arrivalDate={destinationDates[currentIndex]?.arrivalDate ?? null}
-                departureDate={destinationDates[currentIndex]?.departureDate ?? null}
-                dateError={destinationDates[currentIndex]?.error}
-                layoutMode={layoutMode}
-                tripStartDate={tripStartDate}
-              />
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "stretch",
+                gap: 2,
+                justifyContent: "center",
+                overflow: "hidden",
+              }}
+            >
+              {Array.from({ length: totalSlots }).map((_, slotIndex) => {
+                const relativeIndex = slotIndex - maxAdjacent;
+                const absoluteIndex = currentIndex + relativeIndex;
+
+                if (absoluteIndex < 0 || absoluteIndex >= destinations.length) {
+                  return (
+                    <Box
+                      key={`empty-${slotIndex}`}
+                      sx={{
+                        width: isNarrowScreen ? "100vw" : "400px",
+                        flexShrink: 0,
+                      }}
+                    />
+                  );
+                }
+
+                const isCurrent = absoluteIndex === currentIndex;
+
+                return (
+                  <Box
+                    key={destinations[absoluteIndex].id}
+                    sx={{
+                      width: isNarrowScreen && isCurrent ? "100vw" : isCurrent ? "450px" : "400px",
+                      minWidth: isNarrowScreen && isCurrent ? "100vw" : undefined,
+                      flexShrink: 0,
+                      opacity: isCurrent ? 1 : 0.6,
+                      transform: isCurrent ? "scale(1)" : "scale(0.9)",
+                      transition: "all 0.3s ease",
+                    }}
+                  >
+                    <Destination destination={destinations[absoluteIndex]} nextDestination={destinations[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destinations[absoluteIndex].id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} />
+                  </Box>
+                );
+              })}
             </Box>
           ) : (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleAddDestination()}
-              sx={{ mt: 2 }}
-              fullWidth
-            >
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination()} sx={{ mt: 2 }} fullWidth>
               Add Destination
             </Button>
           )}
@@ -379,61 +256,48 @@ export const TripPage = (): ReactElement => {
     );
   }
 
-  if (layoutMode === 'desktop' && viewMode === 'list') {
+  if (layoutMode === "desktop" && viewMode === "list") {
     const visibleDestinations = destinations.slice(currentIndex, currentIndex + columns);
 
     return (
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
         }}
       >
         <Stack
           sx={{
             flex: 1,
-            overflow: 'auto',
+            overflow: "auto",
             gap: 2,
-            scrollbarGutter: 'stable both-edges',
+            scrollbarGutter: "stable both-edges",
           }}
         >
-          <SettingsCard
-            startDate={tripStartDate}
-            endDate={tripEndDate}
-            onStartDateChange={handleStartDateChange}
-            hasDateErrors={dateErrorsExist}
-          />
+          <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
           <MapCard destinations={destinations} />
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
               gap: 2,
             }}
           >
-            <IconButton
-              onClick={handleListPrevious}
-              disabled={currentIndex === 0}
-              color="primary"
-            >
+            <IconButton onClick={handleListPrevious} disabled={currentIndex === 0} color="primary">
               <ChevronLeftIcon />
             </IconButton>
             <Typography variant="body2">
               {currentIndex + 1}-{Math.min(currentIndex + columns, destinations.length)} / {destinations.length}
             </Typography>
-            <IconButton
-              onClick={handleListNext}
-              disabled={currentIndex + columns >= destinations.length}
-              color="primary"
-            >
+            <IconButton onClick={handleListNext} disabled={currentIndex + columns >= destinations.length} color="primary">
               <ChevronRightIcon />
             </IconButton>
           </Box>
           <Box
             sx={{
-              display: 'flex',
+              display: "flex",
               gap: 2,
             }}
           >
@@ -445,34 +309,15 @@ export const TripPage = (): ReactElement => {
                   sx={{
                     flex: 1,
                     minWidth: 0,
-                    overflow: 'hidden',
+                    overflow: "hidden",
                   }}
                 >
-                  <Destination
-                    destination={destination}
-                    nextDestination={destinations[absoluteIndex + 1]}
-                    previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
-                    onDestinationChange={handleDestinationChange}
-                    shouldFocus={destination.id === newlyCreatedId}
-                    alwaysExpanded
-                    isFirst={absoluteIndex === 0}
-                    arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null}
-                    departureDate={destinationDates[absoluteIndex]?.departureDate ?? null}
-                    dateError={destinationDates[absoluteIndex]?.error}
-                    layoutMode={layoutMode}
-                    tripStartDate={tripStartDate}
-                  />
+                  <Destination destination={destination} nextDestination={destinations[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destination.id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} />
                 </Box>
               );
             })}
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleAddDestination()}
-            sx={{ mt: 2 }}
-            fullWidth
-          >
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination()} sx={{ mt: 2 }} fullWidth>
             Add Destination
           </Button>
         </Stack>
@@ -483,67 +328,40 @@ export const TripPage = (): ReactElement => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
       }}
     >
       <Stack
         sx={{
           flex: 1,
-          overflow: 'auto',
+          overflow: "auto",
           gap: 2,
-          scrollbarGutter: 'stable both-edges',
+          scrollbarGutter: "stable both-edges",
         }}
       >
-        <SettingsCard
-          startDate={tripStartDate}
-          endDate={tripEndDate}
-          onStartDateChange={handleStartDateChange}
-          hasDateErrors={dateErrorsExist}
-        />
+        <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
         <MapCard destinations={destinations} />
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
+            display: "flex",
+            flexDirection: "column",
             gap: 2,
           }}
         >
           {destinations.map((destination, index) => (
-            <Box key={destination.id} sx={{ minWidth: 0, overflow: 'hidden' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-                <IconButton
-                  onClick={() => handleAddDestination(index)}
-                  color="primary"
-                  size="small"
-                >
+            <Box key={destination.id} sx={{ minWidth: 0, overflow: "hidden" }}>
+              <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+                <IconButton onClick={() => handleAddDestination(index)} color="primary" size="small">
                   <AddIcon />
                 </IconButton>
               </Box>
-              <Destination
-                destination={destination}
-                nextDestination={destinations[index + 1]}
-                previousDestination={index > 0 ? destinations[index - 1] : undefined}
-                onDestinationChange={handleDestinationChange}
-                shouldFocus={destination.id === newlyCreatedId}
-                isFirst={index === 0}
-                arrivalDate={destinationDates[index]?.arrivalDate ?? null}
-                departureDate={destinationDates[index]?.departureDate ?? null}
-                dateError={destinationDates[index]?.error}
-                layoutMode={layoutMode}
-                tripStartDate={tripStartDate}
-              />
+              <Destination destination={destination} nextDestination={destinations[index + 1]} previousDestination={index > 0 ? destinations[index - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destination.id === newlyCreatedId} isFirst={index === 0} arrivalDate={destinationDates[index]?.arrivalDate ?? null} departureDate={destinationDates[index]?.departureDate ?? null} dateError={destinationDates[index]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} />
             </Box>
           ))}
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleAddDestination()}
-          sx={{ mt: 2 }}
-          fullWidth
-        >
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination()} sx={{ mt: 2 }} fullWidth>
           Add Destination
         </Button>
       </Stack>

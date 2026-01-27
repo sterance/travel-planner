@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -25,6 +25,7 @@ import { TripPage } from './pages/TripPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 const DRAWER_WIDTH = 240;
+const ASPECT_RATIO_BREAKPOINT = 1;
 
 export type ViewMode = 'list' | 'carousel';
 export type LayoutMode = 'portrait' | 'desktop';
@@ -67,6 +68,24 @@ function App(): ReactElement {
     setDrawerOpen(false);
   };
 
+  useEffect(() => {
+    const updateLayoutMode = (): void => {
+      const aspectRatio = window.innerWidth / window.innerHeight;
+      if (aspectRatio > ASPECT_RATIO_BREAKPOINT) {
+        setLayoutMode('desktop');
+      } else {
+        setLayoutMode('portrait');
+      }
+    };
+
+    updateLayoutMode();
+
+    window.addEventListener('resize', updateLayoutMode);
+    return () => {
+      window.removeEventListener('resize', updateLayoutMode);
+    };
+  }, []);
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
@@ -83,7 +102,7 @@ function App(): ReactElement {
             Travel Planner
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton color="inherit" onClick={handleLayoutModeToggle}>
+          <IconButton color="inherit" disabled>
               {layoutMode === 'portrait' ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
             </IconButton>
             <IconButton color="inherit" onClick={handleViewModeToggle}>
