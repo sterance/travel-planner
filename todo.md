@@ -1,0 +1,4 @@
+- re-order destinations
+- delete destinations
+- add swipe controls for mobile
+- maybe move map and trip settings in desktop mode?

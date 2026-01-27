@@ -1,5 +1,5 @@
 import { useState, type ReactElement } from 'react';
-import { Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -14,37 +14,58 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+import DesktopWindowsIcon from '@mui/icons-material/DesktopWindows';
+import AddIcon from '@mui/icons-material/Add';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useThemeMode } from './theme/ThemeContext';
+import { useTripContext } from './context/TripContext';
+import { SidebarTripItem } from './components/SidebarTripItem';
 import { TripPage } from './pages/TripPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 const DRAWER_WIDTH = 240;
 
 export type ViewMode = 'list' | 'carousel';
+export type LayoutMode = 'portrait' | 'desktop';
 
 function App(): ReactElement {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('portrait');
+  const [columns, setColumns] = useState(3);
+  const [maxAdjacent, setMaxAdjacent] = useState(2);
   const { mode, toggleTheme } = useThemeMode();
+  const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const handleNavigation = (path: string): void => {
-    navigate(path);
+  const handleTripSelect = (tripId: string): void => {
+    setCurrentTrip(tripId);
+    navigate(`/trip/${tripId}`);
     setDrawerOpen(false);
+  };
+
+  const handleNewTrip = (): void => {
+    const newTrip = createTrip();
+    navigate(`/trip/${newTrip.id}`);
   };
 
   const handleViewModeToggle = (): void => {
     setViewMode((prev) => (prev === 'list' ? 'carousel' : 'list'));
   };
 
-  const navItems = [
-    { label: 'Trip', path: '/trip' },
-    { label: 'test', path: '/test' },
-  ];
+  const handleLayoutModeToggle = (): void => {
+    setLayoutMode((prev) => (prev === 'portrait' ? 'desktop' : 'portrait'));
+  };
+
+  const handleSettingsClick = (): void => {
+    navigate('/settings');
+    setDrawerOpen(false);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -62,6 +83,9 @@ function App(): ReactElement {
             Travel Planner
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton color="inherit" onClick={handleLayoutModeToggle}>
+              {layoutMode === 'portrait' ? <DesktopWindowsIcon /> : <PhoneAndroidIcon />}
+            </IconButton>
             <IconButton color="inherit" onClick={handleViewModeToggle}>
               {viewMode === 'list' ? <ViewCarouselIcon /> : <ViewListIcon />}
             </IconButton>
@@ -88,18 +112,56 @@ function App(): ReactElement {
         }}
       >
         <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            {navItems.map((item) => (
-              <ListItemButton
-                key={item.path}
-                selected={location.pathname === item.path}
-                onClick={() => handleNavigation(item.path)}
-              >
-                <ListItemText primary={item.label} />
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ flex: 1, overflow: 'auto' }}>
+            <List>
+              {trips.map((trip) => (
+                <SidebarTripItem
+                  key={trip.id}
+                  trip={trip}
+                  isSelected={currentTripId === trip.id}
+                  autoEdit={editingTripId === trip.id}
+                  onSelect={() => handleTripSelect(trip.id)}
+                  onRename={(name) => renameTrip(trip.id, name)}
+                  onDelete={() => deleteTrip(trip.id)}
+                  onEditComplete={() => setEditingTripId(null)}
+                />
+              ))}
+              <ListItemButton onClick={handleNewTrip}>
+                <ListItemText primary="New Trip" />
+                <AddIcon sx={{ ml: 1 }} />
               </ListItemButton>
-            ))}
-          </List>
+            </List>
+          </Box>
+          <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton
+                onClick={handleSettingsClick}
+                aria-label="settings"
+                sx={{ 
+                  backgroundColor: '#42a5f5', 
+                  color: 'white', 
+                  borderRadius: 0,
+                  width: 48,
+                  height: 48,
+                  padding: 0,
+                  '&:hover': { backgroundColor: '#42a5f5' } 
+                }}
+              >
+                <SettingsIcon />
+              </IconButton>
+              <ListItemButton sx={{ flex: 1, borderLeft: 1, borderColor: 'divider', backgroundColor: '#cf533a', color: 'white', textAlign: 'center' }}>
+                <ListItemText primary="Login / Register" />
+              </ListItemButton>
+            </Box>
+          </Box>
         </Box>
       </Drawer>
       <Box
@@ -116,10 +178,11 @@ function App(): ReactElement {
       >
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <Routes>
-            <Route element={<Outlet context={{ viewMode }} />}>
-              <Route path="/" element={<Navigate to="/trip" replace />} />
-              <Route path="/trip" element={<TripPage />} />
-              <Route path="/test" element={<div>Test page</div>} />
+            <Route element={<Outlet context={{ viewMode, layoutMode, columns, setColumns, maxAdjacent, setMaxAdjacent }} />}>
+              <Route path="/" element={<TripRedirect />} />
+              <Route path="/trip" element={<TripRedirect />} />
+              <Route path="/trip/:tripId" element={<TripPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Routes>
         </Box>
@@ -127,5 +190,19 @@ function App(): ReactElement {
     </Box>
   );
 }
+
+const TripRedirect = (): ReactElement => {
+  const { trips, currentTripId, setCurrentTrip } = useTripContext();
+
+  if (trips.length > 0) {
+    const targetId = currentTripId ?? trips[0].id;
+    if (currentTripId !== targetId) {
+      setCurrentTrip(targetId);
+    }
+    return <Navigate to={`/trip/${targetId}`} replace />;
+  }
+
+  return <Navigate to="/trip" replace />;
+};
 
 export default App;

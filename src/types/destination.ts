@@ -1,3 +1,15 @@
+export interface Destination {
+  id: string;
+  name: string;
+  displayName: string;
+  placeDetails?: PlaceDetails;
+  transport?: string | null;
+  nights?: number | "none" | "dates" | null;
+  checkInDate?: string;
+  checkOutDate?: string;
+  transportDetails?: TransportDetails;
+}
+
 export interface PlaceDetails {
   osmId: number;
   osmType: string;
@@ -16,14 +28,4 @@ export interface TransportDetails {
   departureLocation?: string;
   arrivalLocation?: string;
   flightNumber?: string;
-}
-
-export interface Destination {
-  id: string;
-  name: string;
-  displayName: string;
-  placeDetails?: PlaceDetails;
-  transport?: string | null;
-  nights?: number | "none" | null;
-  transportDetails?: TransportDetails;
 }

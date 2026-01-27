@@ -11,7 +11,7 @@ import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import FlightIcon from "@mui/icons-material/Flight";
 import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
@@ -22,22 +22,50 @@ import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
 import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
 import ModeOfTravelIcon from "@mui/icons-material/ModeOfTravel";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import dayjs from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
+import { type LayoutMode } from "../App";
 import { searchPlaces, type PlaceSuggestion } from "../services/placeService";
 import { getLocationImage } from "../services/imageService";
 import { DestinationSection } from "./DestinationSection";
 import { getTransportLinks, buildAccommodationLinks, type TransportLink } from "../utils/externalLinks";
 import Button from "@mui/material/Button";
 import { TransportDetailsModal } from "./TransportDetailsModal";
+import { DoubleDatePicker } from "./DoubleDatePicker";
+import { StatusBadge } from "./StatusBadge";
 import googleMapsIcon from "../assets/icons/google-maps.svg";
 import googleFlightsIcon from "../assets/icons/google-flights.svg";
 import skyscannerIcon from "../assets/icons/skyscanner.svg";
 import rome2rioIcon from "../assets/icons/rome2rio.svg";
 import bookingIcon from "../assets/icons/booking.svg";
 import hostelworldIcon from "../assets/icons/hostelworld.svg";
+import calendar0Icon from "../assets/icons/calendar/calendar-0.svg";
+import calendar1Icon from "../assets/icons/calendar/calendar-1.svg";
+import calendar2Icon from "../assets/icons/calendar/calendar-2.svg";
+import calendar3Icon from "../assets/icons/calendar/calendar-3.svg";
+import calendar4Icon from "../assets/icons/calendar/calendar-4.svg";
+import calendar5Icon from "../assets/icons/calendar/calendar-5.svg";
+import calendar6Icon from "../assets/icons/calendar/calendar-6.svg";
+import calendar7Icon from "../assets/icons/calendar/calendar-7.svg";
+import calendar8Icon from "../assets/icons/calendar/calendar-8.svg";
+import calendar9Icon from "../assets/icons/calendar/calendar-9.svg";
+
+const calendarIcons = [
+  calendar0Icon,
+  calendar1Icon,
+  calendar2Icon,
+  calendar3Icon,
+  calendar4Icon,
+  calendar5Icon,
+  calendar6Icon,
+  calendar7Icon,
+  calendar8Icon,
+  calendar9Icon,
+];
 
 interface DestinationProps {
   destination: DestinationType;
@@ -46,9 +74,26 @@ interface DestinationProps {
   shouldFocus?: boolean;
   alwaysExpanded?: boolean;
   isFirst?: boolean;
+  arrivalDate?: Dayjs | null;
+  departureDate?: Dayjs | null;
+  dateError?: string;
+  layoutMode?: LayoutMode;
+  tripStartDate?: Dayjs | null;
 }
 
-export const Destination = ({ destination, nextDestination, onDestinationChange, shouldFocus = false, alwaysExpanded = false, isFirst = false }: DestinationProps): ReactElement => {
+export const Destination = ({
+  destination,
+  nextDestination,
+  onDestinationChange,
+  shouldFocus = false,
+  alwaysExpanded = false,
+  isFirst = false,
+  arrivalDate = null,
+  departureDate = null,
+  dateError,
+  layoutMode = 'portrait',
+  tripStartDate = null,
+}: DestinationProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -66,6 +111,7 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
   const [customNightsValue, setCustomNightsValue] = useState("");
   const [locationImageUrl, setLocationImageUrl] = useState<string | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [datePickerAnchorEl, setDatePickerAnchorEl] = useState<HTMLElement | null>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
 
@@ -196,17 +242,33 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
     setCalendarAnchorEl(null);
   };
 
-  const handleNightSelect = (nights: number | "none" | "more"): void => {
+  const handleNightSelect = (nights: number | "none" | "more" | "dates" | "unsure"): void => {
     if (nights === "more") {
       setShowCustomNights(true);
       handleCalendarClose();
       setTimeout(() => {
         customNightsInputRef.current?.focus();
       }, 0);
+    } else if (nights === "dates") {
+      handleCalendarClose();
+      setDatePickerAnchorEl(calendarAnchorEl);
+    } else if (nights === "unsure") {
+      onDestinationChange({ ...destination, nights: null, checkInDate: undefined, checkOutDate: undefined });
+      handleCalendarClose();
     } else {
-      onDestinationChange({ ...destination, nights });
+      onDestinationChange({ ...destination, nights, checkInDate: undefined, checkOutDate: undefined });
       handleCalendarClose();
     }
+  };
+
+  const handleDateRangeChange = (checkIn: Dayjs | null, checkOut: Dayjs | null): void => {
+    onDestinationChange({
+      ...destination,
+      nights: "dates",
+      checkInDate: checkIn?.toISOString(),
+      checkOutDate: checkOut?.toISOString(),
+    });
+    setDatePickerAnchorEl(null);
   };
 
   const handleCustomNightsSubmit = (): void => {
@@ -235,8 +297,12 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
     setTransportAnchorEl(null);
   };
 
-  const handleTransportSelect = (transport: string): void => {
-    onDestinationChange({ ...destination, transport });
+  const handleTransportSelect = (transport: string | "unsure"): void => {
+    if (transport === "unsure") {
+      onDestinationChange({ ...destination, transport: undefined });
+    } else {
+      onDestinationChange({ ...destination, transport });
+    }
     handleTransportClose();
   };
 
@@ -259,11 +325,35 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
     onDestinationChange({ ...destination, transportDetails: details });
   };
 
+  const selfTransportModes = ["by car", "by motorbike", "by bicycle", "on foot", "starting point"];
+
+  const isOnwardsTravelBooked = (): boolean => {
+    if (!nextDestination) return true;
+    if (!nextDestination.transport) return true;
+    if (selfTransportModes.includes(nextDestination.transport)) return true;
+    const details = destination.transportDetails;
+    return !!(details?.departureDateTime && details?.arrivalDateTime);
+  };
+
   const formatDateTime = (dateTimeString?: string): string => {
     if (!dateTimeString) return "";
     const date = dayjs(dateTimeString);
     return date.format("MMM D, YYYY h:mm A");
   };
+
+  const getCalculatedNights = (): number | null => {
+    if (destination.nights === "dates" && destination.checkInDate && destination.checkOutDate) {
+      const checkIn = dayjs(destination.checkInDate);
+      const checkOut = dayjs(destination.checkOutDate);
+      return checkOut.diff(checkIn, 'day');
+    }
+    if (typeof destination.nights === 'number') {
+      return destination.nights;
+    }
+    return null;
+  };
+
+  const calculatedNights = getCalculatedNights();
 
   const getTransportIcon = (): ReactElement => {
     switch (destination.transport) {
@@ -516,8 +606,12 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
     );
   };
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/aad0e42d-affe-4c6b-a478-448b72caba99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Destination.tsx:render',message:'Destination component render',data:{destinationId:destination.id,destinationName:destination.name,isEditing,shouldFocus,transport:destination.transport,nights:destination.nights},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'1,2,5'})}).catch(()=>{});
+  // #endregion
+
   return (
-    <Card>
+    <Card sx={{ overflow: 'hidden', maxWidth: '100%' }}>
       <CardHeader
         title={
           <Box sx={{ width: "100%" }}>
@@ -538,23 +632,36 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                   onChange={handleChange}
                   onBlur={handleBlur}
                   loading={isLoading}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder="Destination name"
-                      variant="standard"
-                      sx={{
-                        width: "100%",
-                        "& .MuiInputBase-input": {
-                          textAlign: "center",
-                        },
-                      }}
-                      InputProps={{
-                        ...params.InputProps,
-                        disableUnderline: true,
-                      }}
-                    />
-                  )}
+                  renderInput={(params) => {
+                    const { InputProps: inputProps, ...textFieldParams } = params;
+                    return (
+                      <TextField
+                        {...textFieldParams}
+                        placeholder="Destination name"
+                        variant="standard"
+                        sx={{
+                          width: "100%",
+                          "& .MuiInputBase-input": {
+                            textAlign: "center",
+                          },
+                          "& .MuiInput-underline:before": {
+                            display: "none",
+                          },
+                          "& .MuiInput-underline:after": {
+                            display: "none",
+                          },
+                          "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+                            display: "none",
+                          },
+                        }}
+                        slotProps={{
+                          input: {
+                            ...inputProps,
+                          },
+                        }}
+                      />
+                    );
+                  }}
                   sx={{
                     width: "100%",
                     "& .MuiAutocomplete-endAdornment": {
@@ -572,20 +679,27 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                 />
               </Box>
             ) : (
+              // #region agent log
+              (() => { fetch('http://127.0.0.1:7242/ingest/aad0e42d-affe-4c6b-a478-448b72caba99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Destination.tsx:non-editing-branch',message:'Rendering non-editing state',data:{destinationName:destination.displayName||destination.name,transport:destination.transport,transportVisible:!destination.transport,nights:destination.nights,nightsType:typeof destination.nights,checkInDate:destination.checkInDate,checkOutDate:destination.checkOutDate,nightsVisible:!(typeof destination.nights === 'number' || (destination.nights === 'dates' && destination.checkInDate && destination.checkOutDate))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'1,2,5'})}).catch(()=>{}); return null; })(),
+              // #endregion
               <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
-                <IconButton
-                  aria-label="transport"
-                  size="small"
-                  onClick={handleTransportClick}
-                  sx={{
-                    position: "absolute",
-                    left: 0,
-                    padding: 0.5,
-                  }}
-                >
-                  {getTransportIcon()}
-                </IconButton>
+                <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
+                  <StatusBadge variant="info" visible={!destination.transport}>
+                    <IconButton
+                      aria-label="transport"
+                      size="small"
+                      onClick={handleTransportClick}
+                      sx={{ padding: 0.5 }}
+                    >
+                      {getTransportIcon()}
+                    </IconButton>
+                  </StatusBadge>
+                </Box>
                 <Menu anchorEl={transportAnchorEl} open={Boolean(transportAnchorEl)} onClose={handleTransportClose}>
+                  <MenuItem onClick={() => handleTransportSelect("unsure")}>
+                    <HelpOutlineIcon sx={{ mr: 1 }} />
+                    Unsure
+                  </MenuItem>
                   {isFirst && (
                     <MenuItem onClick={() => handleTransportSelect("starting point")}>
                       <OutlinedFlagIcon sx={{ mr: 1 }} />
@@ -640,26 +754,73 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                     {destination.displayName || destination.name || "Destination name"}
                   </Typography>
                 </Box>
-                <IconButton
-                  aria-label="calendar"
-                  size="small"
-                  onClick={handleCalendarClick}
-                  sx={{
-                    position: "absolute",
-                    right: 0,
-                    padding: 0.5,
-                  }}
-                >
-                  <CalendarMonthIcon sx={{ fontSize: "2rem" }} />
-                </IconButton>
+                <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
+                  <StatusBadge
+                    variant="info"
+                    visible={!(typeof destination.nights === 'number' || (destination.nights === 'dates' && destination.checkInDate && destination.checkOutDate))}
+                  >
+                    <IconButton
+                      aria-label="calendar"
+                      size="small"
+                      onClick={handleCalendarClick}
+                      sx={{ padding: 0.5 }}
+                    >
+                      {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? (
+                        <Box
+                          sx={{
+                            width: "2rem",
+                            height: "2rem",
+                            backgroundColor: "action.active",
+                            maskImage: `url(${calendarIcons[calculatedNights]})`,
+                            maskSize: "contain",
+                            maskRepeat: "no-repeat",
+                            maskPosition: "center",
+                            WebkitMaskImage: `url(${calendarIcons[calculatedNights]})`,
+                            WebkitMaskSize: "contain",
+                            WebkitMaskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                          }}
+                        />
+                      ) : (
+                        <CalendarMonthOutlinedIcon sx={{ fontSize: "2rem" }} />
+                      )}
+                    </IconButton>
+                  </StatusBadge>
+                </Box>
                 <Menu anchorEl={calendarAnchorEl} open={Boolean(calendarAnchorEl)} onClose={handleCalendarClose}>
-                  <MenuItem onClick={() => handleNightSelect("none")}>None</MenuItem>
-                  {[1, 2, 3, 4, 5, 6, 7].map((nights) => (
-                    <MenuItem key={nights} onClick={() => handleNightSelect(nights)}>
+                  <MenuItem onClick={() => handleNightSelect("unsure")} sx={{ justifyContent: "flex-end" }}>
+                    Unsure
+                    <HelpOutlineIcon sx={{ ml: 1 }} />
+                  </MenuItem>
+                  <MenuItem onClick={() => handleNightSelect("dates")} sx={{ justifyContent: "flex-end" }}>
+                    Select dates
+                    <CalendarMonthOutlinedIcon sx={{ ml: 1 }} />
+                  </MenuItem>
+                  {[0, 1, 2, 3, 4, 5, 6, 7].map((nights) => (
+                    <MenuItem key={nights} onClick={() => handleNightSelect(nights)} sx={{ justifyContent: "flex-end" }}>
                       {nights} {nights === 1 ? "Night" : "Nights"}
+                      <Box
+                        sx={{
+                          ml: 1,
+                          width: 24,
+                          height: 24,
+                          backgroundColor: "action.active",
+                          maskImage: `url(${calendarIcons[nights]})`,
+                          maskSize: "contain",
+                          maskRepeat: "no-repeat",
+                          maskPosition: "center",
+                          WebkitMaskImage: `url(${calendarIcons[nights]})`,
+                          WebkitMaskSize: "contain",
+                          WebkitMaskRepeat: "no-repeat",
+                          WebkitMaskPosition: "center",
+                        }}
+                      />
                     </MenuItem>
                   ))}
-                  <MenuItem onClick={() => handleNightSelect("more")}>More...</MenuItem>
+                  <MenuItem onClick={() => handleNightSelect("more")} sx={{ justifyContent: "flex-end" }}>
+                    More
+                    <MoreHorizIcon sx={{ ml: 1 }} />
+                  </MenuItem>
                 </Menu>
                 {showCustomNights && (
                   <Box
@@ -683,7 +844,16 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                       placeholder="Nights"
                       type="number"
                       size="small"
-                      sx={{ width: 80 }}
+                      sx={{
+                        width: 80,
+                        '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                          WebkitAppearance: 'none',
+                          margin: 0,
+                        },
+                        '& input[type=number]': {
+                          MozAppearance: 'textfield',
+                        },
+                      }}
                       slotProps={{
                         htmlInput: { min: 1 },
                       }}
@@ -695,31 +865,57 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
             {!alwaysExpanded && (
               <Box
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto 1fr",
+                  display: "flex",
                   alignItems: "center",
+                  justifyContent: "space-between",
                   width: "100%",
+                  position: "relative",
+                  overflow: "visible",
                 }}
               >
-                <Box sx={{ justifySelf: "start" }}>
-                  {expanded && destination.transport && (
-                    <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                      {destination.transport}
+                <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
+                  {expanded && (
+                    <Typography variant="body2" sx={{ textTransform: "capitalize", flexShrink: 0 }}>
+                      {destination.transport || "\u00A0"}
+                    </Typography>
+                  )}
+                  {!expanded && layoutMode === 'portrait' && arrivalDate && (
+                    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                      {arrivalDate.format("MMM D")}
                     </Typography>
                   )}
                 </Box>
-                <IconButton
-                  onClick={handleExpandClick}
-                  aria-expanded={expanded}
-                  aria-label="show more"
-                  sx={{
-                    transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 0.2s",
-                  }}
-                >
-                  <ExpandMoreIcon />
-                </IconButton>
-                <Box sx={{ justifySelf: "end" }}>{expanded && destination.nights !== null && <Typography variant="body2">{destination.nights === "none" ? "None" : `${destination.nights} ${destination.nights === 1 ? "Night" : "Nights"}`}</Typography>}</Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <IconButton
+                    onClick={handleExpandClick}
+                    aria-expanded={expanded}
+                    aria-label="show more"
+                    sx={{
+                      transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s",
+                    }}
+                  >
+                    <ExpandMoreIcon />
+                  </IconButton>
+                </Box>
+                <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
+                  {expanded && (
+                    <Typography variant="body2" sx={{ flexShrink: 0 }}>
+                      {destination.nights === "none"
+                        ? "None"
+                        : calculatedNights !== null
+                          ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}`
+                          : "\u00A0"}
+                    </Typography>
+                  )}
+                  {!expanded && layoutMode === 'portrait' && departureDate && (
+                    <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
+                      <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                        {departureDate.format("MMM D")}
+                      </Typography>
+                    </StatusBadge>
+                  )}
+                </Box>
               </Box>
             )}
             {alwaysExpanded && (
@@ -733,13 +929,19 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                 }}
               >
                 <Box sx={{ justifySelf: "start" }}>
-                  {destination.transport && (
-                    <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                      {destination.transport}
-                    </Typography>
-                  )}
+                  <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
+                    {destination.transport || "\u00A0"}
+                  </Typography>
                 </Box>
-                <Box sx={{ justifySelf: "end" }}>{destination.nights !== null && <Typography variant="body2">{destination.nights === "none" ? "None" : `${destination.nights} ${destination.nights === 1 ? "Night" : "Nights"}`}</Typography>}</Box>
+                <Box sx={{ justifySelf: "end" }}>
+                  <Typography variant="body2">
+                    {destination.nights === "none"
+                      ? "None"
+                      : calculatedNights !== null
+                        ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}`
+                        : "\u00A0"}
+                  </Typography>
+                </Box>
               </Box>
             )}
           </Box>
@@ -747,15 +949,18 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
         sx={{
           "& .MuiCardHeader-content": {
             width: "100%",
+            overflow: "visible",
           },
           pb: 0,
+          overflow: "visible",
         }}
       />
-      <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit>
+      <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit sx={{ overflow: "visible" }}>
         <CardContent
           sx={{
             padding: alwaysExpanded ? "1rem 0 0" : 0,
             "&:last-child": { pb: 0 },
+            overflow: "hidden",
           }}
         >
           {locationImageUrl && (
@@ -776,6 +981,22 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
               }}
             />
           )}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: arrivalDate && departureDate ? 'space-between' : arrivalDate ? 'flex-start' : 'flex-end', py: 1.5, px: 2, position: 'relative', overflow: 'visible' }}>
+            {arrivalDate && (
+              <StatusBadge variant="warning" visible={!!dateError} attachToText>
+                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                  {arrivalDate.format("MMM D, YYYY")}
+                </Typography>
+              </StatusBadge>
+            )}
+            {departureDate && (
+              <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
+                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                  {departureDate.format("MMM D, YYYY")}
+                </Typography>
+              </StatusBadge>
+            )}
+          </Box>
           {destination.transport !== "starting point" && (
             <>
               <DestinationSection title="Arrival">link to book uber/grab/taxi etc from arrival location to accommodation</DestinationSection>
@@ -796,9 +1017,7 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
             <DestinationSection title="Onwards">
               {nextDestination.transport ? (
                 nextDestination.transport &&
-                !["by car", "by motorbike", "by bicycle", "on foot", "starting point"].includes(
-                  nextDestination.transport
-                ) &&
+                !selfTransportModes.includes(nextDestination.transport) &&
                 destination.transportDetails ? (
                   <Box sx={{ mt: 1 }}>
                     <Box
@@ -833,7 +1052,7 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                       sx={{
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "flex-start",
+                        alignItems: "center",
                       }}
                     >
                       <Typography variant="body2" color="text.secondary">
@@ -845,7 +1064,7 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                     </Box>
                   </Box>
                 ) : (
-                  <>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {(() => {
                       const links = getTransportLinks(
                         destination,
@@ -860,20 +1079,17 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
                       );
                     })()}
                     {nextDestination.transport &&
-                      !["by car", "by motorbike", "by bicycle", "on foot", "starting point"].includes(
-                        nextDestination.transport
-                      ) && (
+                      !selfTransportModes.includes(nextDestination.transport) && (
                         <Button
                           variant="contained"
                           startIcon={<AddIcon />}
                           onClick={() => setDetailsModalOpen(true)}
                           fullWidth
-                          sx={{ mt: 1 }}
                         >
                           Add {getTransportLabel(nextDestination.transport)} details
                         </Button>
                       )}
-                  </>
+                  </Box>
                 )
               ) : (
                 "Add a travel method for the next destination to see booking links."
@@ -883,9 +1099,7 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
         </CardContent>
       </Collapse>
       {nextDestination?.transport &&
-        !["by car", "by motorbike", "by bicycle", "on foot", "starting point"].includes(
-          nextDestination.transport
-        ) && (
+        !selfTransportModes.includes(nextDestination.transport) && (
           <TransportDetailsModal
             open={detailsModalOpen}
             onClose={() => setDetailsModalOpen(false)}
@@ -894,6 +1108,17 @@ export const Destination = ({ destination, nextDestination, onDestinationChange,
             initialDetails={destination.transportDetails}
           />
         )}
+      <DoubleDatePicker
+        open={Boolean(datePickerAnchorEl)}
+        anchorEl={datePickerAnchorEl}
+        onClose={() => setDatePickerAnchorEl(null)}
+        checkInDate={destination.checkInDate ? dayjs(destination.checkInDate) : arrivalDate}
+        checkOutDate={destination.checkOutDate ? dayjs(destination.checkOutDate) : departureDate}
+        tripStartDate={tripStartDate}
+        calculatedArrivalDate={arrivalDate}
+        isFirst={isFirst}
+        onDateChange={handleDateRangeChange}
+      />
     </Card>
   );
 };
