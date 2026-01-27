@@ -15,7 +15,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
-import DesktopWindowsIcon from '@mui/icons-material/DesktopWindows';
+import DesktopWindowsOutlinedIcon from '@mui/icons-material/DesktopWindowsOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useThemeMode } from './theme/ThemeContext';
@@ -84,7 +84,7 @@ function App(): ReactElement {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton color="inherit" onClick={handleLayoutModeToggle}>
-              {layoutMode === 'portrait' ? <DesktopWindowsIcon /> : <PhoneAndroidIcon />}
+              {layoutMode === 'portrait' ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
             </IconButton>
             <IconButton color="inherit" onClick={handleViewModeToggle}>
               {viewMode === 'list' ? <ViewCarouselIcon /> : <ViewListIcon />}

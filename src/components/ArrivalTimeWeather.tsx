@@ -140,8 +140,8 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
         }}
       >
         <CardContent sx={{ padding: "8px !important", "&:last-child": { paddingBottom: "8px !important" } }}>
-          <Typography variant="body2" color="text.secondary">
-            Arrival date not available
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+            Arrival date not set
           </Typography>
         </CardContent>
       </Card>
