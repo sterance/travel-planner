@@ -21,7 +21,7 @@ export const DestinationSection = ({
             {title}
           </Typography>
         }
-        sx={{ pb: 0 }}
+        sx={{ py: 0 }}
       />
       <CardContent>
         <Typography variant="body1" component="div">
