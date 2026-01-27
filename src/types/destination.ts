@@ -8,6 +8,7 @@ export interface Destination {
   checkInDate?: string;
   checkOutDate?: string;
   transportDetails?: TransportDetails;
+  customArrivalDateTime?: string;
 }
 
 export interface PlaceDetails {

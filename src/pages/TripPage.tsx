@@ -249,6 +249,7 @@ export const TripPage = (): ReactElement => {
                       <Destination
                         destination={destinations[absoluteIndex]}
                         nextDestination={destinations[absoluteIndex + 1]}
+                        previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
                         onDestinationChange={handleDestinationChange}
                         shouldFocus={destinations[absoluteIndex].id === newlyCreatedId}
                         alwaysExpanded
@@ -350,6 +351,7 @@ export const TripPage = (): ReactElement => {
               <Destination
                 destination={destinations[currentIndex]}
                 nextDestination={destinations[currentIndex + 1]}
+                previousDestination={currentIndex > 0 ? destinations[currentIndex - 1] : undefined}
                 onDestinationChange={handleDestinationChange}
                 shouldFocus={destinations[currentIndex].id === newlyCreatedId}
                 alwaysExpanded
@@ -449,6 +451,7 @@ export const TripPage = (): ReactElement => {
                   <Destination
                     destination={destination}
                     nextDestination={destinations[absoluteIndex + 1]}
+                    previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
                     onDestinationChange={handleDestinationChange}
                     shouldFocus={destination.id === newlyCreatedId}
                     alwaysExpanded
@@ -521,6 +524,7 @@ export const TripPage = (): ReactElement => {
               <Destination
                 destination={destination}
                 nextDestination={destinations[index + 1]}
+                previousDestination={index > 0 ? destinations[index - 1] : undefined}
                 onDestinationChange={handleDestinationChange}
                 shouldFocus={destination.id === newlyCreatedId}
                 isFirst={index === 0}

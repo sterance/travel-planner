@@ -26,6 +26,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
 import dayjs, { type Dayjs } from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
 import { type LayoutMode } from "../App";
@@ -37,12 +38,16 @@ import Button from "@mui/material/Button";
 import { TransportDetailsModal } from "./TransportDetailsModal";
 import { DoubleDatePicker } from "./DoubleDatePicker";
 import { StatusBadge } from "./StatusBadge";
+import { ArrivalTimeWeather } from "./ArrivalTimeWeather";
 import googleMapsIcon from "../assets/icons/google-maps.svg";
 import googleFlightsIcon from "../assets/icons/google-flights.svg";
 import skyscannerIcon from "../assets/icons/skyscanner.svg";
 import rome2rioIcon from "../assets/icons/rome2rio.svg";
 import bookingIcon from "../assets/icons/booking.svg";
 import hostelworldIcon from "../assets/icons/hostelworld.svg";
+import uberIcon from "../assets/icons/uber.svg";
+import tripAdvisorIcon from "../assets/icons/trip-advisor.svg";
+import getYourGuideIcon from "../assets/icons/get-your-guide.svg";
 import calendar0Icon from "../assets/icons/calendar/calendar-0.svg";
 import calendar1Icon from "../assets/icons/calendar/calendar-1.svg";
 import calendar2Icon from "../assets/icons/calendar/calendar-2.svg";
@@ -70,6 +75,7 @@ const calendarIcons = [
 interface DestinationProps {
   destination: DestinationType;
   nextDestination?: DestinationType;
+  previousDestination?: DestinationType;
   onDestinationChange: (destination: DestinationType) => void;
   shouldFocus?: boolean;
   alwaysExpanded?: boolean;
@@ -84,6 +90,7 @@ interface DestinationProps {
 export const Destination = ({
   destination,
   nextDestination,
+  previousDestination,
   onDestinationChange,
   shouldFocus = false,
   alwaysExpanded = false,
@@ -999,7 +1006,123 @@ export const Destination = ({
           </Box>
           {destination.transport !== "starting point" && (
             <>
-              <DestinationSection title="Arrival">link to book uber/grab/taxi etc from arrival location to accommodation</DestinationSection>
+              <DestinationSection title="Arrival">
+                <ArrivalTimeWeather
+                  destination={destination}
+                  previousDestination={previousDestination}
+                  arrivalDate={arrivalDate}
+                  onArrivalTimeChange={(dateTime: string | null) => {
+                    onDestinationChange({
+                      ...destination,
+                      customArrivalDateTime: dateTime ?? undefined,
+                    });
+                  }}
+                />
+                <Box sx={{ mt: 1 }}>
+                  {(() => {
+                    const arrivalButtons = [
+                      {
+                        label: "Uber",
+                        url: destination.placeDetails?.coordinates
+                          ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(destination.displayName || destination.name)}&dropoff[latitude]=${destination.placeDetails.coordinates[1]}&dropoff[longitude]=${destination.placeDetails.coordinates[0]}`
+                          : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(destination.displayName || destination.name)}`,
+                        icon: (
+                          <Box
+                            component="img"
+                            src={uberIcon}
+                            alt=""
+                            sx={{
+                              height: "1.25rem",
+                              width: "auto",
+                              maxWidth: "100%",
+                              objectFit: "contain",
+                            }}
+                          />
+                        ),
+                      },
+                      {
+                        label: "Taxi",
+                        url: destination.placeDetails?.coordinates
+                          ? `https://www.google.com/maps/dir/?api=1&destination=${destination.placeDetails.coordinates[1]},${destination.placeDetails.coordinates[0]}&travelmode=driving`
+                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.displayName || destination.name)}`,
+                        icon: <LocalTaxiIcon />,
+                      },
+                    ];
+
+                    const isEven = arrivalButtons.length % 2 === 0;
+
+                  if (isEven) {
+                    return (
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: 1,
+                        }}
+                      >
+                        {arrivalButtons.map((button) => (
+                          <Button
+                            key={button.label}
+                            variant="outlined"
+                            fullWidth
+                            onClick={() => {
+                              window.open(button.url, "_blank", "noopener,noreferrer");
+                            }}
+                            sx={{
+                              bgcolor: "white",
+                              color: "black !important",
+                              borderColor: "divider",
+                              "&:hover": {
+                                bgcolor: "grey.50",
+                                borderColor: "divider",
+                                color: "black !important",
+                              },
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            {button.icon}
+                            {button.label}
+                          </Button>
+                        ))}
+                      </Box>
+                    );
+                  }
+
+                  return (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      {arrivalButtons.map((button) => (
+                        <Button
+                          key={button.label}
+                          variant="outlined"
+                          fullWidth
+                          onClick={() => {
+                            window.open(button.url, "_blank", "noopener,noreferrer");
+                          }}
+                          sx={{
+                            bgcolor: "white",
+                            color: "black !important",
+                            borderColor: "divider",
+                            "&:hover": {
+                              bgcolor: "grey.50",
+                              borderColor: "divider",
+                              color: "black !important",
+                            },
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          {button.icon}
+                          {button.label}
+                        </Button>
+                      ))}
+                    </Box>
+                  );
+                  })()}
+                </Box>
+              </DestinationSection>
               <DestinationSection title="Accommodation">
                 {(() => {
                   const links = buildAccommodationLinks(destination);
@@ -1010,7 +1133,120 @@ export const Destination = ({
                   );
                 })()}
               </DestinationSection>
-              <DestinationSection title="Activities">link to activities</DestinationSection>
+              <DestinationSection title="Activities">
+                <Box sx={{ mt: 1 }}>
+                  {(() => {
+                    const activityButtons = [
+                      {
+                        label: "TripAdvisor",
+                        url: `https://www.tripadvisor.com/Search?q=${encodeURIComponent(destination.displayName || destination.name)}`,
+                        icon: (
+                          <Box
+                            component="img"
+                            src={tripAdvisorIcon}
+                            alt=""
+                            sx={{
+                              height: "1.25rem",
+                              width: "auto",
+                              maxWidth: "100%",
+                              objectFit: "contain",
+                            }}
+                          />
+                        ),
+                      },
+                      {
+                        label: "GetYourGuide",
+                        url: `https://www.getyourguide.com/s/?q=${encodeURIComponent(destination.displayName || destination.name)}`,
+                        icon: (
+                          <Box
+                            component="img"
+                            src={getYourGuideIcon}
+                            alt=""
+                            sx={{
+                              height: "1.25rem",
+                              width: "auto",
+                              maxWidth: "100%",
+                              objectFit: "contain",
+                            }}
+                          />
+                        ),
+                      },
+                    ];
+
+                    const isEven = activityButtons.length % 2 === 0;
+
+                    if (isEven) {
+                      return (
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: 1,
+                          }}
+                        >
+                          {activityButtons.map((button) => (
+                            <Button
+                              key={button.label}
+                              variant="outlined"
+                              fullWidth
+                              onClick={() => {
+                                window.open(button.url, "_blank", "noopener,noreferrer");
+                              }}
+                              sx={{
+                                bgcolor: "white",
+                                color: "black !important",
+                                borderColor: "divider",
+                                "&:hover": {
+                                  bgcolor: "grey.50",
+                                  borderColor: "divider",
+                                  color: "black !important",
+                                },
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {button.icon}
+                              {button.label}
+                            </Button>
+                          ))}
+                        </Box>
+                      );
+                    }
+
+                    return (
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                        {activityButtons.map((button) => (
+                          <Button
+                            key={button.label}
+                            variant="outlined"
+                            fullWidth
+                            onClick={() => {
+                              window.open(button.url, "_blank", "noopener,noreferrer");
+                            }}
+                            sx={{
+                              bgcolor: "white",
+                              color: "black !important",
+                              borderColor: "divider",
+                              "&:hover": {
+                                bgcolor: "grey.50",
+                                borderColor: "divider",
+                                color: "black !important",
+                              },
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            {button.icon}
+                            {button.label}
+                          </Button>
+                        ))}
+                      </Box>
+                    );
+                  })()}
+                </Box>
+              </DestinationSection>
             </>
           )}
           {nextDestination && (
@@ -1062,6 +1298,112 @@ export const Destination = ({
                         {formatDateTime(destination.transportDetails.arrivalDateTime) || "No arrival time"}
                       </Typography>
                     </Box>
+                    {destination.transportDetails.departureLocation && nextDestination && (
+                      <Box sx={{ mt: 1 }}>
+                        {(() => {
+                          const onwardsButtons = [
+                            {
+                              label: "Uber",
+                              url: nextDestination.placeDetails?.coordinates
+                                ? `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation)}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&dropoff[latitude]=${nextDestination.placeDetails.coordinates[1]}&dropoff[longitude]=${nextDestination.placeDetails.coordinates[0]}`
+                                : `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation)}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}`,
+                              icon: (
+                                <Box
+                                  component="img"
+                                  src={uberIcon}
+                                  alt=""
+                                  sx={{
+                                    height: "1.25rem",
+                                    width: "auto",
+                                    maxWidth: "100%",
+                                    objectFit: "contain",
+                                  }}
+                                />
+                              ),
+                            },
+                            {
+                              label: "Taxi",
+                              url: nextDestination.placeDetails?.coordinates
+                                ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation)}&destination=${nextDestination.placeDetails.coordinates[1]},${nextDestination.placeDetails.coordinates[0]}&travelmode=driving`
+                                : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation)}&destination=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&travelmode=driving`,
+                              icon: <LocalTaxiIcon />,
+                            },
+                          ];
+
+                          const isEven = onwardsButtons.length % 2 === 0;
+
+                          if (isEven) {
+                            return (
+                              <Box
+                                sx={{
+                                  display: "grid",
+                                  gridTemplateColumns: "1fr 1fr",
+                                  gap: 1,
+                                }}
+                              >
+                                {onwardsButtons.map((button) => (
+                                  <Button
+                                    key={button.label}
+                                    variant="outlined"
+                                    fullWidth
+                                    onClick={() => {
+                                      window.open(button.url, "_blank", "noopener,noreferrer");
+                                    }}
+                                    sx={{
+                                      bgcolor: "white",
+                                      color: "black !important",
+                                      borderColor: "divider",
+                                      "&:hover": {
+                                        bgcolor: "grey.50",
+                                        borderColor: "divider",
+                                        color: "black !important",
+                                      },
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    {button.icon}
+                                    {button.label}
+                                  </Button>
+                                ))}
+                              </Box>
+                            );
+                          }
+
+                          return (
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                              {onwardsButtons.map((button) => (
+                                <Button
+                                  key={button.label}
+                                  variant="outlined"
+                                  fullWidth
+                                  onClick={() => {
+                                    window.open(button.url, "_blank", "noopener,noreferrer");
+                                  }}
+                                  sx={{
+                                    bgcolor: "white",
+                                    color: "black !important",
+                                    borderColor: "divider",
+                                    "&:hover": {
+                                      bgcolor: "grey.50",
+                                      borderColor: "divider",
+                                      color: "black !important",
+                                    },
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  {button.icon}
+                                  {button.label}
+                                </Button>
+                              ))}
+                            </Box>
+                          );
+                        })()}
+                      </Box>
+                    )}
                   </Box>
                 ) : (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
