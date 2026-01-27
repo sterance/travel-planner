@@ -1,9 +1,8 @@
-import { useState, useEffect, type ReactElement } from "react";
+import { useState, useEffect, type ReactElement, type ComponentProps } from "react";
 import Popover from "@mui/material/Popover";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
@@ -15,7 +14,6 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import dayjs, { type Dayjs } from "dayjs";
-import type { PickersDayProps } from "@mui/x-date-pickers";
 
 interface DoubleDatePickerProps {
   open: boolean;
@@ -173,9 +171,11 @@ export const DoubleDatePicker = ({
     return selectedEnd?.isSame(date, "day") ?? false;
   };
 
-  const CustomDay = (props: PickersDayProps<Dayjs>): ReactElement => {
+  type CustomDayProps = ComponentProps<typeof PickersDay>;
+
+  const CustomDay = (props: CustomDayProps): ReactElement => {
     const { day, onClick, ...other } = props;
-    const date = dayjs(day);
+    const date = dayjs(day as Dayjs);
     const inRange = isDateInRange(date);
     const isStart = isStartDate(date);
     const isEnd = isEndDate(date);
@@ -301,7 +301,6 @@ export const DoubleDatePicker = ({
                   setCurrentMonth(newValue);
                 }
               }}
-              defaultMonth={currentMonth}
               slots={{
                 day: CustomDay,
               }}
