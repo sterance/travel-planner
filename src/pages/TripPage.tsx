@@ -275,8 +275,18 @@ export const TripPage = (): ReactElement => {
             scrollbarGutter: "stable both-edges",
           }}
         >
-          <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
-          <MapCard destinations={destinations} />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: layoutMode === "desktop" ? "row" : "column",
+              gap: 2,
+            }}
+          >
+            <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
+            <Box sx={{ flexGrow: 1 }}>
+              <MapCard destinations={destinations} />
+            </Box>
+          </Box>
           <Box
             sx={{
               display: "flex",

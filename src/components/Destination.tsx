@@ -164,6 +164,12 @@ export const Destination = ({
   useEffect(() => {
     const fetchImage = async (): Promise<void> => {
       if (!destination.placeDetails && !destination.displayName && !destination.name) {
+        console.log("[Destination] skipping image fetch, no destination details", {
+          id: destination.id,
+          name: destination.name,
+          displayName: destination.displayName,
+          placeDetails: destination.placeDetails,
+        });
         setLocationImageUrl(null);
         return;
       }
@@ -171,11 +177,28 @@ export const Destination = ({
       const searchQuery = destination.displayName || destination.placeDetails?.city || destination.placeDetails?.country || destination.name;
 
       if (!searchQuery) {
+        console.log("[Destination] no search query derived from destination, clearing image", {
+          id: destination.id,
+          name: destination.name,
+          displayName: destination.displayName,
+          placeDetails: destination.placeDetails,
+        });
         setLocationImageUrl(null);
         return;
       }
 
+      console.log("[Destination] fetching image for destination", {
+        id: destination.id,
+        searchQuery,
+      });
+
       const imageUrl = await getLocationImage(searchQuery, { width: 800, height: 400 });
+      console.log("[Destination] image fetch completed", {
+        id: destination.id,
+        searchQuery,
+        imageUrl,
+        hasImage: Boolean(imageUrl),
+      });
       setLocationImageUrl(imageUrl);
     };
 
@@ -613,9 +636,6 @@ export const Destination = ({
     );
   };
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/aad0e42d-affe-4c6b-a478-448b72caba99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Destination.tsx:render',message:'Destination component render',data:{destinationId:destination.id,destinationName:destination.name,isEditing,shouldFocus,transport:destination.transport,nights:destination.nights},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'1,2,5'})}).catch(()=>{});
-  // #endregion
 
   return (
     <Card sx={{ overflow: 'hidden', maxWidth: '100%' }}>
@@ -686,9 +706,6 @@ export const Destination = ({
                 />
               </Box>
             ) : (
-              // #region agent log
-              (() => { fetch('http://127.0.0.1:7242/ingest/aad0e42d-affe-4c6b-a478-448b72caba99',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Destination.tsx:non-editing-branch',message:'Rendering non-editing state',data:{destinationName:destination.displayName||destination.name,transport:destination.transport,transportVisible:!destination.transport,nights:destination.nights,nightsType:typeof destination.nights,checkInDate:destination.checkInDate,checkOutDate:destination.checkOutDate,nightsVisible:!(typeof destination.nights === 'number' || (destination.nights === 'dates' && destination.checkInDate && destination.checkOutDate))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'1,2,5'})}).catch(()=>{}); return null; })(),
-              // #endregion
               <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
                 <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
                   <StatusBadge variant="info" visible={!destination.transport}>
