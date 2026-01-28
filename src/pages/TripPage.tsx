@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { useSwipeable } from "react-swipeable";
 import AddIcon from "@mui/icons-material/Add";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -26,6 +27,26 @@ interface OutletContext {
   maxAdjacent: number;
   setMaxAdjacent: (value: number) => void;
 }
+
+const isTextInputElement = (element: HTMLElement | null): boolean => {
+  if (!element) return false;
+
+  const tagName = element.tagName;
+  if (tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT") {
+    return true;
+  }
+
+  if (element.isContentEditable) {
+    return true;
+  }
+
+  const role = element.getAttribute("role");
+  if (role === "textbox") {
+    return true;
+  }
+
+  return false;
+};
 
 export const TripPage = (): ReactElement => {
   const { viewMode, layoutMode, columns, maxAdjacent } = useOutletContext<OutletContext>();
@@ -141,6 +162,63 @@ export const TripPage = (): ReactElement => {
     });
   };
 
+  useEffect(() => {
+    if (viewMode !== "carousel" || layoutMode !== "desktop" || destinations.length === 0) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      const target = event.target as HTMLElement | null;
+      if (isTextInputElement(target)) return;
+
+      if (event.key === "ArrowLeft") {
+        handlePrevious();
+      } else if (event.key === "ArrowRight") {
+        handleNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [viewMode, layoutMode, destinations.length]);
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: (eventData) => {
+      if (viewMode !== "carousel" || layoutMode === "desktop") return;
+      const target = (eventData.event?.target as HTMLElement) ?? null;
+      if (isTextInputElement(target)) return;
+      handleNext();
+    },
+    onSwipedRight: (eventData) => {
+      if (viewMode !== "carousel" || layoutMode === "desktop") return;
+      const target = (eventData.event?.target as HTMLElement) ?? null;
+      if (isTextInputElement(target)) return;
+      handlePrevious();
+    }
+  });
+
+  const renderSettingsAndMap = (): ReactElement => (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: layoutMode === "desktop" ? "row" : "column",
+        gap: 2,
+      }}
+    >
+      <SettingsCard
+        startDate={tripStartDate}
+        endDate={tripEndDate}
+        onStartDateChange={handleStartDateChange}
+        hasDateErrors={dateErrorsExist}
+      />
+      <Box sx={{ flexGrow: 1 }}>
+        <MapCard destinations={destinations} />
+      </Box>
+    </Box>
+  );
+
   if (viewMode === "carousel") {
     const hasDestinations = destinations.length > 0;
     const totalSlots = maxAdjacent * 2 + 1;
@@ -161,8 +239,7 @@ export const TripPage = (): ReactElement => {
             scrollbarGutter: "stable both-edges",
           }}
         >
-          <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
-          <MapCard destinations={destinations} />
+          {renderSettingsAndMap()}
           {hasDestinations && (
             <Box
               sx={{
@@ -210,6 +287,7 @@ export const TripPage = (): ReactElement => {
                 justifyContent: "center",
                 overflow: "hidden",
               }}
+              {...(viewMode === "carousel" && layoutMode !== "desktop" ? swipeHandlers : undefined)}
             >
               {Array.from({ length: totalSlots }).map((_, slotIndex) => {
                 const relativeIndex = slotIndex - maxAdjacent;
@@ -275,18 +353,7 @@ export const TripPage = (): ReactElement => {
             scrollbarGutter: "stable both-edges",
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: layoutMode === "desktop" ? "row" : "column",
-              gap: 2,
-            }}
-          >
-            <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
-            <Box sx={{ flexGrow: 1 }}>
-              <MapCard destinations={destinations} />
-            </Box>
-          </Box>
+          {renderSettingsAndMap()}
           <Box
             sx={{
               display: "flex",
@@ -351,8 +418,7 @@ export const TripPage = (): ReactElement => {
           scrollbarGutter: "stable both-edges",
         }}
       >
-        <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
-        <MapCard destinations={destinations} />
+        {renderSettingsAndMap()}
         <Box
           sx={{
             display: "flex",

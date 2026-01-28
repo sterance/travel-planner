@@ -25,7 +25,14 @@ export const SettingsCard = ({
 }: SettingsCardProps): ReactElement => {
   return (
     <Card>
-      <CardContent>
+      <CardContent
+        sx={{
+          p: 2,
+          "&:last-child": {
+            pb: 2,
+          },
+        }}
+      >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
