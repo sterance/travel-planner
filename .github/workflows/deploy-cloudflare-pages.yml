@@ -30,6 +30,8 @@ jobs:
 
       - name: build
         run: npm run build
+        env:
+          VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
 
       - name: deploy
         uses: cloudflare/pages-action@v1
