@@ -102,8 +102,8 @@ function App(): ReactElement {
             Travel Planner
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton color="inherit" disabled>
-              {layoutMode === 'portrait' ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
+          <IconButton color="inherit" disabled onClick={handleLayoutModeToggle}>
+              {layoutMode === 'desktop' ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
             </IconButton>
             <IconButton color="inherit" onClick={handleViewModeToggle}>
               {viewMode === 'list' ? <ViewCarouselIcon /> : <ViewListIcon />}
