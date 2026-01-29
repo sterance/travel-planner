@@ -376,7 +376,20 @@ export const TripPage = (): ReactElement => {
                       transition: "all 0.3s ease",
                     }}
                   >
-                    <Destination destination={destinations[absoluteIndex]} nextDestination={destinations[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destinations[absoluteIndex].id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} />
+                    <Destination
+                      destination={destinations[absoluteIndex]}
+                      nextDestination={destinations[absoluteIndex + 1]}
+                      previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
+                      onDestinationChange={handleDestinationChange}
+                      shouldFocus={destinations[absoluteIndex].id === newlyCreatedId}
+                      alwaysExpanded
+                      isFirst={absoluteIndex === 0}
+                      arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null}
+                      departureDate={destinationDates[absoluteIndex]?.departureDate ?? null}
+                      dateError={destinationDates[absoluteIndex]?.error}
+                      layoutMode={layoutMode}
+                      tripStartDate={tripStartDate}
+                    />
                   </Box>
                 );
               })}
@@ -527,12 +540,30 @@ export const TripPage = (): ReactElement => {
                   key={destination?.id ?? `empty-${absoluteIndex}`}
                   sx={{
                     minWidth: 0,
-                    overflow: "hidden",
+                    overflow: "visible",
                     gridColumn: relativeIndex * 2 + 2,
                     gridRow: 1,
                   }}
                 >
-                  {destination ? <Destination destination={destination} nextDestination={destinations[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destination.id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} /> : <Box sx={{ height: 1 }} />}
+                  {destination ? (
+                    <Destination
+                      destination={destination}
+                      nextDestination={destinations[absoluteIndex + 1]}
+                      previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
+                      onDestinationChange={handleDestinationChange}
+                      shouldFocus={destination.id === newlyCreatedId}
+                      alwaysExpanded
+                      isFirst={absoluteIndex === 0}
+                      arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null}
+                      departureDate={destinationDates[absoluteIndex]?.departureDate ?? null}
+                      dateError={destinationDates[absoluteIndex]?.error}
+                      layoutMode={layoutMode}
+                      tripStartDate={tripStartDate}
+                      isListMode={viewMode === "list"}
+                    />
+                  ) : (
+                    <Box sx={{ height: 1 }} />
+                  )}
                 </Box>
               );
             })}
@@ -603,13 +634,26 @@ export const TripPage = (): ReactElement => {
           }}
         >
           {destinations.map((destination, index) => (
-            <Box key={destination.id} sx={{ minWidth: 0, overflow: "hidden" }}>
+            <Box key={destination.id} sx={{ minWidth: 0, overflow: "visible" }}>
               <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
                 <IconButton onClick={() => handleAddDestination(index)} color="primary" size="small">
                   <AddIcon />
                 </IconButton>
               </Box>
-              <Destination destination={destination} nextDestination={destinations[index + 1]} previousDestination={index > 0 ? destinations[index - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destination.id === newlyCreatedId} isFirst={index === 0} arrivalDate={destinationDates[index]?.arrivalDate ?? null} departureDate={destinationDates[index]?.departureDate ?? null} dateError={destinationDates[index]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} />
+              <Destination
+                destination={destination}
+                nextDestination={destinations[index + 1]}
+                previousDestination={index > 0 ? destinations[index - 1] : undefined}
+                onDestinationChange={handleDestinationChange}
+                shouldFocus={destination.id === newlyCreatedId}
+                isFirst={index === 0}
+                arrivalDate={destinationDates[index]?.arrivalDate ?? null}
+                departureDate={destinationDates[index]?.departureDate ?? null}
+                dateError={destinationDates[index]?.error}
+                layoutMode={layoutMode}
+                tripStartDate={tripStartDate}
+                isListMode={viewMode === "list"}
+              />
             </Box>
           ))}
         </Box>

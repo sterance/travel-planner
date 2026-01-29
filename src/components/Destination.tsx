@@ -10,6 +10,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import FlightIcon from "@mui/icons-material/Flight";
@@ -26,6 +27,8 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
 import dayjs, { type Dayjs } from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
@@ -59,18 +62,7 @@ import calendar7Icon from "../assets/icons/calendar/calendar-7.svg";
 import calendar8Icon from "../assets/icons/calendar/calendar-8.svg";
 import calendar9Icon from "../assets/icons/calendar/calendar-9.svg";
 
-const calendarIcons = [
-  calendar0Icon,
-  calendar1Icon,
-  calendar2Icon,
-  calendar3Icon,
-  calendar4Icon,
-  calendar5Icon,
-  calendar6Icon,
-  calendar7Icon,
-  calendar8Icon,
-  calendar9Icon,
-];
+const calendarIcons = [calendar0Icon, calendar1Icon, calendar2Icon, calendar3Icon, calendar4Icon, calendar5Icon, calendar6Icon, calendar7Icon, calendar8Icon, calendar9Icon];
 
 interface DestinationProps {
   destination: DestinationType;
@@ -85,22 +77,10 @@ interface DestinationProps {
   dateError?: string;
   layoutMode?: LayoutMode;
   tripStartDate?: Dayjs | null;
+  isListMode?: boolean;
 }
 
-export const Destination = ({
-  destination,
-  nextDestination,
-  previousDestination,
-  onDestinationChange,
-  shouldFocus = false,
-  alwaysExpanded = false,
-  isFirst = false,
-  arrivalDate = null,
-  departureDate = null,
-  dateError,
-  layoutMode = 'portrait',
-  tripStartDate = null,
-}: DestinationProps): ReactElement => {
+export const Destination = ({ destination, nextDestination, previousDestination, onDestinationChange, shouldFocus = false, alwaysExpanded = false, isFirst = false, arrivalDate = null, departureDate = null, dateError, layoutMode = "portrait", tripStartDate = null, isListMode = false }: DestinationProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -375,9 +355,9 @@ export const Destination = ({
     if (destination.nights === "dates" && destination.checkInDate && destination.checkOutDate) {
       const checkIn = dayjs(destination.checkInDate);
       const checkOut = dayjs(destination.checkOutDate);
-      return checkOut.diff(checkIn, 'day');
+      return checkOut.diff(checkIn, "day");
     }
-    if (typeof destination.nights === 'number') {
+    if (typeof destination.nights === "number") {
       return destination.nights;
     }
     return null;
@@ -635,572 +615,626 @@ export const Destination = ({
       </Box>
     );
   };
-
-
   return (
-    <Card sx={{ overflow: 'hidden', maxWidth: '100%' }}>
-      <CardHeader
-        title={
-          <Box sx={{ width: "100%" }}>
-            {isEditing ? (
-              <Box sx={{ position: "relative", width: "100%" }}>
-                <Autocomplete
-                  ref={autocompleteRef}
-                  freeSolo
-                  options={suggestions}
-                  getOptionLabel={(option) => {
-                    if (typeof option === "string") {
-                      return option;
-                    }
-                    return option.name;
-                  }}
-                  inputValue={inputValue}
-                  onInputChange={handleInputChange}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  loading={isLoading}
-                  renderInput={(params) => {
-                    const { InputProps: inputProps, ...textFieldParams } = params;
-                    return (
-                      <TextField
-                        {...textFieldParams}
-                        placeholder="Destination name"
-                        variant="standard"
-                        sx={{
-                          width: "100%",
-                          "& .MuiInputBase-input": {
-                            textAlign: "center",
-                          },
-                          "& .MuiInput-underline:before": {
-                            display: "none",
-                          },
-                          "& .MuiInput-underline:after": {
-                            display: "none",
-                          },
-                          "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-                            display: "none",
-                          },
-                        }}
-                        slotProps={{
-                          input: {
-                            ...inputProps,
-                          },
-                        }}
-                      />
-                    );
-                  }}
-                  sx={{
-                    width: "100%",
-                    "& .MuiAutocomplete-endAdornment": {
-                      position: "absolute",
-                      right: "8px",
-                    },
-                    "& .MuiInputBase-root": {
-                      paddingRight: "0 !important",
-                    },
-                    "& .MuiInputBase-input": {
-                      paddingLeft: "40px !important",
-                      paddingRight: "40px !important",
-                    },
-                  }}
-                />
-              </Box>
-            ) : (
-              <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
-                <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
-                  <StatusBadge variant="info" visible={!destination.transport}>
-                    <IconButton
-                      aria-label="transport"
-                      size="small"
-                      onClick={handleTransportClick}
-                      sx={{ padding: 0.5 }}
-                    >
-                      {getTransportIcon()}
-                    </IconButton>
-                  </StatusBadge>
-                </Box>
-                <Menu anchorEl={transportAnchorEl} open={Boolean(transportAnchorEl)} onClose={handleTransportClose}>
-                  <MenuItem onClick={() => handleTransportSelect("unsure")}>
-                    <HelpOutlineIcon sx={{ mr: 1 }} />
-                    Unsure
-                  </MenuItem>
-                  {isFirst && (
-                    <MenuItem onClick={() => handleTransportSelect("starting point")}>
-                      <OutlinedFlagIcon sx={{ mr: 1 }} />
-                      Starting point
-                    </MenuItem>
-                  )}
-                  <MenuItem onClick={() => handleTransportSelect("by plane")}>
-                    <FlightIcon sx={{ mr: 1 }} />
-                    By plane
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by bus")}>
-                    <DirectionsBusIcon sx={{ mr: 1 }} />
-                    By bus
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by train")}>
-                    <TrainIcon sx={{ mr: 1 }} />
-                    By train
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by boat")}>
-                    <DirectionsBoatIcon sx={{ mr: 1 }} />
-                    By boat
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by car")}>
-                    <DirectionsCarIcon sx={{ mr: 1 }} />
-                    By car
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by motorbike")}>
-                    <TwoWheelerIcon sx={{ mr: 1 }} />
-                    By motorbike
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("by bicycle")}>
-                    <DirectionsBikeIcon sx={{ mr: 1 }} />
-                    By bicycle
-                  </MenuItem>
-                  <MenuItem onClick={() => handleTransportSelect("on foot")}>
-                    <DirectionsWalkIcon sx={{ mr: 1 }} />
-                    On foot
-                  </MenuItem>
-
-
-                </Menu>
-                <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
-                  <Typography
-                    variant="h6"
-                    component="div"
-                    onClick={handleEditClick}
-                    sx={{
-                      textAlign: "center",
-                      cursor: "text",
+    <Box
+      sx={{
+        maxWidth: "100%",
+        overflow: "visible",
+      }}
+    >
+      <Card
+        sx={(theme) => ({
+          position: "relative",
+          overflow: "visible",
+          maxWidth: "100%",
+          borderTopLeftRadius: isListMode ? 0 : theme.shape.borderRadius,
+          borderTopRightRadius: 0,
+          borderBottomLeftRadius: theme.shape.borderRadius,
+          borderBottomRightRadius: theme.shape.borderRadius,
+        })}
+      >
+        <Paper
+          component={IconButton}
+          elevation={1}
+          aria-label="remove destination"
+          size="small"
+          sx={(theme) => ({
+            position: "absolute",
+            top: -20,
+            right: 0,
+            zIndex: 1,
+            boxShadow: "none",
+            borderRadius: 0,
+            borderTopRightRadius: theme.shape.borderRadius,
+            padding: 0,
+            backgroundColor: theme.palette.background.paper,
+          })}
+        >
+          <DeleteOutlineIcon fontSize="small" />
+        </Paper>
+        {isListMode && (
+          <Paper
+            component={IconButton}
+            elevation={1}
+            aria-label="reorder destination"
+            size="small"
+            sx={(theme) => ({
+              position: "absolute",
+              top: -20,
+              left: 0,
+              zIndex: 1,
+              boxShadow: "none",
+              borderRadius: 0,
+              borderBottomLeftRadius: theme.shape.borderRadius,
+              cursor: "grab",
+              transform: "rotate(90deg)",
+              padding: 0,
+            })}
+          >
+            <DragIndicatorIcon fontSize="small" />
+          </Paper>
+        )}
+        <CardHeader
+          title={
+            <Box sx={{ width: "100%" }}>
+              {isEditing ? (
+                <Box sx={{ position: "relative", width: "100%" }}>
+                  <Autocomplete
+                    ref={autocompleteRef}
+                    freeSolo
+                    options={suggestions}
+                    getOptionLabel={(option) => {
+                      if (typeof option === "string") {
+                        return option;
+                      }
+                      return option.name;
                     }}
-                  >
-                    {destination.displayName || destination.name || "Destination name"}
-                  </Typography>
+                    inputValue={inputValue}
+                    onInputChange={handleInputChange}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    loading={isLoading}
+                    renderInput={(params) => {
+                      const { InputProps: inputProps, ...textFieldParams } = params;
+                      return (
+                        <TextField
+                          {...textFieldParams}
+                          placeholder="Destination name"
+                          variant="standard"
+                          sx={{
+                            width: "100%",
+                            "& .MuiInputBase-input": {
+                              textAlign: "center",
+                            },
+                            "& .MuiInput-underline:before": {
+                              display: "none",
+                            },
+                            "& .MuiInput-underline:after": {
+                              display: "none",
+                            },
+                            "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+                              display: "none",
+                            },
+                          }}
+                          slotProps={{
+                            input: {
+                              ...inputProps,
+                            },
+                          }}
+                        />
+                      );
+                    }}
+                    sx={{
+                      width: "100%",
+                      "& .MuiAutocomplete-endAdornment": {
+                        position: "absolute",
+                        right: "8px",
+                      },
+                      "& .MuiInputBase-root": {
+                        paddingRight: "0 !important",
+                      },
+                      "& .MuiInputBase-input": {
+                        paddingLeft: "40px !important",
+                        paddingRight: "40px !important",
+                      },
+                    }}
+                  />
                 </Box>
-                <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
-                  <StatusBadge
-                    variant="info"
-                    visible={!(typeof destination.nights === 'number' || (destination.nights === 'dates' && destination.checkInDate && destination.checkOutDate))}
-                  >
-                    <IconButton
-                      aria-label="calendar"
-                      size="small"
-                      onClick={handleCalendarClick}
-                      sx={{ padding: 0.5 }}
+              ) : (
+                <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
+                  <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
+                    <StatusBadge variant="info" visible={!destination.transport}>
+                      <IconButton aria-label="transport" size="small" onClick={handleTransportClick} sx={{ padding: 0.5 }}>
+                        {getTransportIcon()}
+                      </IconButton>
+                    </StatusBadge>
+                  </Box>
+                  <Menu anchorEl={transportAnchorEl} open={Boolean(transportAnchorEl)} onClose={handleTransportClose}>
+                    <MenuItem onClick={() => handleTransportSelect("unsure")}>
+                      <HelpOutlineIcon sx={{ mr: 1 }} />
+                      Unsure
+                    </MenuItem>
+                    {isFirst && (
+                      <MenuItem onClick={() => handleTransportSelect("starting point")}>
+                        <OutlinedFlagIcon sx={{ mr: 1 }} />
+                        Starting point
+                      </MenuItem>
+                    )}
+                    <MenuItem onClick={() => handleTransportSelect("by plane")}>
+                      <FlightIcon sx={{ mr: 1 }} />
+                      By plane
+                    </MenuItem>
+                    <MenuItem onClick={() => handleTransportSelect("by bus")}>
+                      <DirectionsBusIcon sx={{ mr: 1 }} />
+                      By bus
+                    </MenuItem>
+                    <MenuItem onClick={() => handleTransportSelect("by train")}>
+                      <TrainIcon sx={{ mr: 1 }} />
+                      By train
+                    </MenuItem>
+                    <MenuItem onClick={() => handleTransportSelect("by boat")}>
+                      <DirectionsBoatIcon sx={{ mr: 1 }} />
+                      By boat
+                    </MenuItem>
+                    <MenuItem onClick={() => handleTransportSelect("by car")}>
+                      <DirectionsCarIcon sx={{ mr: 1 }} />
+                      By car
+                    </MenuItem>
+                    <MenuItem onClick={() => handleTransportSelect("by motorbike")}>
+                      <TwoWheelerIcon sx={{ mr: 1 }} />
+                      By motorbike
+                    </MenuItem>
+                    <MenuItem onClick={() => handleTransportSelect("by bicycle")}>
+                      <DirectionsBikeIcon sx={{ mr: 1 }} />
+                      By bicycle
+                    </MenuItem>
+                    <MenuItem onClick={() => handleTransportSelect("on foot")}>
+                      <DirectionsWalkIcon sx={{ mr: 1 }} />
+                      On foot
+                    </MenuItem>
+                  </Menu>
+                  <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
+                    <Typography
+                      variant="h6"
+                      component="div"
+                      onClick={handleEditClick}
+                      sx={{
+                        textAlign: "center",
+                        cursor: "text",
+                      }}
                     >
-                      {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? (
+                      {destination.displayName || destination.name || "Destination name"}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
+                    <StatusBadge variant="info" visible={!(typeof destination.nights === "number" || (destination.nights === "dates" && destination.checkInDate && destination.checkOutDate))}>
+                      <IconButton aria-label="calendar" size="small" onClick={handleCalendarClick} sx={{ padding: 0.5 }}>
+                        {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? (
+                          <Box
+                            sx={{
+                              width: "2rem",
+                              height: "2rem",
+                              backgroundColor: "action.active",
+                              maskImage: `url(${calendarIcons[calculatedNights]})`,
+                              maskSize: "contain",
+                              maskRepeat: "no-repeat",
+                              maskPosition: "center",
+                              WebkitMaskImage: `url(${calendarIcons[calculatedNights]})`,
+                              WebkitMaskSize: "contain",
+                              WebkitMaskRepeat: "no-repeat",
+                              WebkitMaskPosition: "center",
+                            }}
+                          />
+                        ) : (
+                          <CalendarMonthOutlinedIcon sx={{ fontSize: "2rem" }} />
+                        )}
+                      </IconButton>
+                    </StatusBadge>
+                  </Box>
+                  <Menu anchorEl={calendarAnchorEl} open={Boolean(calendarAnchorEl)} onClose={handleCalendarClose}>
+                    <MenuItem onClick={() => handleNightSelect("unsure")} sx={{ justifyContent: "flex-end" }}>
+                      Unsure
+                      <HelpOutlineIcon sx={{ ml: 1 }} />
+                    </MenuItem>
+                    <MenuItem onClick={() => handleNightSelect("dates")} sx={{ justifyContent: "flex-end" }}>
+                      Select dates
+                      <CalendarMonthOutlinedIcon sx={{ ml: 1 }} />
+                    </MenuItem>
+                    {[0, 1, 2, 3, 4, 5, 6, 7].map((nights) => (
+                      <MenuItem key={nights} onClick={() => handleNightSelect(nights)} sx={{ justifyContent: "flex-end" }}>
+                        {nights} {nights === 1 ? "Night" : "Nights"}
                         <Box
                           sx={{
-                            width: "2rem",
-                            height: "2rem",
+                            ml: 1,
+                            width: 24,
+                            height: 24,
                             backgroundColor: "action.active",
-                            maskImage: `url(${calendarIcons[calculatedNights]})`,
+                            maskImage: `url(${calendarIcons[nights]})`,
                             maskSize: "contain",
                             maskRepeat: "no-repeat",
                             maskPosition: "center",
-                            WebkitMaskImage: `url(${calendarIcons[calculatedNights]})`,
+                            WebkitMaskImage: `url(${calendarIcons[nights]})`,
                             WebkitMaskSize: "contain",
                             WebkitMaskRepeat: "no-repeat",
                             WebkitMaskPosition: "center",
                           }}
                         />
-                      ) : (
-                        <CalendarMonthOutlinedIcon sx={{ fontSize: "2rem" }} />
-                      )}
-                    </IconButton>
-                  </StatusBadge>
-                </Box>
-                <Menu anchorEl={calendarAnchorEl} open={Boolean(calendarAnchorEl)} onClose={handleCalendarClose}>
-                  <MenuItem onClick={() => handleNightSelect("unsure")} sx={{ justifyContent: "flex-end" }}>
-                    Unsure
-                    <HelpOutlineIcon sx={{ ml: 1 }} />
-                  </MenuItem>
-                  <MenuItem onClick={() => handleNightSelect("dates")} sx={{ justifyContent: "flex-end" }}>
-                    Select dates
-                    <CalendarMonthOutlinedIcon sx={{ ml: 1 }} />
-                  </MenuItem>
-                  {[0, 1, 2, 3, 4, 5, 6, 7].map((nights) => (
-                    <MenuItem key={nights} onClick={() => handleNightSelect(nights)} sx={{ justifyContent: "flex-end" }}>
-                      {nights} {nights === 1 ? "Night" : "Nights"}
-                      <Box
+                      </MenuItem>
+                    ))}
+                    <MenuItem onClick={() => handleNightSelect("more")} sx={{ justifyContent: "flex-end" }}>
+                      More
+                      <MoreHorizIcon sx={{ ml: 1 }} />
+                    </MenuItem>
+                  </Menu>
+                  {showCustomNights && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        right: 0,
+                        top: "100%",
+                        zIndex: 1,
+                        bgcolor: "background.paper",
+                        boxShadow: 3,
+                        p: 1,
+                        borderRadius: 1,
+                      }}
+                    >
+                      <TextField
+                        inputRef={customNightsInputRef}
+                        value={customNightsValue}
+                        onChange={(e) => setCustomNightsValue(e.target.value)}
+                        onKeyDown={handleCustomNightsKeyDown}
+                        onBlur={handleCustomNightsSubmit}
+                        placeholder="Nights"
+                        type="number"
+                        size="small"
                         sx={{
-                          ml: 1,
-                          width: 24,
-                          height: 24,
-                          backgroundColor: "action.active",
-                          maskImage: `url(${calendarIcons[nights]})`,
-                          maskSize: "contain",
-                          maskRepeat: "no-repeat",
-                          maskPosition: "center",
-                          WebkitMaskImage: `url(${calendarIcons[nights]})`,
-                          WebkitMaskSize: "contain",
-                          WebkitMaskRepeat: "no-repeat",
-                          WebkitMaskPosition: "center",
+                          width: 80,
+                          "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                            WebkitAppearance: "none",
+                            margin: 0,
+                          },
+                          "& input[type=number]": {
+                            MozAppearance: "textfield",
+                          },
+                        }}
+                        slotProps={{
+                          htmlInput: { min: 1 },
                         }}
                       />
-                    </MenuItem>
-                  ))}
-                  <MenuItem onClick={() => handleNightSelect("more")} sx={{ justifyContent: "flex-end" }}>
-                    More
-                    <MoreHorizIcon sx={{ ml: 1 }} />
-                  </MenuItem>
-                </Menu>
-                {showCustomNights && (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      right: 0,
-                      top: "100%",
-                      zIndex: 1,
-                      bgcolor: "background.paper",
-                      boxShadow: 3,
-                      p: 1,
-                      borderRadius: 1,
-                    }}
-                  >
-                    <TextField
-                      inputRef={customNightsInputRef}
-                      value={customNightsValue}
-                      onChange={(e) => setCustomNightsValue(e.target.value)}
-                      onKeyDown={handleCustomNightsKeyDown}
-                      onBlur={handleCustomNightsSubmit}
-                      placeholder="Nights"
-                      type="number"
-                      size="small"
-                      sx={{
-                        width: 80,
-                        '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
-                          WebkitAppearance: 'none',
-                          margin: 0,
-                        },
-                        '& input[type=number]': {
-                          MozAppearance: 'textfield',
-                        },
-                      }}
-                      slotProps={{
-                        htmlInput: { min: 1 },
-                      }}
-                    />
+                    </Box>
+                  )}
+                </Box>
+              )}
+              {!alwaysExpanded && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    position: "relative",
+                    overflow: "visible",
+                  }}
+                >
+                  <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
+                    {expanded && (
+                      <Typography variant="body2" sx={{ textTransform: "capitalize", flexShrink: 0 }}>
+                        {destination.transport || "\u00A0"}
+                      </Typography>
+                    )}
+                    {!expanded && layoutMode === "portrait" && arrivalDate && (
+                      <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                        {arrivalDate.format("MMM D")}
+                      </Typography>
+                    )}
                   </Box>
-                )}
-              </Box>
-            )}
-            {!alwaysExpanded && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  position: "relative",
-                  overflow: "visible",
-                }}
-              >
-                <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
-                  {expanded && (
-                    <Typography variant="body2" sx={{ textTransform: "capitalize", flexShrink: 0 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <IconButton
+                      onClick={handleExpandClick}
+                      aria-expanded={expanded}
+                      aria-label="show more"
+                      sx={{
+                        transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                        transition: "transform 0.2s",
+                      }}
+                    >
+                      <ExpandMoreIcon />
+                    </IconButton>
+                  </Box>
+                  <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
+                    {expanded && (
+                      <Typography variant="body2" sx={{ flexShrink: 0 }}>
+                        {destination.nights === "none" ? "None" : calculatedNights !== null ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}` : "\u00A0"}
+                      </Typography>
+                    )}
+                    {!expanded && layoutMode === "portrait" && departureDate && (
+                      <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
+                        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                          {departureDate.format("MMM D")}
+                        </Typography>
+                      </StatusBadge>
+                    )}
+                  </Box>
+                </Box>
+              )}
+              {alwaysExpanded && (
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    alignItems: "center",
+                    width: "100%",
+                    mt: 1,
+                  }}
+                >
+                  <Box sx={{ justifySelf: "start" }}>
+                    <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
                       {destination.transport || "\u00A0"}
                     </Typography>
-                  )}
-                  {!expanded && layoutMode === 'portrait' && arrivalDate && (
-                    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                      {arrivalDate.format("MMM D")}
-                    </Typography>
-                  )}
+                  </Box>
+                  <Box sx={{ justifySelf: "end" }}>
+                    <Typography variant="body2">{destination.nights === "none" ? "None" : calculatedNights !== null ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}` : "\u00A0"}</Typography>
+                  </Box>
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <IconButton
-                    onClick={handleExpandClick}
-                    aria-expanded={expanded}
-                    aria-label="show more"
-                    sx={{
-                      transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s",
-                    }}
-                  >
-                    <ExpandMoreIcon />
-                  </IconButton>
-                </Box>
-                <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
-                  {expanded && (
-                    <Typography variant="body2" sx={{ flexShrink: 0 }}>
-                      {destination.nights === "none"
-                        ? "None"
-                        : calculatedNights !== null
-                          ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}`
-                          : "\u00A0"}
-                    </Typography>
-                  )}
-                  {!expanded && layoutMode === 'portrait' && departureDate && (
-                    <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
-                      <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                        {departureDate.format("MMM D")}
-                      </Typography>
-                    </StatusBadge>
-                  )}
-                </Box>
-              </Box>
-            )}
-            {alwaysExpanded && (
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  alignItems: "center",
-                  width: "100%",
-                  mt: 1,
-                }}
-              >
-                <Box sx={{ justifySelf: "start" }}>
-                  <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                    {destination.transport || "\u00A0"}
-                  </Typography>
-                </Box>
-                <Box sx={{ justifySelf: "end" }}>
-                  <Typography variant="body2">
-                    {destination.nights === "none"
-                      ? "None"
-                      : calculatedNights !== null
-                        ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}`
-                        : "\u00A0"}
-                  </Typography>
-                </Box>
-              </Box>
-            )}
-          </Box>
-        }
-        sx={{
-          "& .MuiCardHeader-content": {
-            width: "100%",
-            overflow: "visible",
-          },
-          pb: 0,
-          overflow: "visible",
-        }}
-      />
-      <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit sx={{ overflow: "visible" }}>
-        <CardContent
+              )}
+            </Box>
+          }
           sx={{
-            padding: alwaysExpanded ? "1rem 0 0" : 0,
-            "&:last-child": { pb: 0 },
-            overflow: "hidden",
+            "& .MuiCardHeader-content": {
+              width: "100%",
+              overflow: "visible",
+            },
+            pb: 0,
+            overflow: "visible",
           }}
-        >
-          {locationImageUrl && (
-            <Box
-              component="img"
-              src={locationImageUrl}
-              alt={destination.displayName || destination.name || "Location"}
-              sx={{
-                width: "100%",
-                height: "auto",
-                maxHeight: "250px",
-                objectFit: "cover",
-                borderRadius: "4px 4px 0 0",
-                display: "block",
-              }}
-              onError={() => {
-                setLocationImageUrl(null);
-              }}
-            />
-          )}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: arrivalDate && departureDate ? 'space-between' : arrivalDate ? 'flex-start' : 'flex-end', py: 1.5, px: 2, position: 'relative', overflow: 'visible' }}>
-            {arrivalDate && (
-              <StatusBadge variant="warning" visible={!!dateError} attachToText>
-                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                  {arrivalDate.format("MMM D, YYYY")}
-                </Typography>
-              </StatusBadge>
+        />
+        <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit sx={{ overflow: "visible" }}>
+          <CardContent
+            sx={{
+              padding: alwaysExpanded ? "1rem 0 0" : 0,
+              "&:last-child": { pb: 0 },
+              overflow: "hidden",
+            }}
+          >
+            {locationImageUrl && (
+              <Box
+                component="img"
+                src={locationImageUrl}
+                alt={destination.displayName || destination.name || "Location"}
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  maxHeight: "250px",
+                  objectFit: "cover",
+                  borderRadius: 0,
+                  display: "block",
+                }}
+                onError={() => {
+                  setLocationImageUrl(null);
+                }}
+              />
             )}
-            {departureDate && (
-              <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
-                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                  {departureDate.format("MMM D, YYYY")}
-                </Typography>
-              </StatusBadge>
-            )}
-          </Box>
-          {destination.transport !== "starting point" && (
-            <>
-              <DestinationSection title="Arrival">
-                <ArrivalTimeWeather
-                  destination={destination}
-                  previousDestination={previousDestination}
-                  arrivalDate={arrivalDate}
-                  onArrivalTimeChange={(dateTime: string | null) => {
-                    onDestinationChange({
-                      ...destination,
-                      customArrivalDateTime: dateTime ?? undefined,
-                    });
-                  }}
-                />
-                <Box sx={{ mt: 1 }}>
-                  {(() => {
-                    const arrivalButtons = [
-                      {
-                        label: "Uber",
-                        url: destination.placeDetails?.coordinates
-                          ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(destination.displayName || destination.name)}&dropoff[latitude]=${destination.placeDetails.coordinates[1]}&dropoff[longitude]=${destination.placeDetails.coordinates[0]}`
-                          : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(destination.displayName || destination.name)}`,
-                        icon: (
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: arrivalDate && departureDate ? "space-between" : arrivalDate ? "flex-start" : "flex-end", py: 1.5, px: 2, position: "relative", overflow: "visible" }}>
+              {arrivalDate && (
+                <StatusBadge variant="warning" visible={!!dateError} attachToText>
+                  <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                    {arrivalDate.format("MMM D, YYYY")}
+                  </Typography>
+                </StatusBadge>
+              )}
+              {departureDate && (
+                <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
+                  <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                    {departureDate.format("MMM D, YYYY")}
+                  </Typography>
+                </StatusBadge>
+              )}
+            </Box>
+            {destination.transport !== "starting point" && (
+              <>
+                <DestinationSection title="Arrival">
+                  <ArrivalTimeWeather
+                    destination={destination}
+                    previousDestination={previousDestination}
+                    arrivalDate={arrivalDate}
+                    onArrivalTimeChange={(dateTime: string | null) => {
+                      onDestinationChange({
+                        ...destination,
+                        customArrivalDateTime: dateTime ?? undefined,
+                      });
+                    }}
+                  />
+                  <Box sx={{ mt: 1 }}>
+                    {(() => {
+                      const arrivalButtons = [
+                        {
+                          label: "Uber",
+                          url: destination.placeDetails?.coordinates ? `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(destination.displayName || destination.name)}&dropoff[latitude]=${destination.placeDetails.coordinates[1]}&dropoff[longitude]=${destination.placeDetails.coordinates[0]}` : `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(destination.displayName || destination.name)}`,
+                          icon: (
+                            <Box
+                              component="img"
+                              src={uberIcon}
+                              alt=""
+                              sx={{
+                                height: "1.25rem",
+                                width: "auto",
+                                maxWidth: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                          ),
+                        },
+                        {
+                          label: "Taxi",
+                          url: destination.placeDetails?.coordinates ? `https://www.google.com/maps/dir/?api=1&destination=${destination.placeDetails.coordinates[1]},${destination.placeDetails.coordinates[0]}&travelmode=driving` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.displayName || destination.name)}`,
+                          icon: <LocalTaxiIcon />,
+                        },
+                      ];
+
+                      const isEven = arrivalButtons.length % 2 === 0;
+
+                      if (isEven) {
+                        return (
                           <Box
-                            component="img"
-                            src={uberIcon}
-                            alt=""
                             sx={{
-                              height: "1.25rem",
-                              width: "auto",
-                              maxWidth: "100%",
-                              objectFit: "contain",
-                            }}
-                          />
-                        ),
-                      },
-                      {
-                        label: "Taxi",
-                        url: destination.placeDetails?.coordinates
-                          ? `https://www.google.com/maps/dir/?api=1&destination=${destination.placeDetails.coordinates[1]},${destination.placeDetails.coordinates[0]}&travelmode=driving`
-                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.displayName || destination.name)}`,
-                        icon: <LocalTaxiIcon />,
-                      },
-                    ];
-
-                    const isEven = arrivalButtons.length % 2 === 0;
-
-                  if (isEven) {
-                    return (
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: 1,
-                        }}
-                      >
-                        {arrivalButtons.map((button) => (
-                          <Button
-                            key={button.label}
-                            variant="outlined"
-                            fullWidth
-                            onClick={() => {
-                              window.open(button.url, "_blank", "noopener,noreferrer");
-                            }}
-                            sx={{
-                              bgcolor: "white",
-                              color: "black !important",
-                              borderColor: "divider",
-                              "&:hover": {
-                                bgcolor: "grey.50",
-                                borderColor: "divider",
-                                color: "black !important",
-                              },
-                              display: "flex",
-                              alignItems: "center",
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
                               gap: 1,
                             }}
                           >
-                            {button.icon}
-                            {button.label}
-                          </Button>
-                        ))}
-                      </Box>
-                    );
-                  }
+                            {arrivalButtons.map((button) => (
+                              <Button
+                                key={button.label}
+                                variant="outlined"
+                                fullWidth
+                                onClick={() => {
+                                  window.open(button.url, "_blank", "noopener,noreferrer");
+                                }}
+                                sx={{
+                                  bgcolor: "white",
+                                  color: "black !important",
+                                  borderColor: "divider",
+                                  "&:hover": {
+                                    bgcolor: "grey.50",
+                                    borderColor: "divider",
+                                    color: "black !important",
+                                  },
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                {button.icon}
+                                {button.label}
+                              </Button>
+                            ))}
+                          </Box>
+                        );
+                      }
 
-                  return (
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      {arrivalButtons.map((button) => (
-                        <Button
-                          key={button.label}
-                          variant="outlined"
-                          fullWidth
-                          onClick={() => {
-                            window.open(button.url, "_blank", "noopener,noreferrer");
-                          }}
-                          sx={{
-                            bgcolor: "white",
-                            color: "black !important",
-                            borderColor: "divider",
-                            "&:hover": {
-                              bgcolor: "grey.50",
-                              borderColor: "divider",
-                              color: "black !important",
-                            },
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          {button.icon}
-                          {button.label}
-                        </Button>
-                      ))}
-                    </Box>
-                  );
-                  })()}
-                </Box>
-              </DestinationSection>
-              <DestinationSection title="Accommodation">
-                {(() => {
-                  const links = buildAccommodationLinks(destination);
-                  return links.length > 0 ? (
-                    renderTransportLinks(links)
-                  ) : (
-                    "link to hotel booking"
-                  );
-                })()}
-              </DestinationSection>
-              <DestinationSection title="Activities">
-                <Box sx={{ mt: 1 }}>
-                  {(() => {
-                    const activityButtons = [
-                      {
-                        label: "TripAdvisor",
-                        url: `https://www.tripadvisor.com/Search?q=${encodeURIComponent(destination.displayName || destination.name)}`,
-                        icon: (
-                          <Box
-                            component="img"
-                            src={tripAdvisorIcon}
-                            alt=""
-                            sx={{
-                              height: "1.25rem",
-                              width: "auto",
-                              maxWidth: "100%",
-                              objectFit: "contain",
-                            }}
-                          />
-                        ),
-                      },
-                      {
-                        label: "GetYourGuide",
-                        url: `https://www.getyourguide.com/s/?q=${encodeURIComponent(destination.displayName || destination.name)}`,
-                        icon: (
-                          <Box
-                            component="img"
-                            src={getYourGuideIcon}
-                            alt=""
-                            sx={{
-                              height: "1.25rem",
-                              width: "auto",
-                              maxWidth: "100%",
-                              objectFit: "contain",
-                            }}
-                          />
-                        ),
-                      },
-                    ];
-
-                    const isEven = activityButtons.length % 2 === 0;
-
-                    if (isEven) {
                       return (
-                        <Box
-                          sx={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: 1,
-                          }}
-                        >
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                          {arrivalButtons.map((button) => (
+                            <Button
+                              key={button.label}
+                              variant="outlined"
+                              fullWidth
+                              onClick={() => {
+                                window.open(button.url, "_blank", "noopener,noreferrer");
+                              }}
+                              sx={{
+                                bgcolor: "white",
+                                color: "black !important",
+                                borderColor: "divider",
+                                "&:hover": {
+                                  bgcolor: "grey.50",
+                                  borderColor: "divider",
+                                  color: "black !important",
+                                },
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {button.icon}
+                              {button.label}
+                            </Button>
+                          ))}
+                        </Box>
+                      );
+                    })()}
+                  </Box>
+                </DestinationSection>
+                <DestinationSection title="Accommodation">
+                  {(() => {
+                    const links = buildAccommodationLinks(destination);
+                    return links.length > 0 ? renderTransportLinks(links) : "link to hotel booking";
+                  })()}
+                </DestinationSection>
+                <DestinationSection title="Activities">
+                  <Box sx={{ mt: 1 }}>
+                    {(() => {
+                      const activityButtons = [
+                        {
+                          label: "TripAdvisor",
+                          url: `https://www.tripadvisor.com/Search?q=${encodeURIComponent(destination.displayName || destination.name)}`,
+                          icon: (
+                            <Box
+                              component="img"
+                              src={tripAdvisorIcon}
+                              alt=""
+                              sx={{
+                                height: "1.25rem",
+                                width: "auto",
+                                maxWidth: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                          ),
+                        },
+                        {
+                          label: "GetYourGuide",
+                          url: `https://www.getyourguide.com/s/?q=${encodeURIComponent(destination.displayName || destination.name)}`,
+                          icon: (
+                            <Box
+                              component="img"
+                              src={getYourGuideIcon}
+                              alt=""
+                              sx={{
+                                height: "1.25rem",
+                                width: "auto",
+                                maxWidth: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                          ),
+                        },
+                      ];
+
+                      const isEven = activityButtons.length % 2 === 0;
+
+                      if (isEven) {
+                        return (
+                          <Box
+                            sx={{
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
+                              gap: 1,
+                            }}
+                          >
+                            {activityButtons.map((button) => (
+                              <Button
+                                key={button.label}
+                                variant="outlined"
+                                fullWidth
+                                onClick={() => {
+                                  window.open(button.url, "_blank", "noopener,noreferrer");
+                                }}
+                                sx={{
+                                  bgcolor: "white",
+                                  color: "black !important",
+                                  borderColor: "divider",
+                                  "&:hover": {
+                                    bgcolor: "grey.50",
+                                    borderColor: "divider",
+                                    color: "black !important",
+                                  },
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                {button.icon}
+                                {button.label}
+                              </Button>
+                            ))}
+                          </Box>
+                        );
+                      }
+
+                      return (
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                           {activityButtons.map((button) => (
                             <Button
                               key={button.label}
@@ -1229,135 +1263,124 @@ export const Destination = ({
                           ))}
                         </Box>
                       );
-                    }
-
-                    return (
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        {activityButtons.map((button) => (
-                          <Button
-                            key={button.label}
-                            variant="outlined"
-                            fullWidth
-                            onClick={() => {
-                              window.open(button.url, "_blank", "noopener,noreferrer");
-                            }}
-                            sx={{
-                              bgcolor: "white",
-                              color: "black !important",
-                              borderColor: "divider",
-                              "&:hover": {
-                                bgcolor: "grey.50",
-                                borderColor: "divider",
-                                color: "black !important",
-                              },
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            {button.icon}
-                            {button.label}
-                          </Button>
-                        ))}
-                      </Box>
-                    );
-                  })()}
-                </Box>
-              </DestinationSection>
-            </>
-          )}
-          {nextDestination && (
-            <DestinationSection title="Onwards">
-              {nextDestination.transport ? (
-                nextDestination.transport &&
-                !selfTransportModes.includes(nextDestination.transport) &&
-                destination.transportDetails ? (
-                  <Box sx={{ mt: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 1,
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
-                        <Typography variant="body1" component="span">
-                          {destination.transportDetails.departureLocation || "Origin"}
-                        </Typography>
-                        <Typography variant="body1" component="span">
-                          →
-                        </Typography>
-                        <Typography variant="body1" component="span">
-                          {destination.transportDetails.arrivalLocation || "Destination"}
-                        </Typography>
-                      </Box>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<EditIcon />}
-                        onClick={() => setDetailsModalOpen(true)}
+                    })()}
+                  </Box>
+                </DestinationSection>
+              </>
+            )}
+            {nextDestination && (
+              <DestinationSection title="Onwards">
+                {nextDestination.transport ? (
+                  nextDestination.transport && !selfTransportModes.includes(nextDestination.transport) && destination.transportDetails ? (
+                    <Box sx={{ mt: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          mb: 1,
+                        }}
                       >
-                        Edit
-                      </Button>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDateTime(destination.transportDetails.departureDateTime) || "No departure time"}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDateTime(destination.transportDetails.arrivalDateTime) || "No arrival time"}
-                      </Typography>
-                    </Box>
-                    {destination.transportDetails.departureLocation && nextDestination && (
-                      <Box sx={{ mt: 1 }}>
-                        {(() => {
-                          const onwardsButtons = [
-                            {
-                              label: "Uber",
-                              url: nextDestination.placeDetails?.coordinates
-                                ? `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation)}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&dropoff[latitude]=${nextDestination.placeDetails.coordinates[1]}&dropoff[longitude]=${nextDestination.placeDetails.coordinates[0]}`
-                                : `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation)}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}`,
-                              icon: (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
+                          <Typography variant="body1" component="span">
+                            {destination.transportDetails.departureLocation || "Origin"}
+                          </Typography>
+                          <Typography variant="body1" component="span">
+                            →
+                          </Typography>
+                          <Typography variant="body1" component="span">
+                            {destination.transportDetails.arrivalLocation || "Destination"}
+                          </Typography>
+                        </Box>
+                        <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => setDetailsModalOpen(true)}>
+                          Edit
+                        </Button>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          {formatDateTime(destination.transportDetails.departureDateTime) || "No departure time"}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {formatDateTime(destination.transportDetails.arrivalDateTime) || "No arrival time"}
+                        </Typography>
+                      </Box>
+                      {destination.transportDetails.departureLocation && nextDestination && (
+                        <Box sx={{ mt: 1 }}>
+                          {(() => {
+                            const onwardsButtons = [
+                              {
+                                label: "Uber",
+                                url: nextDestination.placeDetails?.coordinates ? `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation)}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&dropoff[latitude]=${nextDestination.placeDetails.coordinates[1]}&dropoff[longitude]=${nextDestination.placeDetails.coordinates[0]}` : `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation)}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}`,
+                                icon: (
+                                  <Box
+                                    component="img"
+                                    src={uberIcon}
+                                    alt=""
+                                    sx={{
+                                      height: "1.25rem",
+                                      width: "auto",
+                                      maxWidth: "100%",
+                                      objectFit: "contain",
+                                    }}
+                                  />
+                                ),
+                              },
+                              {
+                                label: "Taxi",
+                                url: nextDestination.placeDetails?.coordinates ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation)}&destination=${nextDestination.placeDetails.coordinates[1]},${nextDestination.placeDetails.coordinates[0]}&travelmode=driving` : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation)}&destination=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&travelmode=driving`,
+                                icon: <LocalTaxiIcon />,
+                              },
+                            ];
+
+                            const isEven = onwardsButtons.length % 2 === 0;
+
+                            if (isEven) {
+                              return (
                                 <Box
-                                  component="img"
-                                  src={uberIcon}
-                                  alt=""
                                   sx={{
-                                    height: "1.25rem",
-                                    width: "auto",
-                                    maxWidth: "100%",
-                                    objectFit: "contain",
+                                    display: "grid",
+                                    gridTemplateColumns: "1fr 1fr",
+                                    gap: 1,
                                   }}
-                                />
-                              ),
-                            },
-                            {
-                              label: "Taxi",
-                              url: nextDestination.placeDetails?.coordinates
-                                ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation)}&destination=${nextDestination.placeDetails.coordinates[1]},${nextDestination.placeDetails.coordinates[0]}&travelmode=driving`
-                                : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation)}&destination=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&travelmode=driving`,
-                              icon: <LocalTaxiIcon />,
-                            },
-                          ];
+                                >
+                                  {onwardsButtons.map((button) => (
+                                    <Button
+                                      key={button.label}
+                                      variant="outlined"
+                                      fullWidth
+                                      onClick={() => {
+                                        window.open(button.url, "_blank", "noopener,noreferrer");
+                                      }}
+                                      sx={{
+                                        bgcolor: "white",
+                                        color: "black !important",
+                                        borderColor: "divider",
+                                        "&:hover": {
+                                          bgcolor: "grey.50",
+                                          borderColor: "divider",
+                                          color: "black !important",
+                                        },
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 1,
+                                      }}
+                                    >
+                                      {button.icon}
+                                      {button.label}
+                                    </Button>
+                                  ))}
+                                </Box>
+                              );
+                            }
 
-                          const isEven = onwardsButtons.length % 2 === 0;
-
-                          if (isEven) {
                             return (
-                              <Box
-                                sx={{
-                                  display: "grid",
-                                  gridTemplateColumns: "1fr 1fr",
-                                  gap: 1,
-                                }}
-                              >
+                              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                 {onwardsButtons.map((button) => (
                                   <Button
                                     key={button.label}
@@ -1386,98 +1409,33 @@ export const Destination = ({
                                 ))}
                               </Box>
                             );
-                          }
-
-                          return (
-                            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                              {onwardsButtons.map((button) => (
-                                <Button
-                                  key={button.label}
-                                  variant="outlined"
-                                  fullWidth
-                                  onClick={() => {
-                                    window.open(button.url, "_blank", "noopener,noreferrer");
-                                  }}
-                                  sx={{
-                                    bgcolor: "white",
-                                    color: "black !important",
-                                    borderColor: "divider",
-                                    "&:hover": {
-                                      bgcolor: "grey.50",
-                                      borderColor: "divider",
-                                      color: "black !important",
-                                    },
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 1,
-                                  }}
-                                >
-                                  {button.icon}
-                                  {button.label}
-                                </Button>
-                              ))}
-                            </Box>
-                          );
-                        })()}
-                      </Box>
-                    )}
-                  </Box>
-                ) : (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {(() => {
-                      const links = getTransportLinks(
-                        destination,
-                        nextDestination,
-                        nextDestination.transport || "",
-                        undefined
-                      );
-                      return links.length > 0 ? (
-                        renderTransportLinks(links)
-                      ) : (
-                        "link to transport booking"
-                      );
-                    })()}
-                    {nextDestination.transport &&
-                      !selfTransportModes.includes(nextDestination.transport) && (
-                        <Button
-                          variant="contained"
-                          startIcon={<AddIcon />}
-                          onClick={() => setDetailsModalOpen(true)}
-                          fullWidth
-                        >
+                          })()}
+                        </Box>
+                      )}
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      {(() => {
+                        const links = getTransportLinks(destination, nextDestination, nextDestination.transport || "", undefined);
+                        return links.length > 0 ? renderTransportLinks(links) : "link to transport booking";
+                      })()}
+                      {nextDestination.transport && !selfTransportModes.includes(nextDestination.transport) && (
+                        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDetailsModalOpen(true)} fullWidth>
                           Add {getTransportLabel(nextDestination.transport)} details
                         </Button>
                       )}
-                  </Box>
-                )
-              ) : (
-                "Add a travel method for the next destination to see booking links."
-              )}
-            </DestinationSection>
-          )}
-        </CardContent>
-      </Collapse>
-      {nextDestination?.transport &&
-        !selfTransportModes.includes(nextDestination.transport) && (
-          <TransportDetailsModal
-            open={detailsModalOpen}
-            onClose={() => setDetailsModalOpen(false)}
-            onSave={handleTransportDetailsSave}
-            transportMode={nextDestination.transport}
-            initialDetails={destination.transportDetails}
-          />
-        )}
-      <DoubleDatePicker
-        open={Boolean(datePickerAnchorEl)}
-        anchorEl={datePickerAnchorEl}
-        onClose={() => setDatePickerAnchorEl(null)}
-        checkInDate={destination.checkInDate ? dayjs(destination.checkInDate) : arrivalDate}
-        checkOutDate={destination.checkOutDate ? dayjs(destination.checkOutDate) : departureDate}
-        tripStartDate={tripStartDate}
-        calculatedArrivalDate={arrivalDate}
-        isFirst={isFirst}
-        onDateChange={handleDateRangeChange}
-      />
-    </Card>
+                    </Box>
+                  )
+                ) : (
+                  "Add a travel method for the next destination to see booking links."
+                )}
+              </DestinationSection>
+            )}
+          </CardContent>
+        </Collapse>
+        {nextDestination?.transport && !selfTransportModes.includes(nextDestination.transport) && <TransportDetailsModal open={detailsModalOpen} onClose={() => setDetailsModalOpen(false)} onSave={handleTransportDetailsSave} transportMode={nextDestination.transport} initialDetails={destination.transportDetails} />}
+        <DoubleDatePicker open={Boolean(datePickerAnchorEl)} anchorEl={datePickerAnchorEl} onClose={() => setDatePickerAnchorEl(null)} checkInDate={destination.checkInDate ? dayjs(destination.checkInDate) : arrivalDate} checkOutDate={destination.checkOutDate ? dayjs(destination.checkOutDate) : departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
+      </Card>
+    </Box>
   );
 };
