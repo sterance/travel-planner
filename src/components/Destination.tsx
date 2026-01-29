@@ -99,6 +99,7 @@ export const Destination = ({ destination, nextDestination, previousDestination,
   const [locationImageUrl, setLocationImageUrl] = useState<string | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [datePickerAnchorEl, setDatePickerAnchorEl] = useState<HTMLElement | null>(null);
+  const [buttonHover, setButtonHover] = useState<'remove' | 'reorder' | null>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
 
@@ -637,41 +638,73 @@ export const Destination = ({ destination, nextDestination, previousDestination,
           component={IconButton}
           elevation={1}
           aria-label="remove destination"
-          size="small"
+          onMouseEnter={() => setButtonHover('remove')}
+          onMouseLeave={() => setButtonHover(null)}
           sx={(theme) => ({
             position: "absolute",
-            top: -20,
+            top: -34,
             right: 0,
-            zIndex: 1,
+            zIndex: 0,
             boxShadow: "none",
             borderRadius: 0,
             borderTopRightRadius: theme.shape.borderRadius,
             padding: 0,
-            backgroundColor: theme.palette.background.paper,
+            "&:hover": {
+              backgroundColor: theme.palette.mode === "dark" 
+                ? "rgba(211, 47, 47, 0.16)"
+                : "rgba(211, 47, 47, 0.08)",
+            },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              right: "100%",
+              top: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "inherit",
+              backgroundImage: "inherit",
+              clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
+            },
           })}
         >
-          <DeleteOutlineIcon fontSize="small" />
+          <DeleteOutlineIcon fontSize="large" />
         </Paper>
         {isListMode && (
           <Paper
             component={IconButton}
             elevation={1}
             aria-label="reorder destination"
-            size="small"
+            onMouseEnter={() => setButtonHover('reorder')}
+            onMouseLeave={() => setButtonHover(null)}
             sx={(theme) => ({
               position: "absolute",
-              top: -20,
+              top: -34,
               left: 0,
-              zIndex: 1,
+              zIndex: 0,
               boxShadow: "none",
               borderRadius: 0,
-              borderBottomLeftRadius: theme.shape.borderRadius,
+              borderTopLeftRadius: theme.shape.borderRadius,
               cursor: "grab",
-              transform: "rotate(90deg)",
               padding: 0,
+              "&:hover": {
+                backgroundColor: theme.palette.mode === "dark" 
+                  ? "rgba(25, 118, 210, 0.16)"
+                  : "rgba(25, 118, 210, 0.08)",
+              },
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                left: "100%",
+                top: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "inherit",
+                backgroundImage: "inherit",
+                clipPath: "polygon(0 0, 0% 100%, 100% 100%)",
+              },
             })}
           >
-            <DragIndicatorIcon fontSize="small" />
+            <DragIndicatorIcon fontSize="large" sx={{ transform: "rotate(90deg)" }} />
           </Paper>
         )}
         <CardHeader
@@ -980,14 +1013,24 @@ export const Destination = ({ destination, nextDestination, previousDestination,
               )}
             </Box>
           }
-          sx={{
+          sx={(theme) => ({
             "& .MuiCardHeader-content": {
               width: "100%",
               overflow: "visible",
             },
             pb: 0,
             overflow: "visible",
-          }}
+            ...(buttonHover === 'remove' && {
+              backgroundColor: theme.palette.mode === "dark" 
+                ? "rgba(211, 47, 47, 0.16)"
+                : "rgba(211, 47, 47, 0.08)",
+            }),
+            ...(buttonHover === 'reorder' && {
+              backgroundColor: theme.palette.mode === "dark" 
+                ? "rgba(25, 118, 210, 0.16)"
+                : "rgba(25, 118, 210, 0.08)",
+            }),
+          })}
         />
         <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit sx={{ overflow: "visible" }}>
           <CardContent

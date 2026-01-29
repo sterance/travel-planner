@@ -134,7 +134,7 @@ export const MapCard = ({ destinations, layoutMode, headerOnly = false, bodyOnly
             width: "100%",
           }}
         >
-          <Typography variant="h5" component="div" sx={{ py: 1.5}}>
+          <Typography variant="h5" component="div" sx={layoutMode === "desktop" ? { py: 1.5 } : undefined}>
             Trip Map
           </Typography>
           <IconButton

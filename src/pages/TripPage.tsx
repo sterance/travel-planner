@@ -302,6 +302,7 @@ export const TripPage = (): ReactElement => {
               sx={{
                 display: "flex",
                 alignItems: "center",
+                mb: 2,
               }}
             >
               <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 1 }}>
@@ -446,6 +447,7 @@ export const TripPage = (): ReactElement => {
                 gap: 2,
                 flex: 1,
                 mx: 5,
+                mb: 2,
               }}
             >
               <Box
