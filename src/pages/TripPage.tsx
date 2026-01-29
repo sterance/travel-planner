@@ -10,6 +10,8 @@ import { useSwipeable } from "react-swipeable";
 import AddIcon from "@mui/icons-material/Add";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import dayjs, { type Dayjs } from "dayjs";
 import { Destination } from "../components/Destination";
 import { MapCard } from "../components/MapCard";
@@ -49,7 +51,7 @@ const isTextInputElement = (element: HTMLElement | null): boolean => {
 };
 
 export const TripPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, maxAdjacent } = useOutletContext<OutletContext>();
+  const { viewMode, layoutMode, columns, setColumns, maxAdjacent } = useOutletContext<OutletContext>();
   const { tripId } = useParams<{ tripId: string }>();
   const { currentTrip, updateTrip, setCurrentTrip } = useTripContext();
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
@@ -65,6 +67,8 @@ export const TripPage = (): ReactElement => {
 
   const destinations = currentTrip?.destinations ?? [];
   const tripStartDate = currentTrip?.startDate ? dayjs(currentTrip.startDate) : null;
+  const isDesktopList = layoutMode === "desktop" && viewMode === "list";
+  const desktopListColumns = isDesktopList ? Math.max(columns, 3) : columns;
 
   const startDateDayjs = tripStartDate;
   const destinationDates = useMemo(() => calculateDestinationDates(startDateDayjs, destinations), [startDateDayjs, destinations]);
@@ -72,10 +76,30 @@ export const TripPage = (): ReactElement => {
   const dateErrorsExist = useMemo(() => hasDateErrors(startDateDayjs, destinations), [startDateDayjs, destinations]);
 
   useEffect(() => {
-    if ((viewMode === "carousel" || (viewMode === "list" && layoutMode === "desktop")) && destinations.length > 0) {
-      setCurrentIndex(Math.min(currentIndex, destinations.length - 1));
+    const destinationCount = destinations.length;
+
+    if (destinationCount === 0) {
+      if (currentIndex !== 0) {
+        setCurrentIndex(0);
+      }
+      return;
     }
-  }, [destinations.length, viewMode, layoutMode, currentIndex]);
+
+    if (viewMode === "carousel") {
+      const maxIndex = destinationCount - 1;
+      if (currentIndex > maxIndex) {
+        setCurrentIndex(maxIndex);
+      }
+      return;
+    }
+
+    if (isDesktopList) {
+      const maxStartIndex = Math.max(0, destinationCount - desktopListColumns);
+      if (currentIndex > maxStartIndex) {
+        setCurrentIndex(maxStartIndex);
+      }
+    }
+  }, [destinations.length, viewMode, currentIndex, isDesktopList, desktopListColumns]);
 
   if (!currentTrip) {
     return (
@@ -129,7 +153,7 @@ export const TripPage = (): ReactElement => {
 
   const handleNext = (): void => {
     if (layoutMode === "desktop" && viewMode === "list") {
-      setCurrentIndex((prev) => Math.min(Math.max(0, destinations.length - columns), prev + 1));
+      setCurrentIndex((prev) => Math.min(Math.max(0, destinations.length - desktopListColumns), prev + 1));
     } else {
       setCurrentIndex((prev) => Math.min(destinations.length - 1, prev + 1));
     }
@@ -140,7 +164,19 @@ export const TripPage = (): ReactElement => {
   };
 
   const handleListNext = (): void => {
-    setCurrentIndex((prev) => Math.min(Math.max(0, destinations.length - columns), prev + 1));
+    setCurrentIndex((prev) => Math.min(Math.max(0, destinations.length - desktopListColumns), prev + 1));
+  };
+
+  const handleIncreaseColumns = (): void => {
+    if (!isDesktopList) return;
+    if (columns >= 7) return;
+    setColumns(columns + 1);
+  };
+
+  const handleDecreaseColumns = (): void => {
+    if (!isDesktopList) return;
+    if (columns <= 3) return;
+    setColumns(columns - 1);
   };
 
   const handleDestinationChange = (updatedDestination: DestinationType): void => {
@@ -197,7 +233,7 @@ export const TripPage = (): ReactElement => {
       const target = (eventData.event?.target as HTMLElement) ?? null;
       if (isTextInputElement(target)) return;
       handlePrevious();
-    }
+    },
   });
 
   const renderSettingsAndMap = (): ReactElement => {
@@ -214,30 +250,13 @@ export const TripPage = (): ReactElement => {
           }}
         >
           <Box sx={{ gridColumn: "1", gridRow: "1" }}>
-            <SettingsCard
-              startDate={tripStartDate}
-              endDate={tripEndDate}
-              onStartDateChange={handleStartDateChange}
-              hasDateErrors={dateErrorsExist}
-            />
+            <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
           </Box>
           <Box sx={{ gridColumn: "2", gridRow: "1" }}>
-            <MapCard
-              destinations={destinations}
-              layoutMode={layoutMode}
-              headerOnly={true}
-              expanded={mapExpanded}
-              onExpandChange={setMapExpanded}
-            />
+            <MapCard destinations={destinations} layoutMode={layoutMode} headerOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
           </Box>
           <Box sx={{ gridColumn: "1 / -1", gridRow: "2" }}>
-            <MapCard
-              destinations={destinations}
-              layoutMode={layoutMode}
-              bodyOnly={true}
-              expanded={mapExpanded}
-              onExpandChange={setMapExpanded}
-            />
+            <MapCard destinations={destinations} layoutMode={layoutMode} bodyOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
           </Box>
         </Box>
       );
@@ -250,20 +269,8 @@ export const TripPage = (): ReactElement => {
           gap: 2,
         }}
       >
-        <SettingsCard
-          startDate={tripStartDate}
-          endDate={tripEndDate}
-          onStartDateChange={handleStartDateChange}
-          hasDateErrors={dateErrorsExist}
-        />
-        <MapCard
-          destinations={destinations}
-          layoutMode={layoutMode}
-          headerOnly={false}
-          bodyOnly={false}
-          expanded={mapExpanded}
-          onExpandChange={setMapExpanded}
-        />
+        <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
+        <MapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={setMapExpanded} />
       </Box>
     );
   };
@@ -385,7 +392,14 @@ export const TripPage = (): ReactElement => {
   }
 
   if (layoutMode === "desktop" && viewMode === "list") {
-    const visibleDestinations = destinations.slice(currentIndex, currentIndex + columns);
+    const slots = Array.from({ length: desktopListColumns }, (_, index) => destinations[currentIndex + index] ?? null);
+    const gridTemplateColumns = [...Array.from({ length: desktopListColumns }).flatMap(() => ["auto", "minmax(0, 1fr)"]), "auto"].join(" ");
+    const hasVisibleDestinations = slots.some((destination) => destination !== null);
+    const lastVisibleIndex = hasVisibleDestinations ? Math.min(destinations.length - 1, currentIndex + desktopListColumns - 1) : null;
+    const showTrailingAsAddCard = destinations.length === 0 || lastVisibleIndex === destinations.length - 1;
+    const trailingInsertIndex = lastVisibleIndex !== null ? lastVisibleIndex + 1 : destinations.length;
+    const rangeStart = destinations.length === 0 ? 0 : currentIndex + 1;
+    const rangeEnd = Math.min(currentIndex + desktopListColumns, destinations.length);
 
     return (
       <Box
@@ -407,46 +421,158 @@ export const TripPage = (): ReactElement => {
           <Box
             sx={{
               display: "flex",
-              justifyContent: "center",
               alignItems: "center",
               gap: 2,
             }}
           >
-            <IconButton onClick={handleListPrevious} disabled={currentIndex === 0} color="primary">
-              <ChevronLeftIcon />
-            </IconButton>
-            <Typography variant="body2">
-              {currentIndex + 1}-{Math.min(currentIndex + columns, destinations.length)} / {destinations.length}
-            </Typography>
-            <IconButton onClick={handleListNext} disabled={currentIndex + columns >= destinations.length} color="primary">
-              <ChevronRightIcon />
-            </IconButton>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 2,
+                flex: 1,
+                mx: 5,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 0.5,
+                }}
+              >
+                <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7} color="primary" size="small" aria-label="increase columns">
+                  <ZoomOutIcon fontSize="small" />
+                </IconButton>
+                <Typography variant="body2" component="span">
+                  /
+                </Typography>
+                <IconButton onClick={handleDecreaseColumns} disabled={columns <= 3} color="primary" size="small" aria-label="decrease columns">
+                  <ZoomInIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <IconButton onClick={handleListPrevious} disabled={currentIndex === 0} color="primary">
+                  <ChevronLeftIcon />
+                </IconButton>
+                <Typography variant="body2">
+                  {rangeStart}-{rangeEnd} / {destinations.length}
+                </Typography>
+                <IconButton onClick={handleListNext} disabled={currentIndex + desktopListColumns >= destinations.length} color="primary">
+                  <ChevronRightIcon />
+                </IconButton>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 0.5,
+                }}
+              >
+                <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7} color="primary" size="small" aria-label="increase columns">
+                  <ZoomOutIcon fontSize="small" />
+                </IconButton>
+                <Typography variant="body2" component="span">
+                  /
+                </Typography>
+                <IconButton onClick={handleDecreaseColumns} disabled={columns <= 3} color="primary" size="small" aria-label="decrease columns">
+                  <ZoomInIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Box>
           </Box>
           <Box
             sx={{
-              display: "flex",
-              gap: 2,
+              display: "grid",
+              gridTemplateColumns,
+              columnGap: 1,
+              alignItems: "stretch",
             }}
           >
-            {visibleDestinations.map((destination, relativeIndex) => {
-              const absoluteIndex = currentIndex + relativeIndex;
+            {Array.from({ length: desktopListColumns }).map((_, boundaryIndex) => {
+              const insertIndex = currentIndex + boundaryIndex;
               return (
                 <Box
-                  key={destination.id}
+                  key={`before-${boundaryIndex}`}
                   sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    overflow: "hidden",
+                    gridColumn: boundaryIndex * 2 + 1,
+                    gridRow: 1,
+                    alignSelf: "stretch",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%",
                   }}
                 >
-                  <Destination destination={destination} nextDestination={destinations[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destination.id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} />
+                  <IconButton onClick={() => handleAddDestination(insertIndex)} color="primary" size="small" aria-label="add destination">
+                    <AddIcon />
+                  </IconButton>
                 </Box>
               );
             })}
+            {slots.map((destination, relativeIndex) => {
+              const absoluteIndex = currentIndex + relativeIndex;
+              return (
+                <Box
+                  key={destination?.id ?? `empty-${absoluteIndex}`}
+                  sx={{
+                    minWidth: 0,
+                    overflow: "hidden",
+                    gridColumn: relativeIndex * 2 + 2,
+                    gridRow: 1,
+                  }}
+                >
+                  {destination ? <Destination destination={destination} nextDestination={destinations[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} shouldFocus={destination.id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} /> : <Box sx={{ height: 1 }} />}
+                </Box>
+              );
+            })}
+            <Box
+              sx={{
+                gridColumn: desktopListColumns * 2 + 1,
+                gridRow: 1,
+                alignSelf: "stretch",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+              }}
+            >
+              {showTrailingAsAddCard ? (
+                <Button
+                  variant="contained"
+                  onClick={() => handleAddDestination()}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    px: 1,
+                    whiteSpace: "nowrap",
+                    writingMode: "vertical-lr",
+                    textOrientation: "upright",
+                    minWidth: 0,
+                  }}
+                >
+                  <AddIcon sx={{ mb: 0.5 }} />
+                  Add Destination
+                </Button>
+              ) : (
+                <IconButton onClick={() => handleAddDestination(trailingInsertIndex)} color="primary" size="small" aria-label="add destination">
+                  <AddIcon />
+                </IconButton>
+              )}
+            </Box>
           </Box>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination()} sx={{ mt: 2 }} fullWidth>
-            Add Destination
-          </Button>
         </Stack>
       </Box>
     );

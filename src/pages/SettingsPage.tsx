@@ -8,14 +8,12 @@ import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 
 interface OutletContext {
-  columns: number;
-  setColumns: (value: number) => void;
   maxAdjacent: number;
   setMaxAdjacent: (value: number) => void;
 }
 
 export const SettingsPage = (): ReactElement => {
-  const { columns, setColumns, maxAdjacent, setMaxAdjacent } = useOutletContext<OutletContext>();
+  const { maxAdjacent, setMaxAdjacent } = useOutletContext<OutletContext>();
 
   return (
     <Box sx={{ p: 3 }}>
@@ -33,22 +31,6 @@ export const SettingsPage = (): ReactElement => {
           />
           <CardContent>
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-              <TextField
-                value={columns}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value, 10);
-                  if (!isNaN(value) && value >= 3) {
-                    setColumns(value);
-                  }
-                }}
-                label="Columns"
-                type="number"
-                size="small"
-                sx={{ width: 120 }}
-                slotProps={{
-                  htmlInput: { min: 3 },
-                }}
-              />
               <TextField
                 value={maxAdjacent}
                 onChange={(e) => {
