@@ -54,6 +54,7 @@ export const TripPage = (): ReactElement => {
   const { currentTrip, updateTrip, setCurrentTrip } = useTripContext();
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [mapExpanded, setMapExpanded] = useState(false);
   const isNarrowScreen = useMediaQuery(`(max-width: 399px)`);
 
   useEffect(() => {
@@ -199,25 +200,73 @@ export const TripPage = (): ReactElement => {
     }
   });
 
-  const renderSettingsAndMap = (): ReactElement => (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: layoutMode === "desktop" ? "row" : "column",
-        gap: 2,
-      }}
-    >
-      <SettingsCard
-        startDate={tripStartDate}
-        endDate={tripEndDate}
-        onStartDateChange={handleStartDateChange}
-        hasDateErrors={dateErrorsExist}
-      />
-      <Box sx={{ flexGrow: 1 }}>
-        <MapCard destinations={destinations} />
+  const renderSettingsAndMap = (): ReactElement => {
+    if (layoutMode === "desktop") {
+      return (
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "auto 1fr",
+            gridTemplateRows: "auto auto",
+            columnGap: 2,
+            rowGap: 0,
+            alignItems: "start",
+          }}
+        >
+          <Box sx={{ gridColumn: "1", gridRow: "1" }}>
+            <SettingsCard
+              startDate={tripStartDate}
+              endDate={tripEndDate}
+              onStartDateChange={handleStartDateChange}
+              hasDateErrors={dateErrorsExist}
+            />
+          </Box>
+          <Box sx={{ gridColumn: "2", gridRow: "1" }}>
+            <MapCard
+              destinations={destinations}
+              layoutMode={layoutMode}
+              headerOnly={true}
+              expanded={mapExpanded}
+              onExpandChange={setMapExpanded}
+            />
+          </Box>
+          <Box sx={{ gridColumn: "1 / -1", gridRow: "2" }}>
+            <MapCard
+              destinations={destinations}
+              layoutMode={layoutMode}
+              bodyOnly={true}
+              expanded={mapExpanded}
+              onExpandChange={setMapExpanded}
+            />
+          </Box>
+        </Box>
+      );
+    }
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}
+      >
+        <SettingsCard
+          startDate={tripStartDate}
+          endDate={tripEndDate}
+          onStartDateChange={handleStartDateChange}
+          hasDateErrors={dateErrorsExist}
+        />
+        <MapCard
+          destinations={destinations}
+          layoutMode={layoutMode}
+          headerOnly={false}
+          bodyOnly={false}
+          expanded={mapExpanded}
+          onExpandChange={setMapExpanded}
+        />
       </Box>
-    </Box>
-  );
+    );
+  };
 
   if (viewMode === "carousel") {
     const hasDestinations = destinations.length > 0;
@@ -234,7 +283,8 @@ export const TripPage = (): ReactElement => {
         <Stack
           sx={{
             flex: 1,
-            overflow: "auto",
+            overflowY: "auto",
+            overflowX: "hidden",
             gap: 2,
             scrollbarGutter: "stable both-edges",
           }}
@@ -285,7 +335,7 @@ export const TripPage = (): ReactElement => {
                 alignItems: "stretch",
                 gap: 2,
                 justifyContent: "center",
-                overflow: "hidden",
+                overflow: "visible",
               }}
               {...(viewMode === "carousel" && layoutMode !== "desktop" ? swipeHandlers : undefined)}
             >
@@ -298,7 +348,7 @@ export const TripPage = (): ReactElement => {
                     <Box
                       key={`empty-${slotIndex}`}
                       sx={{
-                        width: isNarrowScreen ? "100vw" : "400px",
+                        width: isNarrowScreen ? "100vw" : "420px",
                         flexShrink: 0,
                       }}
                     />
@@ -311,7 +361,7 @@ export const TripPage = (): ReactElement => {
                   <Box
                     key={destinations[absoluteIndex].id}
                     sx={{
-                      width: isNarrowScreen && isCurrent ? "100vw" : isCurrent ? "450px" : "400px",
+                      width: isNarrowScreen && isCurrent ? "100vw" : isCurrent ? "450px" : "420px",
                       minWidth: isNarrowScreen && isCurrent ? "100vw" : undefined,
                       flexShrink: 0,
                       opacity: isCurrent ? 1 : 0.6,

@@ -8,6 +8,23 @@ export interface WeatherForecast {
 
 const weatherCache = new Map<string, WeatherForecast | null>();
 
+export const peekWeatherForecast = (
+  latitude: number,
+  longitude: number,
+  dateTime: Dayjs
+): WeatherForecast | null | undefined => {
+  if (!dateTime.isValid()) {
+    return undefined;
+  }
+
+  const cacheKey = `${latitude},${longitude},${dateTime.format("YYYY-MM-DD-HH")}`;
+  if (!weatherCache.has(cacheKey)) {
+    return undefined;
+  }
+
+  return weatherCache.get(cacheKey) ?? null;
+};
+
 const calculateMode = (values: number[]): number => {
   if (values.length === 0) return 0;
   

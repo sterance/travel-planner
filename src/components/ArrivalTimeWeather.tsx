@@ -10,7 +10,7 @@ import { useTheme } from "@mui/material/styles";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import dayjs, { type Dayjs } from "dayjs";
 import { type Destination } from "../types/destination";
-import { getWeatherForecast, type WeatherForecast } from "../services/weatherService";
+import { getWeatherForecast, peekWeatherForecast, type WeatherForecast } from "../services/weatherService";
 import { getWeatherIcon } from "../utils/getWeatherIcon";
 
 interface ArrivalTimeWeatherProps {
@@ -60,25 +60,49 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
     return destination.placeDetails?.coordinates?.[0];
   }, [destination.placeDetails?.coordinates?.[0]]);
 
-  useEffect(() => {
+  const dateTimeToFetch = useMemo(() => {
     if (!arrivalDate || !arrivalDate.isValid() || !effectiveArrivalTime || !effectiveArrivalTime.isValid()) {
+      return null;
+    }
+
+    return arrivalDate.hour(effectiveArrivalTime.hour()).minute(effectiveArrivalTime.minute()).second(0).millisecond(0);
+  }, [arrivalDate?.valueOf() ?? null, effectiveArrivalTime?.valueOf() ?? null]);
+
+  useEffect(() => {
+    if (!dateTimeToFetch || !dateTimeToFetch.isValid()) {
       setWeather(null);
+      setIsLoadingWeather(false);
+      setWeatherError(false);
+      setWeatherErrorDateTime(null);
       return;
     }
 
     if (latitude === undefined || longitude === undefined) {
       setWeather(null);
+      setIsLoadingWeather(false);
+      setWeatherError(false);
+      setWeatherErrorDateTime(null);
       return;
     }
 
-    const dateTimeToFetch = arrivalDate.hour(effectiveArrivalTime.hour()).minute(effectiveArrivalTime.minute()).second(0).millisecond(0);
+    const cached = peekWeatherForecast(latitude, longitude, dateTimeToFetch);
+    if (cached !== undefined) {
+      setWeather(cached);
+      setIsLoadingWeather(false);
+      setWeatherError(cached === null);
+      setWeatherErrorDateTime(cached === null ? dateTimeToFetch : null);
+      return;
+    }
 
     setIsLoadingWeather(true);
     setWeatherError(false);
     setWeatherErrorDateTime(null);
 
+    let cancelled = false;
+
     getWeatherForecast(latitude, longitude, dateTimeToFetch)
       .then((forecast) => {
+        if (cancelled) return;
         setWeather(forecast);
         setIsLoadingWeather(false);
         if (!forecast) {
@@ -87,12 +111,17 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
         }
       })
       .catch(() => {
+        if (cancelled) return;
         setWeather(null);
         setIsLoadingWeather(false);
         setWeatherError(true);
         setWeatherErrorDateTime(dateTimeToFetch);
       });
-  }, [arrivalDate, effectiveArrivalTime, latitude, longitude]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dateTimeToFetch?.valueOf() ?? null, latitude, longitude]);
 
   const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setTimeValue(event.target.value);

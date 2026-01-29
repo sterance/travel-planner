@@ -193,6 +193,8 @@ function App(): ReactElement {
           py: 2,
           mt: '64px',
           minHeight: 0,
+          overflowX: 'hidden',
+          overscrollBehaviorX: 'none',
         }}
       >
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
