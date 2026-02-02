@@ -8,6 +8,8 @@ export interface Destination {
   checkInDate?: string;
   checkOutDate?: string;
   transportDetails?: TransportDetails;
+  accommodations?: AccommodationDetails[];
+  activities?: ActivityDetails[];
   customArrivalDateTime?: string;
 }
 
@@ -29,4 +31,20 @@ export interface TransportDetails {
   departureLocation?: string;
   arrivalLocation?: string;
   flightNumber?: string;
+}
+
+export interface AccommodationDetails {
+  id: string;
+  name?: string;
+  address?: string;
+  checkInDateTime?: string;
+  checkOutDateTime?: string;
+}
+
+export interface ActivityDetails {
+  id: string;
+  name?: string;
+  address?: string;
+  startDateTime?: string;
+  endDateTime?: string;
 }

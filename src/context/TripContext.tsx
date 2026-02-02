@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, type ReactElement } from 'react';
 import { type Trip } from '../types/trip';
-import { loadTrips, saveTrips, createTrip as createTripStorage } from '../services/tripStorageService';
+import { loadTrips, saveTrips, createTrip as createTripStorage } from '../services/storageService';
 
 interface TripContextType {
   trips: Trip[];

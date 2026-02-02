@@ -13,11 +13,11 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import dayjs, { type Dayjs } from "dayjs";
-import { Destination } from "../components/Destination";
-import { MapCard } from "../components/MapCard";
-import { SettingsCard } from "../components/SettingsCard";
+import { DestinationCard } from "../components/DestinationCard";
+import { TripMapCard } from "../components/TripMapCard";
+import { TripDateCard } from "../components/TripDateCard";
 import { type Destination as DestinationType } from "../types/destination";
-import { type ViewMode, type LayoutMode } from "../App";
+import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 import { useTripContext } from "../context/TripContext";
 import { calculateDestinationDates, calculateTripEndDate, hasDateErrors } from "../utils/dateCalculation";
 
@@ -28,6 +28,8 @@ interface OutletContext {
   setColumns: (value: number) => void;
   maxAdjacent: number;
   setMaxAdjacent: (value: number) => void;
+  arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
+  setArrivalWeatherBackgroundMode: (value: ArrivalWeatherBackgroundMode) => void;
 }
 
 const isTextInputElement = (element: HTMLElement | null): boolean => {
@@ -51,7 +53,7 @@ const isTextInputElement = (element: HTMLElement | null): boolean => {
 };
 
 export const TripPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, setColumns, maxAdjacent } = useOutletContext<OutletContext>();
+  const { viewMode, layoutMode, columns, setColumns, maxAdjacent, arrivalWeatherBackgroundMode } = useOutletContext<OutletContext>();
   const { tripId } = useParams<{ tripId: string }>();
   const { currentTrip, updateTrip, setCurrentTrip } = useTripContext();
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
@@ -322,7 +324,7 @@ export const TripPage = (): ReactElement => {
           }}
         >
           <Box sx={{ gridColumn: "1", gridRow: "1" }}>
-            <SettingsCard
+            <TripDateCard
               startDate={tripStartDate}
               endDate={tripEndDate}
               onStartDateChange={handleStartDateChange}
@@ -331,10 +333,10 @@ export const TripPage = (): ReactElement => {
             />
           </Box>
           <Box sx={{ gridColumn: "2", gridRow: "1" }}>
-            <MapCard destinations={destinations} layoutMode={layoutMode} headerOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
+            <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
           </Box>
           <Box sx={{ gridColumn: "1 / -1", gridRow: "2" }}>
-            <MapCard destinations={destinations} layoutMode={layoutMode} bodyOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
+            <TripMapCard destinations={destinations} layoutMode={layoutMode} bodyOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
           </Box>
         </Box>
       );
@@ -347,14 +349,14 @@ export const TripPage = (): ReactElement => {
           gap: 2,
         }}
       >
-        <SettingsCard
+        <TripDateCard
           startDate={tripStartDate}
           endDate={tripEndDate}
           onStartDateChange={handleStartDateChange}
           hasDateErrors={dateErrorsExist}
           referenceDateForStart={referenceDateForStart}
         />
-        <MapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={setMapExpanded} />
+        <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={setMapExpanded} />
       </Box>
     );
   };
@@ -461,7 +463,7 @@ export const TripPage = (): ReactElement => {
                       transition: "all 0.3s ease",
                     }}
                   >
-                    <Destination
+                    <DestinationCard
                       destination={destinations[absoluteIndex]}
                       nextDestination={destinations[absoluteIndex + 1]}
                       previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
@@ -475,6 +477,7 @@ export const TripPage = (): ReactElement => {
                       dateError={destinationDates[absoluteIndex]?.error}
                       layoutMode={layoutMode}
                       tripStartDate={tripStartDate}
+                      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
                     />
                   </Box>
                 );
@@ -686,7 +689,7 @@ export const TripPage = (): ReactElement => {
                   })}
                 >
                   {destination ? (
-                    <Destination
+                    <DestinationCard
                       destination={destination}
                       nextDestination={destinations[absoluteIndex + 1]}
                       previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
@@ -700,6 +703,7 @@ export const TripPage = (): ReactElement => {
                       dateError={destinationDates[absoluteIndex]?.error}
                       layoutMode={layoutMode}
                       tripStartDate={tripStartDate}
+                      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
                       isListMode={viewMode === "list"}
                       onReorderDragStart={(e) => handleReorderDragStart(e, destination.id)}
                       onReorderDragEnd={handleReorderDragEnd}
@@ -782,7 +786,7 @@ export const TripPage = (): ReactElement => {
                   <AddIcon />
                 </IconButton>
               </Box>
-              <Destination
+              <DestinationCard
                 destination={destination}
                 nextDestination={destinations[index + 1]}
                 previousDestination={index > 0 ? destinations[index - 1] : undefined}
@@ -796,8 +800,9 @@ export const TripPage = (): ReactElement => {
                 layoutMode={layoutMode}
                 tripStartDate={tripStartDate}
                 isListMode={viewMode === "list"}
-                onReorderDragStart={viewMode === "list" ? (e) => handleReorderDragStart(e, destination.id) : undefined}
+                onReorderDragStart={viewMode === "list" ? (e: React.DragEvent) => handleReorderDragStart(e, destination.id) : undefined}
                 onReorderDragEnd={viewMode === "list" ? handleReorderDragEnd : undefined}
+                arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
               />
             </Box>
           ))}

@@ -5,10 +5,10 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from './utility/ConfirmDialog';
 import { type Trip } from '../types/trip';
 
-interface SidebarTripItemProps {
+interface TripSidebarItemProps {
   trip: Trip;
   isSelected: boolean;
   autoEdit: boolean;
@@ -18,7 +18,7 @@ interface SidebarTripItemProps {
   onEditComplete: () => void;
 }
 
-export const SidebarTripItem = ({ trip, isSelected, autoEdit, onSelect, onRename, onDelete, onEditComplete }: SidebarTripItemProps): ReactElement => {
+export const TripSidebarItem = ({ trip, isSelected, autoEdit, onSelect, onRename, onDelete, onEditComplete }: TripSidebarItemProps): ReactElement => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(trip.name);
   const [showIcons, setShowIcons] = useState(false);

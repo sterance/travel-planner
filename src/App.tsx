@@ -20,15 +20,17 @@ import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useThemeMode } from './theme/ThemeContext';
 import { useTripContext } from './context/TripContext';
-import { SidebarTripItem } from './components/SidebarTripItem';
+import { TripSidebarItem } from './components/TripSidebarItem';
 import { TripPage } from './pages/TripPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { getStringItem, setStringItem } from './services/storageService';
 
 const DRAWER_WIDTH = 240;
 const ASPECT_RATIO_BREAKPOINT = 1;
 
 export type ViewMode = 'list' | 'carousel';
 export type LayoutMode = 'portrait' | 'desktop';
+export type ArrivalWeatherBackgroundMode = 'default' | 'light' | 'dark';
 
 function App(): ReactElement {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -36,6 +38,7 @@ function App(): ReactElement {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('portrait');
   const [columns, setColumns] = useState(3);
   const [maxAdjacent, setMaxAdjacent] = useState(2);
+  const [arrivalWeatherBackgroundMode, setArrivalWeatherBackgroundMode] = useState<ArrivalWeatherBackgroundMode>('default');
   const { mode, toggleTheme } = useThemeMode();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
   const navigate = useNavigate();
@@ -66,6 +69,18 @@ function App(): ReactElement {
   const handleSettingsClick = (): void => {
     navigate('/settings');
     setDrawerOpen(false);
+  };
+
+  useEffect(() => {
+    const stored = getStringItem('arrivalWeatherBackgroundMode', 'default');
+    if (stored === 'default' || stored === 'light' || stored === 'dark') {
+      setArrivalWeatherBackgroundMode(stored);
+    }
+  }, []);
+
+  const handleArrivalWeatherBackgroundModeChange = (mode: ArrivalWeatherBackgroundMode): void => {
+    setArrivalWeatherBackgroundMode(mode);
+    setStringItem('arrivalWeatherBackgroundMode', mode);
   };
 
   useEffect(() => {
@@ -142,13 +157,13 @@ function App(): ReactElement {
           <Box sx={{ flex: 1, overflow: 'auto' }}>
             <List>
               {trips.map((trip) => (
-                <SidebarTripItem
+                <TripSidebarItem
                   key={trip.id}
                   trip={trip}
                   isSelected={currentTripId === trip.id}
                   autoEdit={editingTripId === trip.id}
                   onSelect={() => handleTripSelect(trip.id)}
-                  onRename={(name) => renameTrip(trip.id, name)}
+                  onRename={(name: string) => renameTrip(trip.id, name)}
                   onDelete={() => deleteTrip(trip.id)}
                   onEditComplete={() => setEditingTripId(null)}
                 />
@@ -199,7 +214,22 @@ function App(): ReactElement {
       >
         <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <Routes>
-            <Route element={<Outlet context={{ viewMode, layoutMode, columns, setColumns, maxAdjacent, setMaxAdjacent }} />}>
+            <Route
+              element={
+                <Outlet
+                  context={{
+                    viewMode,
+                    layoutMode,
+                    columns,
+                    setColumns,
+                    maxAdjacent,
+                    setMaxAdjacent,
+                    arrivalWeatherBackgroundMode,
+                    setArrivalWeatherBackgroundMode: handleArrivalWeatherBackgroundModeChange,
+                  }}
+                />
+              }
+            >
               <Route path="/" element={<TripRedirect />} />
               <Route path="/trip" element={<TripRedirect />} />
               <Route path="/trip/:tripId" element={<TripPage />} />

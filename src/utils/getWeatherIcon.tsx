@@ -10,6 +10,7 @@ import FoggyIcon from "@mui/icons-material/Foggy";
 interface GetWeatherIconOptions {
   width?: number | string;
   height?: number | string;
+  color?: string;
 }
 
 const WEATHER_GRADIENTS = {
@@ -91,7 +92,18 @@ export const getWeatherBackgroundGradient = (weatherCode: number | null | undefi
 };
 
 export const getWeatherIcon = (weatherCode: number, options?: GetWeatherIconOptions): ReactElement => {
-  const iconProps = options ? { sx: { width: options.width, height: options.height } } : {};
+  const sx: Record<string, unknown> = {};
+  if (options?.width !== undefined) {
+    sx.width = options.width;
+  }
+  if (options?.height !== undefined) {
+    sx.height = options.height;
+  }
+  if (options?.color !== undefined) {
+    sx.color = options.color;
+  }
+
+  const iconProps = Object.keys(sx).length > 0 ? { sx } : {};
 
   const category = getWeatherCategory(weatherCode);
 

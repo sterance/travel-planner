@@ -11,8 +11,9 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-
 import L from "leaflet";
 import { type Destination } from "../types/destination";
 import { type LayoutMode } from "../App";
+import { getStringItem, setStringItem } from "../services/storageService";
 
-interface MapCardProps {
+interface TripMapCardProps {
   destinations: Destination[];
   layoutMode: LayoutMode;
   headerOnly?: boolean;
@@ -34,23 +35,19 @@ const MapBounds = ({ bounds }: { bounds: L.LatLngBoundsExpression }): null => {
   return null;
 };
 
-export const MapCard = ({ destinations, layoutMode, headerOnly = false, bodyOnly = false, expanded: controlledExpanded, onExpandChange }: MapCardProps): ReactElement => {
+export const TripMapCard = ({ destinations, layoutMode, headerOnly = false, bodyOnly = false, expanded: controlledExpanded, onExpandChange }: TripMapCardProps): ReactElement => {
   const [internalExpanded, setInternalExpanded] = useState(false);
   const expanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
   const [mapHeight, setMapHeight] = useState(DEFAULT_HEIGHT);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsedHeight = parseInt(stored, 10);
-        if (!isNaN(parsedHeight) && parsedHeight > 0) {
-          setMapHeight(parsedHeight);
-        }
+    const stored = getStringItem(STORAGE_KEY, '');
+    if (stored) {
+      const parsedHeight = parseInt(stored, 10);
+      if (!isNaN(parsedHeight) && parsedHeight > 0) {
+        setMapHeight(parsedHeight);
       }
-    } catch (error) {
-      console.error("Failed to load map height from localStorage:", error);
     }
   }, []);
 
@@ -65,11 +62,7 @@ export const MapCard = ({ destinations, layoutMode, headerOnly = false, bodyOnly
         if (newHeight >= 200) {
           setMapHeight((prevHeight) => {
             if (newHeight !== prevHeight) {
-              try {
-                localStorage.setItem(STORAGE_KEY, newHeight.toString());
-              } catch (error) {
-                console.error("Failed to save map height to localStorage:", error);
-              }
+              setStringItem(STORAGE_KEY, newHeight.toString());
               return newHeight;
             }
             return prevHeight;

@@ -10,7 +10,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { type Dayjs } from "dayjs";
 
-interface SettingsCardProps {
+interface TripDateCardProps {
   startDate: Dayjs | null;
   endDate: Dayjs | null;
   onStartDateChange: (date: Dayjs | null) => void;
@@ -18,13 +18,13 @@ interface SettingsCardProps {
   referenceDateForStart?: Dayjs | null;
 }
 
-export const SettingsCard = ({
+export const TripDateCard = ({
   startDate,
   endDate,
   onStartDateChange,
   hasDateErrors,
   referenceDateForStart,
-}: SettingsCardProps): ReactElement => {
+}: TripDateCardProps): ReactElement => {
   return (
     <Card>
       <CardContent

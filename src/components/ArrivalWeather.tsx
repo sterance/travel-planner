@@ -13,14 +13,21 @@ import { type Destination } from "../types/destination";
 import { getWeatherForecast, peekWeatherForecast, type WeatherForecast } from "../services/weatherService";
 import { getWeatherIcon, getWeatherBackgroundGradient } from "../utils/getWeatherIcon";
 
-interface ArrivalTimeWeatherProps {
+interface ArrivalWeatherProps {
   destination: Destination;
   previousDestination?: Destination;
   arrivalDate: Dayjs | null;
   onArrivalTimeChange: (dateTime: string | null) => void;
+  backgroundMode?: "default" | "light" | "dark";
 }
 
-export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDate, onArrivalTimeChange }: ArrivalTimeWeatherProps): ReactElement => {
+export const ArrivalWeather = ({
+  destination,
+  previousDestination,
+  arrivalDate,
+  onArrivalTimeChange,
+  backgroundMode = "default",
+}: ArrivalWeatherProps): ReactElement => {
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [timeValue, setTimeValue] = useState("");
@@ -41,10 +48,33 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
     return customArrivalTime || defaultArrivalTime;
   }, [customArrivalTime, defaultArrivalTime]);
 
+  const paletteModeForGradient = backgroundMode === "default" ? theme.palette.mode : backgroundMode;
+
   const backgroundGradient = useMemo(
-    () => getWeatherBackgroundGradient(weather?.weatherCode ?? null, theme.palette.mode),
-    [weather?.weatherCode, theme.palette.mode]
+    () => getWeatherBackgroundGradient(weather?.weatherCode ?? null, paletteModeForGradient),
+    [weather?.weatherCode, paletteModeForGradient]
   );
+
+  const mainTextColor =
+    backgroundMode === "default"
+      ? theme.palette.text.primary
+      : backgroundMode === "dark"
+      ? "#ffffff"
+      : "#111111";
+
+  const secondaryTextColor =
+    backgroundMode === "default"
+      ? theme.palette.text.secondary
+      : backgroundMode === "dark"
+      ? "rgba(255, 255, 255, 0.7)"
+      : "rgba(0, 0, 0, 0.6)";
+
+  const iconColor =
+    backgroundMode === "default"
+      ? theme.palette.text.primary
+      : backgroundMode === "dark"
+      ? "#ffffff"
+      : "#111111";
 
   useEffect(() => {
     if (!isEditing) {
@@ -105,8 +135,14 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
 
     let cancelled = false;
 
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ArrivalWeather.tsx:136',message:'calling getWeatherForecast',data:{latitude,longitude,dateTimeToFetch:dateTimeToFetch?.toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     getWeatherForecast(latitude, longitude, dateTimeToFetch)
       .then((forecast) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ArrivalWeather.tsx:140',message:'getWeatherForecast then handler',data:{cancelled,hasForecast:!!forecast},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         if (cancelled) return;
         setWeather(forecast);
         setIsLoadingWeather(false);
@@ -115,7 +151,10 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
           setWeatherErrorDateTime(dateTimeToFetch);
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ArrivalWeather.tsx:150',message:'getWeatherForecast catch handler',data:{cancelled,errorMessage:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         if (cancelled) return;
         setWeather(null);
         setIsLoadingWeather(false);
@@ -234,7 +273,6 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
             ) : (
               <Typography
                 variant="h5"
-                color="text.secondary"
                 component="span"
                 onClick={() => {
                   if (effectiveArrivalTime && effectiveArrivalTime.isValid()) {
@@ -247,6 +285,7 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
                 }}
                 sx={{
                   cursor: "pointer",
+                  color: secondaryTextColor,
                   "&:hover": {
                     opacity: 0.7,
                   },
@@ -259,12 +298,12 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
 
           {weather && !isLoadingWeather && (
             <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 }}>
-              <Typography variant="h3" color="text.primary">
+              <Typography variant="h3" sx={{ color: mainTextColor }}>
                 {weather.temperature}°C
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "center", gap: 1, alignItems: "center" }}>
-                {getWeatherIcon(weather.weatherCode, { width: 48, height: 48 })}
-                <Typography variant="body1" color="text.primary" sx={{ textTransform: "capitalize" }}>
+                {getWeatherIcon(weather.weatherCode, { width: 48, height: 48, color: iconColor })}
+                <Typography variant="body1" sx={{ textTransform: "capitalize", color: mainTextColor }}>
                   {weather.condition}
                 </Typography>
               </Box>
@@ -274,7 +313,7 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
           {isLoadingWeather && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <CircularProgress size={16} />
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: secondaryTextColor }}>
                 Loading weather...
               </Typography>
             </Box>
