@@ -75,6 +75,33 @@ export const TripPage = (): ReactElement => {
   const destinationDates = useMemo(() => calculateDestinationDates(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const tripEndDate = useMemo(() => calculateTripEndDate(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const dateErrorsExist = useMemo(() => hasDateErrors(startDateDayjs, destinations), [startDateDayjs, destinations]);
+  const referenceDateForStart = useMemo(() => {
+    const candidateDates: Dayjs[] = [];
+
+    destinations.forEach((destination) => {
+      if (destination.checkInDate) {
+        const date = dayjs(destination.checkInDate);
+        if (date.isValid()) {
+          candidateDates.push(date);
+        }
+      }
+
+      if (destination.checkOutDate) {
+        const date = dayjs(destination.checkOutDate);
+        if (date.isValid()) {
+          candidateDates.push(date);
+        }
+      }
+    });
+
+    if (candidateDates.length === 0) {
+      return dayjs();
+    }
+
+    return candidateDates.reduce((earliest, current) =>
+      current.isBefore(earliest, "day") ? current : earliest
+    );
+  }, [destinations]);
 
   useEffect(() => {
     const destinationCount = destinations.length;
@@ -295,7 +322,13 @@ export const TripPage = (): ReactElement => {
           }}
         >
           <Box sx={{ gridColumn: "1", gridRow: "1" }}>
-            <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
+            <SettingsCard
+              startDate={tripStartDate}
+              endDate={tripEndDate}
+              onStartDateChange={handleStartDateChange}
+              hasDateErrors={dateErrorsExist}
+              referenceDateForStart={referenceDateForStart}
+            />
           </Box>
           <Box sx={{ gridColumn: "2", gridRow: "1" }}>
             <MapCard destinations={destinations} layoutMode={layoutMode} headerOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
@@ -314,7 +347,13 @@ export const TripPage = (): ReactElement => {
           gap: 2,
         }}
       >
-        <SettingsCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} />
+        <SettingsCard
+          startDate={tripStartDate}
+          endDate={tripEndDate}
+          onStartDateChange={handleStartDateChange}
+          hasDateErrors={dateErrorsExist}
+          referenceDateForStart={referenceDateForStart}
+        />
         <MapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={setMapExpanded} />
       </Box>
     );

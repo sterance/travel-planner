@@ -1490,8 +1490,27 @@ export const Destination = ({ destination, nextDestination, previousDestination,
             )}
           </CardContent>
         </Collapse>
-        {nextDestination?.transport && !selfTransportModes.includes(nextDestination.transport) && <TransportDetailsModal open={detailsModalOpen} onClose={() => setDetailsModalOpen(false)} onSave={handleTransportDetailsSave} transportMode={nextDestination.transport} initialDetails={destination.transportDetails} />}
-        <DoubleDatePicker open={Boolean(datePickerAnchorEl)} anchorEl={datePickerAnchorEl} onClose={() => setDatePickerAnchorEl(null)} checkInDate={destination.checkInDate ? dayjs(destination.checkInDate) : arrivalDate} checkOutDate={destination.checkOutDate ? dayjs(destination.checkOutDate) : departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
+        {nextDestination?.transport && !selfTransportModes.includes(nextDestination.transport) && (
+          <TransportDetailsModal
+            open={detailsModalOpen}
+            onClose={() => setDetailsModalOpen(false)}
+            onSave={handleTransportDetailsSave}
+            transportMode={nextDestination.transport}
+            initialDetails={destination.transportDetails}
+            referenceDate={departureDate}
+          />
+        )}
+        <DoubleDatePicker
+          open={Boolean(datePickerAnchorEl)}
+          anchorEl={datePickerAnchorEl}
+          onClose={() => setDatePickerAnchorEl(null)}
+          checkInDate={destination.checkInDate ? dayjs(destination.checkInDate) : arrivalDate}
+          checkOutDate={destination.checkOutDate ? dayjs(destination.checkOutDate) : departureDate}
+          tripStartDate={tripStartDate}
+          calculatedArrivalDate={arrivalDate}
+          isFirst={isFirst}
+          onDateChange={handleDateRangeChange}
+        />
         </Card>
       </Box>
       <ConfirmDialog

@@ -11,7 +11,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import dayjs, { type Dayjs } from "dayjs";
 import { type Destination } from "../types/destination";
 import { getWeatherForecast, peekWeatherForecast, type WeatherForecast } from "../services/weatherService";
-import { getWeatherIcon } from "../utils/getWeatherIcon";
+import { getWeatherIcon, getWeatherBackgroundGradient } from "../utils/getWeatherIcon";
 
 interface ArrivalTimeWeatherProps {
   destination: Destination;
@@ -40,6 +40,11 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
   const effectiveArrivalTime = useMemo(() => {
     return customArrivalTime || defaultArrivalTime;
   }, [customArrivalTime, defaultArrivalTime]);
+
+  const backgroundGradient = useMemo(
+    () => getWeatherBackgroundGradient(weather?.weatherCode ?? null, theme.palette.mode),
+    [weather?.weatherCode, theme.palette.mode]
+  );
 
   useEffect(() => {
     if (!isEditing) {
@@ -180,9 +185,10 @@ export const ArrivalTimeWeather = ({ destination, previousDestination, arrivalDa
   return (
     <Card
       sx={{
-        bgcolor: "background.default",
+        backgroundImage: backgroundGradient,
+        bgcolor: backgroundGradient ? "transparent" : "background.default",
         border: 1,
-        borderColor: "divider",
+        borderColor: backgroundGradient ? "rgba(255, 255, 255, 0.35)" : "divider",
         borderRadius: 2,
         boxShadow: "none",
       }}

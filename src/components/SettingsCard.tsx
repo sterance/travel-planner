@@ -8,13 +8,14 @@ import WarningIcon from "@mui/icons-material/Warning";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { type Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 
 interface SettingsCardProps {
   startDate: Dayjs | null;
   endDate: Dayjs | null;
   onStartDateChange: (date: Dayjs | null) => void;
   hasDateErrors: boolean;
+  referenceDateForStart?: Dayjs | null;
 }
 
 export const SettingsCard = ({
@@ -22,6 +23,7 @@ export const SettingsCard = ({
   endDate,
   onStartDateChange,
   hasDateErrors,
+  referenceDateForStart,
 }: SettingsCardProps): ReactElement => {
   return (
     <Card>
@@ -43,6 +45,7 @@ export const SettingsCard = ({
                   onStartDateChange(newValue);
                 }}
                 format="MMM D, YYYY"
+                referenceDate={referenceDateForStart ?? dayjs()}
                 slotProps={{
                   textField: {
                     fullWidth: true,

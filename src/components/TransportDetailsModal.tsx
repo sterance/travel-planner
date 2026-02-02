@@ -21,6 +21,7 @@ interface TransportDetailsModalProps {
   onSave: (details: TransportDetails | undefined) => void;
   transportMode: string;
   initialDetails?: TransportDetails;
+  referenceDate?: Dayjs | null;
 }
 
 export const TransportDetailsModal = ({
@@ -29,6 +30,7 @@ export const TransportDetailsModal = ({
   onSave,
   transportMode,
   initialDetails,
+  referenceDate,
 }: TransportDetailsModalProps): ReactElement => {
   const [departureDateTime, setDepartureDateTime] = useState<Dayjs | null>(null);
   const [arrivalDateTime, setArrivalDateTime] = useState<Dayjs | null>(null);
@@ -42,6 +44,7 @@ export const TransportDetailsModal = ({
   const [arrivalAirportOptions, setArrivalAirportOptions] = useState<Airport[]>([]);
 
   const isFlight = transportMode === "by plane";
+  const fallbackReference = referenceDate ?? dayjs();
 
   useEffect(() => {
     if (initialDetails) {
@@ -136,116 +139,107 @@ export const TransportDetailsModal = ({
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 1 }}>
             {isFlight ? (
-              <>
-                <Autocomplete
-                  options={departureAirportOptions}
-                  value={departureAirport}
-                  inputValue={departureAirportInput}
-                  onInputChange={(_event, newInputValue) => {
-                    setDepartureAirportInput(newInputValue);
-                  }}
-                  onChange={(_event, newValue) => {
-                    if (newValue && typeof newValue === "object" && "iata" in newValue) {
-                      setDepartureAirport(newValue as Airport);
-                      setDepartureAirportInput(formatAirportDisplay(newValue as Airport));
-                    } else {
-                      setDepartureAirport(null);
-                    }
-                  }}
-                  getOptionLabel={(option) => {
-                    if (typeof option === "string") {
-                      return option;
-                    }
-                    return formatAirportDisplay(option);
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Departure airport"
-                      placeholder="Search by IATA code or airport name"
-                      fullWidth
-                    />
-                  )}
-                  filterOptions={(x) => x}
-                  freeSolo
-                  fullWidth
-                />
-                <DateTimePicker
-                  label="Departure date and time"
-                  value={departureDateTime}
-                  onChange={(newValue) => setDepartureDateTime(newValue)}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                    },
-                  }}
-                />
-                <Autocomplete
-                  options={arrivalAirportOptions}
-                  value={arrivalAirport}
-                  inputValue={arrivalAirportInput}
-                  onInputChange={(_event, newInputValue) => {
-                    setArrivalAirportInput(newInputValue);
-                  }}
-                  onChange={(_event, newValue) => {
-                    if (newValue && typeof newValue === "object" && "iata" in newValue) {
-                      setArrivalAirport(newValue as Airport);
-                      setArrivalAirportInput(formatAirportDisplay(newValue as Airport));
-                    } else {
-                      setArrivalAirport(null);
-                    }
-                  }}
-                  getOptionLabel={(option) => {
-                    if (typeof option === "string") {
-                      return option;
-                    }
-                    return formatAirportDisplay(option);
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Arrival airport"
-                      placeholder="Search by airport code or name"
-                      fullWidth
-                    />
-                  )}
-                  filterOptions={(x) => x}
-                  freeSolo
-                  fullWidth
-                />
-              </>
+              <Autocomplete
+                options={departureAirportOptions}
+                value={departureAirport}
+                inputValue={departureAirportInput}
+                onInputChange={(_event, newInputValue) => {
+                  setDepartureAirportInput(newInputValue);
+                }}
+                onChange={(_event, newValue) => {
+                  if (newValue && typeof newValue === "object" && "iata" in newValue) {
+                    setDepartureAirport(newValue as Airport);
+                    setDepartureAirportInput(formatAirportDisplay(newValue as Airport));
+                  } else {
+                    setDepartureAirport(null);
+                  }
+                }}
+                getOptionLabel={(option) => {
+                  if (typeof option === "string") {
+                    return option;
+                  }
+                  return formatAirportDisplay(option);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Departure airport"
+                    placeholder="Search by IATA code or airport name"
+                    fullWidth
+                  />
+                )}
+                filterOptions={(x) => x}
+                freeSolo
+                fullWidth
+              />
             ) : (
-              <>
-                <TextField
-                  label="Departure location"
-                  value={departureLocation}
-                  onChange={(e) => setDepartureLocation(e.target.value)}
-                  fullWidth
-                  placeholder="e.g., Station name, terminal"
-                />
-                <DateTimePicker
-                  label="Departure date and time"
-                  value={departureDateTime}
-                  onChange={(newValue) => setDepartureDateTime(newValue)}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                    },
-                  }}
-                />
-                <TextField
-                  label="Arrival location"
-                  value={arrivalLocation}
-                  onChange={(e) => setArrivalLocation(e.target.value)}
-                  fullWidth
-                  placeholder="e.g., Station name, terminal"
-                />
-              </>
+              <TextField
+                label="Departure location"
+                value={departureLocation}
+                onChange={(e) => setDepartureLocation(e.target.value)}
+                fullWidth
+                placeholder="e.g., Station name, terminal"
+              />
+            )}
+            <DateTimePicker
+              label="Departure date and time"
+              value={departureDateTime}
+              onChange={(newValue) => setDepartureDateTime(newValue)}
+              referenceDate={fallbackReference}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                },
+              }}
+            />
+            {isFlight ? (
+              <Autocomplete
+                options={arrivalAirportOptions}
+                value={arrivalAirport}
+                inputValue={arrivalAirportInput}
+                onInputChange={(_event, newInputValue) => {
+                  setArrivalAirportInput(newInputValue);
+                }}
+                onChange={(_event, newValue) => {
+                  if (newValue && typeof newValue === "object" && "iata" in newValue) {
+                    setArrivalAirport(newValue as Airport);
+                    setArrivalAirportInput(formatAirportDisplay(newValue as Airport));
+                  } else {
+                    setArrivalAirport(null);
+                  }
+                }}
+                getOptionLabel={(option) => {
+                  if (typeof option === "string") {
+                    return option;
+                  }
+                  return formatAirportDisplay(option);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Arrival airport"
+                    placeholder="Search by airport code or name"
+                    fullWidth
+                  />
+                )}
+                filterOptions={(x) => x}
+                freeSolo
+                fullWidth
+              />
+            ) : (
+              <TextField
+                label="Arrival location"
+                value={arrivalLocation}
+                onChange={(e) => setArrivalLocation(e.target.value)}
+                fullWidth
+                placeholder="e.g., Station name, terminal"
+              />
             )}
             <DateTimePicker
               label="Arrival date and time"
               value={arrivalDateTime}
               onChange={(newValue) => setArrivalDateTime(newValue)}
+              referenceDate={fallbackReference}
               slotProps={{
                 textField: {
                   fullWidth: true,
