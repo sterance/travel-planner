@@ -3,14 +3,9 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { ConfirmDialog } from './ConfirmDialog';
 import { type Trip } from '../types/trip';
 
 interface SidebarTripItemProps {
@@ -158,20 +153,15 @@ export const SidebarTripItem = ({ trip, isSelected, autoEdit, onSelect, onRename
           <DeleteIcon fontSize="small" />
         </IconButton>
       </ListItemButton>
-      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-        <DialogTitle>Delete Trip</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete "{trip.name}"? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        title="Delete Trip"
+        message={`Are you sure you want to delete "${trip.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={handleDeleteConfirm}
+        confirmButtonColor="error"
+      />
     </>
   );
 };

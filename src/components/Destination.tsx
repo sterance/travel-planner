@@ -42,6 +42,7 @@ import { TransportDetailsModal } from "./TransportDetailsModal";
 import { DoubleDatePicker } from "./DoubleDatePicker";
 import { StatusBadge } from "./StatusBadge";
 import { ArrivalTimeWeather } from "./ArrivalTimeWeather";
+import { ConfirmDialog } from "./ConfirmDialog";
 import googleMapsIcon from "../assets/icons/google-maps.svg";
 import googleFlightsIcon from "../assets/icons/google-flights.svg";
 import skyscannerIcon from "../assets/icons/skyscanner.svg";
@@ -69,6 +70,7 @@ interface DestinationProps {
   nextDestination?: DestinationType;
   previousDestination?: DestinationType;
   onDestinationChange: (destination: DestinationType) => void;
+  onRemove: () => void;
   shouldFocus?: boolean;
   alwaysExpanded?: boolean;
   isFirst?: boolean;
@@ -78,9 +80,11 @@ interface DestinationProps {
   layoutMode?: LayoutMode;
   tripStartDate?: Dayjs | null;
   isListMode?: boolean;
+  onReorderDragStart?: (e: React.DragEvent) => void;
+  onReorderDragEnd?: () => void;
 }
 
-export const Destination = ({ destination, nextDestination, previousDestination, onDestinationChange, shouldFocus = false, alwaysExpanded = false, isFirst = false, arrivalDate = null, departureDate = null, dateError, layoutMode = "portrait", tripStartDate = null, isListMode = false }: DestinationProps): ReactElement => {
+export const Destination = ({ destination, nextDestination, previousDestination, onDestinationChange, onRemove, shouldFocus = false, alwaysExpanded = false, isFirst = false, arrivalDate = null, departureDate = null, dateError, layoutMode = "portrait", tripStartDate = null, isListMode = false, onReorderDragStart, onReorderDragEnd }: DestinationProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -100,6 +104,7 @@ export const Destination = ({ destination, nextDestination, previousDestination,
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [datePickerAnchorEl, setDatePickerAnchorEl] = useState<HTMLElement | null>(null);
   const [buttonHover, setButtonHover] = useState<'remove' | 'reorder' | null>(null);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
 
@@ -617,27 +622,29 @@ export const Destination = ({ destination, nextDestination, previousDestination,
     );
   };
   return (
-    <Box
-      sx={{
-        maxWidth: "100%",
-        overflow: "visible",
-      }}
-    >
-      <Card
-        sx={(theme) => ({
-          position: "relative",
-          overflow: "visible",
+    <>
+      <Box
+        sx={{
           maxWidth: "100%",
-          borderTopLeftRadius: isListMode ? 0 : theme.shape.borderRadius,
-          borderTopRightRadius: 0,
-          borderBottomLeftRadius: theme.shape.borderRadius,
-          borderBottomRightRadius: theme.shape.borderRadius,
-        })}
+          overflow: "visible",
+        }}
       >
+        <Card
+          sx={(theme) => ({
+            position: "relative",
+            overflow: "visible",
+            maxWidth: "100%",
+            borderTopLeftRadius: isListMode ? 0 : theme.shape.borderRadius,
+            borderTopRightRadius: 0,
+            borderBottomLeftRadius: theme.shape.borderRadius,
+            borderBottomRightRadius: theme.shape.borderRadius,
+          })}
+        >
         <Paper
           component={IconButton}
           elevation={1}
           aria-label="remove destination"
+          onClick={() => setRemoveDialogOpen(true)}
           onMouseEnter={() => setButtonHover('remove')}
           onMouseLeave={() => setButtonHover(null)}
           sx={(theme) => ({
@@ -674,6 +681,12 @@ export const Destination = ({ destination, nextDestination, previousDestination,
             component={IconButton}
             elevation={1}
             aria-label="reorder destination"
+            draggable={!!onReorderDragStart}
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = "move";
+              onReorderDragStart?.(e);
+            }}
+            onDragEnd={() => onReorderDragEnd?.()}
             onMouseEnter={() => setButtonHover('reorder')}
             onMouseLeave={() => setButtonHover(null)}
             sx={(theme) => ({
@@ -684,7 +697,8 @@ export const Destination = ({ destination, nextDestination, previousDestination,
               boxShadow: "none",
               borderRadius: 0,
               borderTopLeftRadius: theme.shape.borderRadius,
-              cursor: "grab",
+              cursor: onReorderDragStart ? "grab" : undefined,
+              "&:active": onReorderDragStart ? { cursor: "grabbing" } : undefined,
               padding: 0,
               "&:hover": {
                 backgroundColor: theme.palette.mode === "dark" 
@@ -1018,7 +1032,7 @@ export const Destination = ({ destination, nextDestination, previousDestination,
               width: "100%",
               overflow: "visible",
             },
-            pb: 0,
+            pb: alwaysExpanded ? "1rem" : 0,
             overflow: "visible",
             ...(buttonHover === 'remove' && {
               backgroundColor: theme.palette.mode === "dark" 
@@ -1035,7 +1049,7 @@ export const Destination = ({ destination, nextDestination, previousDestination,
         <Collapse in={alwaysExpanded || expanded} timeout="auto" unmountOnExit sx={{ overflow: "visible" }}>
           <CardContent
             sx={{
-              padding: alwaysExpanded ? "1rem 0 0" : 0,
+              padding: 0,
               "&:last-child": { pb: 0 },
               overflow: "hidden",
             }}
@@ -1478,7 +1492,20 @@ export const Destination = ({ destination, nextDestination, previousDestination,
         </Collapse>
         {nextDestination?.transport && !selfTransportModes.includes(nextDestination.transport) && <TransportDetailsModal open={detailsModalOpen} onClose={() => setDetailsModalOpen(false)} onSave={handleTransportDetailsSave} transportMode={nextDestination.transport} initialDetails={destination.transportDetails} />}
         <DoubleDatePicker open={Boolean(datePickerAnchorEl)} anchorEl={datePickerAnchorEl} onClose={() => setDatePickerAnchorEl(null)} checkInDate={destination.checkInDate ? dayjs(destination.checkInDate) : arrivalDate} checkOutDate={destination.checkOutDate ? dayjs(destination.checkOutDate) : departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
-      </Card>
-    </Box>
+        </Card>
+      </Box>
+      <ConfirmDialog
+        open={removeDialogOpen}
+        onClose={() => setRemoveDialogOpen(false)}
+        title="Remove Destination"
+        message={<>Are you sure you want to remove &quot;{destination.displayName || destination.name || "this destination"}&quot;?</>}
+        confirmLabel="Remove"
+        onConfirm={() => {
+          setRemoveDialogOpen(false);
+          onRemove();
+        }}
+        confirmButtonColor="error"
+      />
+    </>
   );
 };

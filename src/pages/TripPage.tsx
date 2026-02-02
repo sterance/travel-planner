@@ -57,6 +57,7 @@ export const TripPage = (): ReactElement => {
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [reorderDragOverIndex, setReorderDragOverIndex] = useState<number | null>(null);
   const isNarrowScreen = useMediaQuery(`(max-width: 399px)`);
 
   useEffect(() => {
@@ -189,6 +190,50 @@ export const TripPage = (): ReactElement => {
     if (updatedDestination.id === newlyCreatedId) {
       setNewlyCreatedId(null);
     }
+  };
+
+  const handleRemoveDestination = (destinationId: string): void => {
+    if (!currentTrip) return;
+    const removedIndex = destinations.findIndex((d) => d.id === destinationId);
+    if (removedIndex === -1) return;
+    const newDestinations = destinations.filter((d) => d.id !== destinationId);
+    if (currentIndex === removedIndex) {
+      setCurrentIndex(Math.max(0, removedIndex - 1));
+    } else if (currentIndex > removedIndex) {
+      setCurrentIndex((prev) => prev - 1);
+    }
+    updateTrip({
+      ...currentTrip,
+      destinations: newDestinations,
+    });
+  };
+
+  const handleReorderDragStart = (e: React.DragEvent, id: string): void => {
+    e.dataTransfer.setData("text/plain", id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleReorderDragOver = (e: React.DragEvent, index: number): void => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setReorderDragOverIndex(index);
+  };
+
+  const handleReorderDrop = (e: React.DragEvent, toIndex: number): void => {
+    e.preventDefault();
+    setReorderDragOverIndex(null);
+    const id = e.dataTransfer.getData("text/plain");
+    if (!id || !currentTrip) return;
+    const fromIndex = destinations.findIndex((d) => d.id === id);
+    if (fromIndex === -1 || fromIndex === toIndex) return;
+    const newDestinations = [...destinations];
+    newDestinations[fromIndex] = newDestinations[toIndex];
+    newDestinations[toIndex] = destinations[fromIndex];
+    updateTrip({ ...currentTrip, destinations: newDestinations });
+  };
+
+  const handleReorderDragEnd = (): void => {
+    setReorderDragOverIndex(null);
   };
 
   const handleStartDateChange = (date: Dayjs | null): void => {
@@ -382,6 +427,7 @@ export const TripPage = (): ReactElement => {
                       nextDestination={destinations[absoluteIndex + 1]}
                       previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
                       onDestinationChange={handleDestinationChange}
+                      onRemove={() => handleRemoveDestination(destinations[absoluteIndex].id)}
                       shouldFocus={destinations[absoluteIndex].id === newlyCreatedId}
                       alwaysExpanded
                       isFirst={absoluteIndex === 0}
@@ -397,7 +443,7 @@ export const TripPage = (): ReactElement => {
             </Box>
           ) : (
             <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination()} sx={{ mt: 2 }} fullWidth>
-              Add Destination
+              New Destination
             </Button>
           )}
         </Stack>
@@ -406,14 +452,51 @@ export const TripPage = (): ReactElement => {
   }
 
   if (layoutMode === "desktop" && viewMode === "list") {
+    if (destinations.length === 0) {
+      return (
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          <Stack sx={{ flex: 1, overflowY: "auto", overflowX: "hidden", gap: 2, scrollbarGutter: "stable both-edges" }}>
+            {renderSettingsAndMap()}
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination()} sx={{ mt: 2 }} fullWidth>
+              New Destination
+            </Button>
+          </Stack>
+        </Box>
+      );
+    }
+
     const slots = Array.from({ length: desktopListColumns }, (_, index) => destinations[currentIndex + index] ?? null);
     const gridTemplateColumns = [...Array.from({ length: desktopListColumns }).flatMap(() => ["auto", "minmax(0, 1fr)"]), "auto"].join(" ");
     const hasVisibleDestinations = slots.some((destination) => destination !== null);
     const lastVisibleIndex = hasVisibleDestinations ? Math.min(destinations.length - 1, currentIndex + desktopListColumns - 1) : null;
-    const showTrailingAsAddCard = destinations.length === 0 || lastVisibleIndex === destinations.length - 1;
+    const lastVisibleRelativeIndex = lastVisibleIndex !== null ? lastVisibleIndex - currentIndex : -1;
+    const showTrailingAsAddCard = lastVisibleIndex === destinations.length - 1;
+    const addButtonWithTextPosition = showTrailingAsAddCard ? lastVisibleRelativeIndex + 1 : -1;
     const trailingInsertIndex = lastVisibleIndex !== null ? lastVisibleIndex + 1 : destinations.length;
-    const rangeStart = destinations.length === 0 ? 0 : currentIndex + 1;
+    const rangeStart = currentIndex + 1;
     const rangeEnd = Math.min(currentIndex + desktopListColumns, destinations.length);
+
+    const verticalAddButton = (
+      <Button
+        variant="contained"
+        onClick={() => handleAddDestination()}
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 0.5,
+          px: 1,
+          whiteSpace: "nowrap",
+          writingMode: "vertical-lr",
+          textOrientation: "upright",
+          minWidth: 0,
+        }}
+      >
+        <AddIcon sx={{ mb: 0.5 }} />
+        New Destination
+      </Button>
+    );
 
     return (
       <Box
@@ -458,7 +541,7 @@ export const TripPage = (): ReactElement => {
                   gap: 0.5,
                 }}
               >
-                <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7} color="primary" size="small" aria-label="increase columns">
+                <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7 || columns >= destinations.length} color="primary" size="small" aria-label="increase columns">
                   <ZoomOutIcon fontSize="small" />
                 </IconButton>
                 <Typography variant="body2" component="span">
@@ -494,7 +577,7 @@ export const TripPage = (): ReactElement => {
                   gap: 0.5,
                 }}
               >
-                <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7} color="primary" size="small" aria-label="increase columns">
+                <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7 || columns >= destinations.length} color="primary" size="small" aria-label="increase columns">
                   <ZoomOutIcon fontSize="small" />
                 </IconButton>
                 <Typography variant="body2" component="span">
@@ -516,6 +599,8 @@ export const TripPage = (): ReactElement => {
           >
             {Array.from({ length: desktopListColumns }).map((_, boundaryIndex) => {
               const insertIndex = currentIndex + boundaryIndex;
+              const hasDestination = slots[boundaryIndex] !== null;
+              const isAddButtonWithText = boundaryIndex === addButtonWithTextPosition;
               return (
                 <Box
                   key={`before-${boundaryIndex}`}
@@ -529,9 +614,13 @@ export const TripPage = (): ReactElement => {
                     height: "100%",
                   }}
                 >
-                  <IconButton onClick={() => handleAddDestination(insertIndex)} color="primary" size="small" aria-label="add destination">
-                    <AddIcon />
-                  </IconButton>
+                  {isAddButtonWithText ? (
+                    verticalAddButton
+                  ) : hasDestination ? (
+                    <IconButton onClick={() => handleAddDestination(insertIndex)} color="primary" size="small" aria-label="add destination">
+                      <AddIcon />
+                    </IconButton>
+                  ) : null}
                 </Box>
               );
             })}
@@ -545,7 +634,17 @@ export const TripPage = (): ReactElement => {
                     overflow: "visible",
                     gridColumn: relativeIndex * 2 + 2,
                     gridRow: 1,
+                    ...(destination && reorderDragOverIndex === absoluteIndex && {
+                      outline: 2,
+                      outlineStyle: "dashed",
+                      outlineColor: "primary.main",
+                      borderRadius: 1,
+                    }),
                   }}
+                  {...(destination && {
+                    onDragOver: (e: React.DragEvent) => handleReorderDragOver(e, absoluteIndex),
+                    onDrop: (e: React.DragEvent) => handleReorderDrop(e, absoluteIndex),
+                  })}
                 >
                   {destination ? (
                     <Destination
@@ -553,6 +652,7 @@ export const TripPage = (): ReactElement => {
                       nextDestination={destinations[absoluteIndex + 1]}
                       previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
                       onDestinationChange={handleDestinationChange}
+                      onRemove={() => handleRemoveDestination(destination.id)}
                       shouldFocus={destination.id === newlyCreatedId}
                       alwaysExpanded
                       isFirst={absoluteIndex === 0}
@@ -562,6 +662,8 @@ export const TripPage = (): ReactElement => {
                       layoutMode={layoutMode}
                       tripStartDate={tripStartDate}
                       isListMode={viewMode === "list"}
+                      onReorderDragStart={(e) => handleReorderDragStart(e, destination.id)}
+                      onReorderDragEnd={handleReorderDragEnd}
                     />
                   ) : (
                     <Box sx={{ height: 1 }} />
@@ -580,30 +682,13 @@ export const TripPage = (): ReactElement => {
                 height: "100%",
               }}
             >
-              {showTrailingAsAddCard ? (
-                <Button
-                  variant="contained"
-                  onClick={() => handleAddDestination()}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    px: 1,
-                    whiteSpace: "nowrap",
-                    writingMode: "vertical-lr",
-                    textOrientation: "upright",
-                    minWidth: 0,
-                  }}
-                >
-                  <AddIcon sx={{ mb: 0.5 }} />
-                  Add Destination
-                </Button>
-              ) : (
+              {addButtonWithTextPosition === desktopListColumns ? (
+                verticalAddButton
+              ) : !showTrailingAsAddCard ? (
                 <IconButton onClick={() => handleAddDestination(trailingInsertIndex)} color="primary" size="small" aria-label="add destination">
                   <AddIcon />
                 </IconButton>
-              )}
+              ) : null}
             </Box>
           </Box>
         </Stack>
@@ -636,7 +721,23 @@ export const TripPage = (): ReactElement => {
           }}
         >
           {destinations.map((destination, index) => (
-            <Box key={destination.id} sx={{ minWidth: 0, overflow: "visible" }}>
+            <Box
+              key={destination.id}
+              sx={{
+                minWidth: 0,
+                overflow: "visible",
+                ...(viewMode === "list" && reorderDragOverIndex === index && {
+                  outline: 2,
+                  outlineStyle: "dashed",
+                  outlineColor: "primary.main",
+                  borderRadius: 1,
+                }),
+              }}
+              {...(viewMode === "list" && {
+                onDragOver: (e: React.DragEvent) => handleReorderDragOver(e, index),
+                onDrop: (e: React.DragEvent) => handleReorderDrop(e, index),
+              })}
+            >
               <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
                 <IconButton onClick={() => handleAddDestination(index)} color="primary" size="small">
                   <AddIcon />
@@ -647,6 +748,7 @@ export const TripPage = (): ReactElement => {
                 nextDestination={destinations[index + 1]}
                 previousDestination={index > 0 ? destinations[index - 1] : undefined}
                 onDestinationChange={handleDestinationChange}
+                onRemove={() => handleRemoveDestination(destination.id)}
                 shouldFocus={destination.id === newlyCreatedId}
                 isFirst={index === 0}
                 arrivalDate={destinationDates[index]?.arrivalDate ?? null}
@@ -655,12 +757,14 @@ export const TripPage = (): ReactElement => {
                 layoutMode={layoutMode}
                 tripStartDate={tripStartDate}
                 isListMode={viewMode === "list"}
+                onReorderDragStart={viewMode === "list" ? (e) => handleReorderDragStart(e, destination.id) : undefined}
+                onReorderDragEnd={viewMode === "list" ? handleReorderDragEnd : undefined}
               />
             </Box>
           ))}
         </Box>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleAddDestination()} sx={{ mt: 2 }} fullWidth>
-          Add Destination
+          New Destination
         </Button>
       </Stack>
     </Box>
