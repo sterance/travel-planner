@@ -149,7 +149,6 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
         component="span"
         sx={{
           flex: "0 1 auto",
-          minWidth: "12ch",
           whiteSpace: "nowrap",
         }}
       >

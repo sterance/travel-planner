@@ -38,7 +38,6 @@ function App(): ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('portrait');
   const [columns, setColumns] = useState(3);
-  const [maxAdjacent, setMaxAdjacent] = useState(2);
   const [arrivalWeatherBackgroundMode, setArrivalWeatherBackgroundMode] = useState<ArrivalWeatherBackgroundMode>('default');
   const { mode, toggleTheme } = useThemeMode();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
@@ -223,8 +222,6 @@ function App(): ReactElement {
                     layoutMode,
                     columns,
                     setColumns,
-                    maxAdjacent,
-                    setMaxAdjacent,
                     arrivalWeatherBackgroundMode,
                     setArrivalWeatherBackgroundMode: handleArrivalWeatherBackgroundModeChange,
                   }}

@@ -10,14 +10,12 @@ import MenuItem from '@mui/material/MenuItem';
 import { type ArrivalWeatherBackgroundMode } from '../App';
 
 interface OutletContext {
-  maxAdjacent: number;
-  setMaxAdjacent: (value: number) => void;
   arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
   setArrivalWeatherBackgroundMode: (value: ArrivalWeatherBackgroundMode) => void;
 }
 
 export const SettingsPage = (): ReactElement => {
-  const { maxAdjacent, setMaxAdjacent, arrivalWeatherBackgroundMode, setArrivalWeatherBackgroundMode } = useOutletContext<OutletContext>();
+  const { arrivalWeatherBackgroundMode, setArrivalWeatherBackgroundMode } = useOutletContext<OutletContext>();
 
   return (
     <Box sx={{ p: 3 }}>
@@ -25,35 +23,6 @@ export const SettingsPage = (): ReactElement => {
         Settings
       </Typography>
       <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Card>
-          <CardHeader
-            title={
-              <Typography variant="h5" component="div">
-                Desktop Layout Settings
-              </Typography>
-            }
-          />
-          <CardContent>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-              <TextField
-                value={maxAdjacent}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value, 10);
-                  if (!isNaN(value) && value >= 0) {
-                    setMaxAdjacent(value);
-                  }
-                }}
-                label="Max Adjacent"
-                type="number"
-                size="small"
-                sx={{ width: 120 }}
-                slotProps={{
-                  htmlInput: { min: 0 },
-                }}
-              />
-            </Box>
-          </CardContent>
-        </Card>
         <Card>
           <CardHeader
             title={

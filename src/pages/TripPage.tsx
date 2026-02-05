@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type ReactElement } from "react";
+import { useState, useEffect, useMemo, useRef, type ReactElement } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -26,8 +26,6 @@ interface OutletContext {
   layoutMode: LayoutMode;
   columns: number;
   setColumns: (value: number) => void;
-  maxAdjacent: number;
-  setMaxAdjacent: (value: number) => void;
   arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
   setArrivalWeatherBackgroundMode: (value: ArrivalWeatherBackgroundMode) => void;
 }
@@ -53,7 +51,7 @@ const isTextInputElement = (element: HTMLElement | null): boolean => {
 };
 
 export const TripPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, setColumns, maxAdjacent, arrivalWeatherBackgroundMode } = useOutletContext<OutletContext>();
+  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode } = useOutletContext<OutletContext>();
   const { tripId } = useParams<{ tripId: string }>();
   const { currentTrip, updateTrip, setCurrentTrip } = useTripContext();
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
@@ -61,6 +59,8 @@ export const TripPage = (): ReactElement => {
   const [mapExpanded, setMapExpanded] = useState(false);
   const [reorderDragOverIndex, setReorderDragOverIndex] = useState<number | null>(null);
   const isNarrowScreen = useMediaQuery(`(max-width: 399px)`);
+  const [autoMaxAdjacent, setAutoMaxAdjacent] = useState(2);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (tripId && tripId !== currentTrip?.id) {
@@ -317,6 +317,63 @@ export const TripPage = (): ReactElement => {
     },
   });
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (viewMode !== "carousel") return;
+
+    const container = carouselRef.current;
+    if (!container) return;
+
+    const computeMaxAdjacent = (width: number): void => {
+      if (isNarrowScreen) {
+        const narrowMaxAdjacent = 1;
+        setAutoMaxAdjacent((prev) => (prev === narrowMaxAdjacent ? prev : narrowMaxAdjacent));
+        return;
+      }
+
+      const cardWidth = 420;
+      const minSlots = 1;
+      const maxSlots = 9;
+
+      const estimatedSlots = Math.max(minSlots, Math.ceil(width / cardWidth));
+      const clampedSlots = Math.min(maxSlots, estimatedSlots);
+      const oddSlots = clampedSlots % 2 === 0 ? clampedSlots + 1 : clampedSlots;
+      const newMaxAdjacent = (oddSlots - 1) / 2;
+
+      setAutoMaxAdjacent((prev) => (prev === newMaxAdjacent ? prev : newMaxAdjacent));
+    };
+
+    const initialWidth = container.getBoundingClientRect().width;
+    computeMaxAdjacent(initialWidth);
+
+    if (typeof ResizeObserver === "undefined") {
+      const handleResize = (): void => {
+        const width = container.getBoundingClientRect().width;
+        computeMaxAdjacent(width);
+      };
+
+      window.addEventListener("resize", handleResize);
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === container) {
+          const width = entry.contentRect.width;
+          computeMaxAdjacent(width);
+        }
+      }
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [viewMode, isNarrowScreen]);
+
   const renderSettingsAndMap = (): ReactElement => {
     if (layoutMode === "desktop") {
       return (
@@ -370,7 +427,7 @@ export const TripPage = (): ReactElement => {
 
   if (viewMode === "carousel") {
     const hasDestinations = destinations.length > 0;
-    const totalSlots = maxAdjacent * 2 + 1;
+    const totalSlots = autoMaxAdjacent * 2 + 1;
 
     return (
       <Box
@@ -431,6 +488,7 @@ export const TripPage = (): ReactElement => {
           )}
           {hasDestinations ? (
             <Box
+              ref={carouselRef}
               sx={{
                 display: "flex",
                 alignItems: "stretch",
@@ -441,7 +499,7 @@ export const TripPage = (): ReactElement => {
               {...(viewMode === "carousel" && layoutMode !== "desktop" ? swipeHandlers : undefined)}
             >
               {Array.from({ length: totalSlots }).map((_, slotIndex) => {
-                const relativeIndex = slotIndex - maxAdjacent;
+                const relativeIndex = slotIndex - autoMaxAdjacent;
                 const absoluteIndex = currentIndex + relativeIndex;
 
                 if (absoluteIndex < 0 || absoluteIndex >= destinations.length) {
