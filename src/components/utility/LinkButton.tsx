@@ -13,6 +13,14 @@ import uberIcon from "../../assets/icons/uber.svg";
 import tripAdvisorIcon from "../../assets/icons/trip-advisor.svg";
 import getYourGuideIcon from "../../assets/icons/get-your-guide.svg";
 
+const imageIconSx = {
+  height: "1.25rem",
+  width: "auto",
+  maxWidth: "100%",
+  objectFit: "contain",
+  flex: "0 0 auto",
+};
+
 export interface LinkButtonProps {
   site: string;
   url: string;
@@ -28,12 +36,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={googleMapsIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "google-flights":
@@ -42,12 +45,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={googleFlightsIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "skyscanner":
@@ -56,12 +54,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={skyscannerIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "rome2rio":
@@ -70,12 +63,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={rome2rioIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "booking":
@@ -84,12 +72,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={bookingIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "hostelworld":
@@ -98,12 +81,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={hostelworldIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "uber":
@@ -112,12 +90,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={uberIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "tripadvisor":
@@ -126,12 +99,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={tripAdvisorIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "getyourguide":
@@ -140,16 +108,11 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
             component="img"
             src={getYourGuideIcon}
             alt=""
-            sx={{
-              height: "1.25rem",
-              width: "auto",
-              maxWidth: "100%",
-              objectFit: "contain",
-            }}
+            sx={imageIconSx}
           />
         );
       case "taxi":
-        return <LocalTaxiIcon />;
+        return <LocalTaxiIcon sx={{ flex: "0 0 auto" }} />;
       default:
         return null;
     }
@@ -173,11 +136,25 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
         },
         display: "flex",
         alignItems: "center",
+        justifyContent: "center",
+        flexWrap: "wrap",
         gap: 1,
+        lineHeight: 1.6,
+        height: "1.5lh",
+        overflow: "hidden",
       }}
     >
       {renderIcon()}
-      {children}
+      <Box
+        component="span"
+        sx={{
+          flex: "0 1 auto",
+          minWidth: "12ch",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {children}
+      </Box>
     </Button>
   );
 };
