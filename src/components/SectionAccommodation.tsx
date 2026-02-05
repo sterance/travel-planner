@@ -5,7 +5,6 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import dayjs from "dayjs";
 import { buildAccommodationLinks, type TransportLink } from "../utils/externalLinks";
 import { type Destination } from "../types/destination";
 import { ButtonGrid } from "./utility/ButtonGrid";
@@ -16,14 +15,8 @@ import { DetailsModal } from "./utility/DetailsModal";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { type Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { formatDateTime } from "../utils/dateUtils";
-
-const getSafeReferenceDate = (dateString: string | undefined | null): Dayjs | undefined => {
-  if (!dateString) return undefined;
-  const parsed = dayjs(dateString);
-  return parsed.isValid() ? parsed : undefined;
-};
 
 const getSafeDayjsValue = (value: Dayjs | null): Dayjs | null => {
   if (!value) return null;
@@ -33,6 +26,7 @@ const getSafeDayjsValue = (value: Dayjs | null): Dayjs | null => {
 interface SectionAccommodationProps {
   destination: Destination;
   onDestinationChange: (destination: Destination) => void;
+  arrivalDate?: Dayjs | null;
 }
 
 const renderTransportLinks = (links: TransportLink[]): ReactElement | null => {
@@ -60,7 +54,7 @@ const renderTransportLinks = (links: TransportLink[]): ReactElement | null => {
   );
 };
 
-export const SectionAccommodation = ({ destination, onDestinationChange }: SectionAccommodationProps): ReactElement => {
+export const SectionAccommodation = ({ destination, onDestinationChange, arrivalDate }: SectionAccommodationProps): ReactElement => {
   const [accommodationModalOpen, setAccommodationModalOpen] = useState(false);
   const [editingAccommodationIndex, setEditingAccommodationIndex] = useState<number | null>(null);
   const [accommodationName, setAccommodationName] = useState("");
@@ -72,7 +66,7 @@ export const SectionAccommodation = ({ destination, onDestinationChange }: Secti
 
   const accommodations = destination.accommodations ?? [];
 
-  const destinationCheckOut = destination.checkOutDate ? dayjs(destination.checkOutDate) : null;
+  const destinationCheckOut = destination.departureDate ?? null;
 
   const latestAccommodationCheckOut = accommodations.reduce<dayjs.Dayjs | null>((latest, accommodation) => {
     if (!accommodation.checkOutDateTime) {
@@ -92,9 +86,6 @@ export const SectionAccommodation = ({ destination, onDestinationChange }: Secti
   const showAddAccommodationButton = !hasCoverageToDestinationEnd;
 
   const handleAccommodationModalOpen = (index?: number): void => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionAccommodation.tsx:83',message:'handleAccommodationModalOpen called',data:{index:index ?? null,hasAccommodation:index !== undefined && index !== null && accommodations[index] ? true : false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     if (index !== undefined && index !== null && accommodations[index]) {
       const accommodation = accommodations[index];
       setEditingAccommodationIndex(index);
@@ -117,9 +108,6 @@ export const SectionAccommodation = ({ destination, onDestinationChange }: Secti
       setAccommodationCheckOut(null);
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionAccommodation.tsx:99',message:'setting accommodationModalOpen to true',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     setAccommodationModalOpen(true);
   };
 
@@ -227,7 +215,7 @@ export const SectionAccommodation = ({ destination, onDestinationChange }: Secti
               label="Check-in date & time"
               value={getSafeDayjsValue(accommodationCheckIn)}
               onChange={(newValue) => setAccommodationCheckIn(getSafeDayjsValue(newValue))}
-              referenceDate={getSafeReferenceDate(destination.checkInDate)}
+              referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {
                   fullWidth: true,
@@ -239,7 +227,7 @@ export const SectionAccommodation = ({ destination, onDestinationChange }: Secti
               label="Check-out date & time"
               value={getSafeDayjsValue(accommodationCheckOut)}
               onChange={(newValue) => setAccommodationCheckOut(getSafeDayjsValue(newValue))}
-              referenceDate={getSafeReferenceDate(destination.checkInDate)}
+              referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {
                   fullWidth: true,

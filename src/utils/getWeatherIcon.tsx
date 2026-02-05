@@ -6,6 +6,7 @@ import AcUnitIcon from "@mui/icons-material/AcUnit";
 import WaterDropIcon from "@mui/icons-material/WaterDrop";
 import ThunderstormIcon from "@mui/icons-material/Thunderstorm";
 import FoggyIcon from "@mui/icons-material/Foggy";
+import GrainIcon from "@mui/icons-material/Grain";
 
 interface GetWeatherIconOptions {
   width?: number | string;
@@ -15,20 +16,20 @@ interface GetWeatherIconOptions {
 
 const WEATHER_GRADIENTS = {
   clear: {
-    dark: "linear-gradient(135deg, #0d47a1, #1976d2, #fbc02d)",
+    dark: "linear-gradient(135deg, #dbce19, #f5a317, #d28219)",
     light: "linear-gradient(135deg, #fff8e1, #ffe082, #ffb74d)",
   },
   partlyCloudy: {
-    dark: "linear-gradient(135deg, #1f2933, #3e4c59)",
+    dark: "linear-gradient(135deg, #1b3a57, #335a8a)",
     light: "linear-gradient(135deg, #e3f2fd, #bbdefb)",
   },
   overcast: {
     dark: "linear-gradient(135deg, #263238, #37474f)",
-    light: "linear-gradient(135deg, #eceff1, #cfd8dc)",
+    light: "linear-gradient(135deg, #e1e5e8, #b0bec5)",
   },
   fog: {
     dark: "linear-gradient(135deg, #37474f, #546e7a)",
-    light: "linear-gradient(135deg, #f5f5f5, #e0e0e0)",
+    light: "linear-gradient(135deg, #f9f9f9, #e3e3e3)",
   },
   drizzle: {
     dark: "linear-gradient(135deg, #1e3a5f, #4a6572)",
@@ -44,7 +45,7 @@ const WEATHER_GRADIENTS = {
   },
   thunderstorm: {
     dark: "linear-gradient(135deg, #000000, #1a237e, #311b92)",
-    light: "linear-gradient(135deg, #311b92, #0d47a1, #263238)",
+    light: "linear-gradient(135deg, #c5cae9, #7986cb, #455a64)",
   },
 } as const;
 
@@ -117,6 +118,7 @@ export const getWeatherIcon = (weatherCode: number, options?: GetWeatherIconOpti
     case "fog":
       return <FoggyIcon {...iconProps} />;
     case "drizzle":
+      return <GrainIcon {...iconProps} />;
     case "rain":
       return <WaterDropIcon {...iconProps} />;
     case "snow":

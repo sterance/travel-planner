@@ -24,6 +24,7 @@ interface SectionOnwardsProps {
   destination: Destination;
   nextDestination?: Destination;
   onDestinationChange: (destination: Destination) => void;
+  departureDate?: Dayjs | null;
 }
 
 const selfTransportModes = ["by car", "by motorbike", "by bicycle", "on foot", "starting point"];
@@ -96,12 +97,6 @@ const getTransportDetailsModalTitle = (transport?: string | null): string => {
   if (transport === "by train") return "Train Details";
   if (transport === "by boat") return "Voyage Details";
   return "Transport Details";
-};
-
-const getSafeReferenceDate = (dateString: string | undefined | null): Dayjs | undefined => {
-  if (!dateString) return undefined;
-  const parsed = dayjs(dateString);
-  return parsed.isValid() ? parsed : undefined;
 };
 
 const getSafeDayjsValue = (value: Dayjs | null): Dayjs | null => {
@@ -184,138 +179,67 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
   }, [arrivalLocation, isFlight]);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:175',message:'transportDetailsModalOpen useEffect',data:{transportDetailsModalOpen,hasDepartureDateTime:!!departureDateTime,hasTransportDetails:!!destination.transportDetails,checkOutDate:destination.checkOutDate,checkInDate:destination.checkInDate,nights:destination.nights},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-    // #endregion
     if (transportDetailsModalOpen && !destination.transportDetails?.departureDateTime && departureDateTime === null) {
       try {
         let defaultDepartureDate: Dayjs | null = null;
-        
-        if (destination.checkOutDate) {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:183',message:'useEffect parsing checkOutDate',data:{checkOutDate:destination.checkOutDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-          // #endregion
-          const checkoutDate = dayjs(destination.checkOutDate);
-          if (checkoutDate.isValid()) {
-            defaultDepartureDate = checkoutDate.startOf("day").hour(12).minute(0);
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:187',message:'useEffect checkOutDate parsed successfully',data:{defaultDepartureDateIso:defaultDepartureDate.toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-            // #endregion
-          } else {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:191',message:'useEffect invalid checkOutDate',data:{checkOutDate:destination.checkOutDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-            // #endregion
-          }
-        } else if (destination.checkInDate && typeof destination.nights === "number") {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:194',message:'useEffect parsing checkInDate',data:{checkInDate:destination.checkInDate,nights:destination.nights},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-          // #endregion
-          const checkIn = dayjs(destination.checkInDate);
-          if (checkIn.isValid()) {
-            defaultDepartureDate = checkIn.add(destination.nights, "day").startOf("day").hour(12).minute(0);
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:198',message:'useEffect checkInDate parsed successfully',data:{defaultDepartureDateIso:defaultDepartureDate.toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-            // #endregion
-          } else {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:202',message:'useEffect invalid checkInDate',data:{checkInDate:destination.checkInDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-            // #endregion
-          }
+
+        if (destination.departureDate) {
+          defaultDepartureDate = destination.departureDate.startOf("day").hour(12).minute(0);
+        } else if (destination.arrivalDate && typeof destination.nights === "number") {
+          defaultDepartureDate = destination.arrivalDate
+            .add(destination.nights, "day")
+            .startOf("day")
+            .hour(12)
+            .minute(0);
         }
-        
+
         if (defaultDepartureDate) {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:207',message:'useEffect setting defaultDepartureDate',data:{defaultDepartureDateIso:defaultDepartureDate.toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-          // #endregion
           setDepartureDateTime(defaultDepartureDate);
         }
       } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:211',message:'useEffect error',data:{errorMessage:error instanceof Error?error.message:String(error),stack:error instanceof Error?error.stack:undefined},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-        // #endregion
         setDepartureDateTime(null);
       }
     }
-  }, [transportDetailsModalOpen, destination.checkOutDate, destination.checkInDate, destination.nights, destination.transportDetails?.departureDateTime]);
+  }, [transportDetailsModalOpen, destination.arrivalDate, destination.departureDate, destination.nights, destination.transportDetails?.departureDateTime]);
 
   const handleTransportDetailsModalOpen = (): void => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:197',message:'handleTransportDetailsModalOpen called',data:{hasTransportDetails:!!destination.transportDetails,checkOutDate:destination.checkOutDate,checkInDate:destination.checkInDate,nights:destination.nights},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-    // #endregion
     const details = destination.transportDetails;
     
     try {
       if (details?.departureDateTime) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:210',message:'parsing existing departureDateTime',data:{departureDateTime:details.departureDateTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-        // #endregion
         const parsed = dayjs(details.departureDateTime);
         if (parsed.isValid()) {
           setDepartureDateTime(parsed);
         } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:214',message:'invalid departureDateTime',data:{departureDateTime:details.departureDateTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-          // #endregion
           setDepartureDateTime(null);
         }
       } else {
         let defaultDepartureDate: Dayjs | null = null;
         
-        if (destination.checkOutDate) {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:220',message:'parsing checkOutDate',data:{checkOutDate:destination.checkOutDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-          // #endregion
-          const checkoutDate = dayjs(destination.checkOutDate);
-          if (checkoutDate.isValid()) {
-            defaultDepartureDate = checkoutDate.startOf("day").hour(12).minute(0);
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:224',message:'checkOutDate parsed successfully',data:{defaultDepartureDateIso:defaultDepartureDate.toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-            // #endregion
-          } else {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:228',message:'invalid checkOutDate',data:{checkOutDate:destination.checkOutDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-            // #endregion
-          }
-        } else if (destination.checkInDate && typeof destination.nights === "number") {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:231',message:'parsing checkInDate',data:{checkInDate:destination.checkInDate,nights:destination.nights},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-          // #endregion
-          const checkIn = dayjs(destination.checkInDate);
-          if (checkIn.isValid()) {
-            defaultDepartureDate = checkIn.add(destination.nights, "day").startOf("day").hour(12).minute(0);
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:235',message:'checkInDate parsed successfully',data:{defaultDepartureDateIso:defaultDepartureDate.toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-            // #endregion
-          } else {
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:239',message:'invalid checkInDate',data:{checkInDate:destination.checkInDate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-            // #endregion
-          }
+        if (destination.departureDate) {
+          defaultDepartureDate = destination.departureDate.startOf("day").hour(12).minute(0);
+        } else if (destination.arrivalDate && typeof destination.nights === "number") {
+          defaultDepartureDate = destination.arrivalDate
+            .add(destination.nights, "day")
+            .startOf("day")
+            .hour(12)
+            .minute(0);
         }
         
         setDepartureDateTime(defaultDepartureDate);
       }
 
       if (details?.arrivalDateTime) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:247',message:'parsing arrivalDateTime',data:{arrivalDateTime:details.arrivalDateTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-        // #endregion
         const parsed = dayjs(details.arrivalDateTime);
         if (parsed.isValid()) {
           setArrivalDateTime(parsed);
         } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:251',message:'invalid arrivalDateTime',data:{arrivalDateTime:details.arrivalDateTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-          // #endregion
           setArrivalDateTime(null);
         }
       } else {
         setArrivalDateTime(null);
       }
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:258',message:'handleTransportDetailsModalOpen error',data:{errorMessage:error instanceof Error?error.message:String(error),stack:error instanceof Error?error.stack:undefined},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-      // #endregion
       setDepartureDateTime(null);
       setArrivalDateTime(null);
     }
@@ -323,9 +247,6 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     setDepartureLocation(details?.departureLocation || "");
     setArrivalLocation(details?.arrivalLocation || "");
     setFlightNumber(details?.flightNumber || "");
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SectionOnwards.tsx:268',message:'setting transportDetailsModalOpen to true',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-    // #endregion
     setTransportDetailsModalOpen(true);
   };
 
@@ -486,7 +407,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                     label="Departure Date & Time"
                     value={getSafeDayjsValue(departureDateTime)}
                     onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -521,7 +442,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                     label="Arrival Date & Time"
                     value={getSafeDayjsValue(arrivalDateTime)}
                     onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -537,7 +458,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                     label="Departure Date & Time"
                     value={getSafeDayjsValue(departureDateTime)}
                     onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -550,7 +471,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                     label="Arrival Date & Time"
                     value={getSafeDayjsValue(arrivalDateTime)}
                     onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -614,7 +535,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                   label="Departure Date & Time"
                   value={getSafeDayjsValue(departureDateTime)}
                   onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                   slotProps={{
                     textField: {
                       fullWidth: true,
@@ -649,7 +570,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                   label="Arrival Date & Time"
                   value={getSafeDayjsValue(arrivalDateTime)}
                   onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                   slotProps={{
                     textField: {
                       fullWidth: true,
@@ -668,7 +589,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                   label="Departure Date & Time"
                   value={getSafeDayjsValue(departureDateTime)}
                   onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                   slotProps={{
                     textField: {
                       fullWidth: true,
@@ -681,7 +602,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                   label="Arrival Date & Time"
                   value={getSafeDayjsValue(arrivalDateTime)}
                   onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={getSafeReferenceDate(destination.checkInDate)}
+                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
                   slotProps={{
                     textField: {
                       fullWidth: true,

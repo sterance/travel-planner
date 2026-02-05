@@ -48,6 +48,8 @@ export const ArrivalWeather = ({
     return customArrivalTime || defaultArrivalTime;
   }, [customArrivalTime, defaultArrivalTime]);
 
+  const hasEffectiveArrivalTime = !!(effectiveArrivalTime && effectiveArrivalTime.isValid());
+
   const paletteModeForGradient = backgroundMode === "default" ? theme.palette.mode : backgroundMode;
 
   const backgroundGradient = useMemo(
@@ -75,6 +77,8 @@ export const ArrivalWeather = ({
       : backgroundMode === "dark"
       ? "#ffffff"
       : "#111111";
+
+  const useOverrideEditStyling = backgroundMode !== "default" && hasEffectiveArrivalTime;
 
   useEffect(() => {
     if (!isEditing) {
@@ -135,14 +139,8 @@ export const ArrivalWeather = ({
 
     let cancelled = false;
 
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ArrivalWeather.tsx:136',message:'calling getWeatherForecast',data:{latitude,longitude,dateTimeToFetch:dateTimeToFetch?.toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     getWeatherForecast(latitude, longitude, dateTimeToFetch)
       .then((forecast) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ArrivalWeather.tsx:140',message:'getWeatherForecast then handler',data:{cancelled,hasForecast:!!forecast},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         if (cancelled) return;
         setWeather(forecast);
         setIsLoadingWeather(false);
@@ -151,10 +149,7 @@ export const ArrivalWeather = ({
           setWeatherErrorDateTime(dateTimeToFetch);
         }
       })
-      .catch((error) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ArrivalWeather.tsx:150',message:'getWeatherForecast catch handler',data:{cancelled,errorMessage:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
+      .catch(() => {
         if (cancelled) return;
         setWeather(null);
         setIsLoadingWeather(false);
@@ -244,8 +239,14 @@ export const ArrivalWeather = ({
                   size="small"
                   sx={{
                     width: 140,
+                    "& input": {
+                      color: useOverrideEditStyling ? mainTextColor : undefined,
+                    },
                     "& input[type='time']::-webkit-calendar-picker-indicator": {
-                      filter: theme.palette.mode === "dark" ? "invert(1)" : "invert(0)",
+                      filter:
+                        (useOverrideEditStyling ? paletteModeForGradient : theme.palette.mode) === "dark"
+                          ? "invert(1)"
+                          : "invert(0)",
                       cursor: "pointer",
                     },
                     "& input[type='time']::-webkit-calendar-picker-indicator:hover": {
@@ -258,14 +259,44 @@ export const ArrivalWeather = ({
                     },
                   }}
                 />
-                <Button size="small" onClick={handleSave} variant="contained">
+                <Button
+                  size="small"
+                  onClick={handleSave}
+                  variant="contained"
+                  sx={
+                    useOverrideEditStyling
+                      ? {
+                          color: backgroundMode === "dark" ? "#ffffff" : "#111111",
+                          backgroundColor:
+                            backgroundMode === "dark"
+                              ? "rgba(0, 0, 0, 0.6)"
+                              : "rgba(255, 255, 255, 0.85)",
+                          "&:hover": {
+                            backgroundColor:
+                              backgroundMode === "dark"
+                                ? "rgba(0, 0, 0, 0.7)"
+                                : "rgba(255, 255, 255, 0.95)",
+                          },
+                        }
+                      : undefined
+                  }
+                >
                   Save
                 </Button>
-                <Button size="small" onClick={handleCancel}>
+                <Button
+                  size="small"
+                  onClick={handleCancel}
+                  sx={useOverrideEditStyling ? { color: mainTextColor } : undefined}
+                >
                   Cancel
                 </Button>
                 {hasDefault && (
-                  <Button size="small" onClick={handleReset} startIcon={<RefreshIcon />}>
+                  <Button
+                    size="small"
+                    onClick={handleReset}
+                    startIcon={<RefreshIcon />}
+                    sx={useOverrideEditStyling ? { color: mainTextColor } : undefined}
+                  >
                     Reset
                   </Button>
                 )}
@@ -285,7 +316,10 @@ export const ArrivalWeather = ({
                 }}
                 sx={{
                   cursor: "pointer",
-                  color: secondaryTextColor,
+                  color:
+                    effectiveArrivalTime && effectiveArrivalTime.isValid()
+                      ? secondaryTextColor
+                      : theme.palette.text.secondary,
                   "&:hover": {
                     opacity: 0.7,
                   },
@@ -311,9 +345,20 @@ export const ArrivalWeather = ({
           )}
 
           {isLoadingWeather && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
               <CircularProgress size={16} />
-              <Typography variant="body2" sx={{ color: secondaryTextColor }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                }}
+              >
                 Loading weather...
               </Typography>
             </Box>

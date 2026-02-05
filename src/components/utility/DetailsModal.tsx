@@ -33,22 +33,13 @@ export const DetailsModal = ({
 }: DetailsModalProps): ReactElement => {
   useEffect(() => {
     if (open) {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DetailsModal.tsx:35',message:'DetailsModal opened',data:{title,hasOnSave:!!onSave,hasOnClear:!!onClear},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-      // #endregion
     }
   }, [open, title, onSave, onClear]);
 
   const handleClose = (): void => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DetailsModal.tsx:42',message:'DetailsModal onClose called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-    // #endregion
     try {
       onClose();
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DetailsModal.tsx:47',message:'DetailsModal onClose error',data:{errorMessage:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-      // #endregion
       throw error;
     }
   };

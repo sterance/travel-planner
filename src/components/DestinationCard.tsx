@@ -122,36 +122,18 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
       return;
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:125',message:'setTimeout async callback starting',data:{inputValue,isEditing},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     const timeoutId = setTimeout(() => {
       (async () => {
         try {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:128',message:'async callback executing',data:{inputValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           setIsLoading(true);
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:132',message:'calling searchPlaces',data:{inputValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           const results = await searchPlaces(inputValue);
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:135',message:'searchPlaces completed',data:{inputValue,resultsCount:results.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
           setSuggestions(results);
           setIsLoading(false);
-        } catch (error) {
-          // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:140',message:'searchPlaces error caught',data:{inputValue,errorMessage:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
+        } catch {
           setIsLoading(false);
           setSuggestions([]);
         }
-      })().catch((error) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:149',message:'async callback promise rejection caught',data:{inputValue,errorMessage:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
+      })().catch(() => {
         setIsLoading(false);
         setSuggestions([]);
       });
@@ -163,9 +145,6 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
   }, [inputValue, isEditing]);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:138',message:'fetchImage effect starting',data:{destinationId:destination.id,hasPlaceDetails:!!destination.placeDetails,hasDisplayName:!!destination.displayName,hasName:!!destination.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     const fetchImage = async (): Promise<void> => {
       if (!destination.placeDetails && !destination.displayName && !destination.name) {
         console.log("[Destination] skipping image fetch, no destination details", {
@@ -197,13 +176,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
       });
 
       try {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:168',message:'calling getLocationImage',data:{searchQuery},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         const imageUrl = await getLocationImage(searchQuery, { width: 800, height: 400 });
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:171',message:'getLocationImage completed',data:{searchQuery,hasImageUrl:!!imageUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         console.log("[Destination] image fetch completed", {
           id: destination.id,
           searchQuery,
@@ -211,22 +184,12 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
           hasImage: Boolean(imageUrl),
         });
         setLocationImageUrl(imageUrl);
-      } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:178',message:'getLocationImage error caught',data:{searchQuery,errorMessage:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
+      } catch {
         setLocationImageUrl(null);
       }
     };
 
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:185',message:'calling fetchImage',data:{destinationId:destination.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-    fetchImage().catch((error) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/08b58cc9-c8af-4ac5-80a7-c8ceff160cde',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DestinationCard.tsx:187',message:'fetchImage promise rejection caught',data:{errorMessage:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
-    });
+    fetchImage().catch(() => {});
   }, [destination.displayName, destination.placeDetails, destination.name]);
 
   const handleExpandClick = (): void => {
@@ -307,10 +270,20 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
       handleCalendarClose();
       setDatePickerAnchorEl(calendarAnchorEl);
     } else if (nights === "unsure") {
-      onDestinationChange({ ...destination, nights: null, checkInDate: undefined, checkOutDate: undefined });
+      onDestinationChange({
+        ...destination,
+        nights: null,
+        arrivalDate: undefined,
+        departureDate: undefined,
+      });
       handleCalendarClose();
     } else {
-      onDestinationChange({ ...destination, nights, checkInDate: undefined, checkOutDate: undefined });
+      onDestinationChange({
+        ...destination,
+        nights,
+        arrivalDate: undefined,
+        departureDate: undefined,
+      });
       handleCalendarClose();
     }
   };
@@ -319,8 +292,8 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
     onDestinationChange({
       ...destination,
       nights: "dates",
-      checkInDate: checkIn?.toISOString(),
-      checkOutDate: checkOut?.toISOString(),
+      arrivalDate: checkIn ?? null,
+      departureDate: checkOut ?? null,
     });
     setDatePickerAnchorEl(null);
   };
@@ -371,10 +344,13 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
   };
 
   const getCalculatedNights = (): number | null => {
-    if (destination.nights === "dates" && destination.checkInDate && destination.checkOutDate) {
-      const checkIn = dayjs(destination.checkInDate);
-      const checkOut = dayjs(destination.checkOutDate);
-      return checkOut.diff(checkIn, "day");
+    if (destination.nights === "dates" && destination.arrivalDate && destination.departureDate) {
+      const checkIn = dayjs(destination.arrivalDate);
+      const checkOut = dayjs(destination.departureDate);
+      if (checkIn.isValid() && checkOut.isValid()) {
+        return checkOut.diff(checkIn, "day");
+      }
+      return null;
     }
     if (typeof destination.nights === "number") {
       return destination.nights;
@@ -637,7 +613,17 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       </Typography>
                     </Box>
                     <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
-                      <StatusBadge variant="info" visible={!(typeof destination.nights === "number" || (destination.nights === "dates" && destination.checkInDate && destination.checkOutDate))}>
+                      <StatusBadge
+                        variant="info"
+                        visible={
+                          !(
+                            typeof destination.nights === "number" ||
+                            (destination.nights === "dates" &&
+                              destination.arrivalDate &&
+                              destination.departureDate)
+                          )
+                        }
+                      >
                         <IconButton aria-label="calendar" size="small" onClick={handleCalendarClick} sx={{ padding: 0.5 }}>
                           {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? (
                             <Box
@@ -884,10 +870,12 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   <SectionAccommodation
                     destination={destination}
                     onDestinationChange={onDestinationChange}
+                    arrivalDate={arrivalDate}
                   />
                   <SectionActivities
                     destination={destination}
                     onDestinationChange={onDestinationChange}
+                    arrivalDate={arrivalDate}
                   />
                 </>
               )}
@@ -896,11 +884,22 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   destination={destination}
                   nextDestination={nextDestination}
                   onDestinationChange={onDestinationChange}
+                  departureDate={departureDate}
                 />
               )}
             </CardContent>
           </Collapse>
-          <DoubleDatePicker open={Boolean(datePickerAnchorEl)} anchorEl={datePickerAnchorEl} onClose={() => setDatePickerAnchorEl(null)} checkInDate={destination.checkInDate ? dayjs(destination.checkInDate) : arrivalDate} checkOutDate={destination.checkOutDate ? dayjs(destination.checkOutDate) : departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
+          <DoubleDatePicker
+            open={Boolean(datePickerAnchorEl)}
+            anchorEl={datePickerAnchorEl}
+            onClose={() => setDatePickerAnchorEl(null)}
+            checkInDate={destination.arrivalDate ?? arrivalDate}
+            checkOutDate={destination.departureDate ?? departureDate}
+            tripStartDate={tripStartDate}
+            calculatedArrivalDate={arrivalDate}
+            isFirst={isFirst}
+            onDateChange={handleDateRangeChange}
+          />
         </Card>
       </Box>
       <ConfirmDialog

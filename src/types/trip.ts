@@ -1,4 +1,4 @@
-import { type Destination } from './destination';
+import { type Destination } from "./destination";
 
 export interface TripSettings {
   startDate: string | null;

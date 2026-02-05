@@ -24,6 +24,7 @@ import { TripSidebarItem } from './components/TripSidebarItem';
 import { TripPage } from './pages/TripPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { getStringItem, setStringItem } from './services/storageService';
+import { WeatherTestPage } from './pages/WeatherTestPage.tsx';
 
 const DRAWER_WIDTH = 240;
 const ASPECT_RATIO_BREAKPOINT = 1;
@@ -234,6 +235,7 @@ function App(): ReactElement {
               <Route path="/trip" element={<TripRedirect />} />
               <Route path="/trip/:tripId" element={<TripPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/weather-test" element={<WeatherTestPage />} />
             </Route>
           </Routes>
         </Box>

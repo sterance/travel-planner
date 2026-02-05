@@ -62,9 +62,15 @@ const getHistoricalWeatherAverage = async (
     return null;
   }
 
-  const historicalCacheKey = `historical-${latitude},${longitude},${dateTime.format("YYYY-MM-DD-HH")}`;
+  const baseCacheKey = `${latitude},${longitude},${dateTime.format("YYYY-MM-DD-HH")}`;
+  const historicalCacheKey = `historical-${baseCacheKey}`;
+
   if (weatherCache.has(historicalCacheKey)) {
-    return weatherCache.get(historicalCacheKey) ?? null;
+    const cached = weatherCache.get(historicalCacheKey) ?? null;
+    if (!weatherCache.has(baseCacheKey)) {
+      weatherCache.set(baseCacheKey, cached);
+    }
+    return cached;
   }
 
   const month = dateTime.month() + 1;
@@ -86,6 +92,7 @@ const getHistoricalWeatherAverage = async (
 
   if (years.length === 0) {
     weatherCache.set(historicalCacheKey, null);
+    weatherCache.set(baseCacheKey, null);
     return null;
   }
 
@@ -137,6 +144,7 @@ const getHistoricalWeatherAverage = async (
 
     if (hourValues.length === 0) {
       weatherCache.set(historicalCacheKey, null);
+      weatherCache.set(baseCacheKey, null);
       return null;
     }
 
@@ -151,10 +159,12 @@ const getHistoricalWeatherAverage = async (
     };
 
     weatherCache.set(historicalCacheKey, forecast);
+    weatherCache.set(baseCacheKey, forecast);
     return forecast;
   } catch (error) {
     console.error("Error fetching historical weather:", error);
     weatherCache.set(historicalCacheKey, null);
+    weatherCache.set(baseCacheKey, null);
     return null;
   }
 };

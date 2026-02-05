@@ -1,3 +1,5 @@
+import type { Dayjs } from "dayjs";
+
 export interface Destination {
   id: string;
   name: string;
@@ -5,8 +7,8 @@ export interface Destination {
   placeDetails?: PlaceDetails;
   transport?: string | null;
   nights?: number | "none" | "dates" | null;
-  checkInDate?: string;
-  checkOutDate?: string;
+  arrivalDate?: Dayjs | null;
+  departureDate?: Dayjs | null;
   transportDetails?: TransportDetails;
   accommodations?: AccommodationDetails[];
   activities?: ActivityDetails[];

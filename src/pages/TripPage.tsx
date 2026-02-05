@@ -19,7 +19,7 @@ import { TripDateCard } from "../components/TripDateCard";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 import { useTripContext } from "../context/TripContext";
-import { calculateDestinationDates, calculateTripEndDate, hasDateErrors } from "../utils/dateCalculation";
+import { calculateTripEndDate, computeDestinationTimeline, hasDateErrors } from "../utils/dateCalculation";
 
 interface OutletContext {
   viewMode: ViewMode;
@@ -74,25 +74,22 @@ export const TripPage = (): ReactElement => {
   const desktopListColumns = isDesktopList ? Math.max(columns, 3) : columns;
 
   const startDateDayjs = tripStartDate;
-  const destinationDates = useMemo(() => calculateDestinationDates(startDateDayjs, destinations), [startDateDayjs, destinations]);
+  const { infos: destinationDates, destinationsWithTimeline } = useMemo(
+    () => computeDestinationTimeline(startDateDayjs, destinations),
+    [startDateDayjs, destinations]
+  );
   const tripEndDate = useMemo(() => calculateTripEndDate(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const dateErrorsExist = useMemo(() => hasDateErrors(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const referenceDateForStart = useMemo(() => {
     const candidateDates: Dayjs[] = [];
 
-    destinations.forEach((destination) => {
-      if (destination.checkInDate) {
-        const date = dayjs(destination.checkInDate);
-        if (date.isValid()) {
-          candidateDates.push(date);
-        }
+    destinationDates.forEach((info) => {
+      if (info.arrivalDate) {
+        candidateDates.push(info.arrivalDate);
       }
 
-      if (destination.checkOutDate) {
-        const date = dayjs(destination.checkOutDate);
-        if (date.isValid()) {
-          candidateDates.push(date);
-        }
+      if (info.departureDate) {
+        candidateDates.push(info.departureDate);
       }
     });
 
@@ -169,6 +166,14 @@ export const TripPage = (): ReactElement => {
       newDestinations.push(newDestination);
       if (viewMode === "carousel") {
         setCurrentIndex(destinations.length);
+      } else if (
+        isDesktopList &&
+        destinations.length >= desktopListColumns &&
+        currentIndex + desktopListColumns === destinations.length
+      ) {
+        setCurrentIndex((prev) =>
+          Math.min(Math.max(0, newDestinations.length - desktopListColumns), prev + 1),
+        );
       }
     }
     updateTrip({
@@ -211,7 +216,9 @@ export const TripPage = (): ReactElement => {
 
   const handleDestinationChange = (updatedDestination: DestinationType): void => {
     if (!currentTrip) return;
-    const updatedDestinations = destinations.map((dest) => (dest.id === updatedDestination.id ? updatedDestination : dest));
+    const updatedDestinations = destinations.map((dest) =>
+      dest.id === updatedDestination.id ? updatedDestination : dest
+    );
     updateTrip({
       ...currentTrip,
       destinations: updatedDestinations,
@@ -464,9 +471,9 @@ export const TripPage = (): ReactElement => {
                     }}
                   >
                     <DestinationCard
-                      destination={destinations[absoluteIndex]}
-                      nextDestination={destinations[absoluteIndex + 1]}
-                      previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
+                      destination={destinationsWithTimeline[absoluteIndex]}
+                      nextDestination={destinationsWithTimeline[absoluteIndex + 1]}
+                      previousDestination={absoluteIndex > 0 ? destinationsWithTimeline[absoluteIndex - 1] : undefined}
                       onDestinationChange={handleDestinationChange}
                       onRemove={() => handleRemoveDestination(destinations[absoluteIndex].id)}
                       shouldFocus={destinations[absoluteIndex].id === newlyCreatedId}
@@ -507,7 +514,10 @@ export const TripPage = (): ReactElement => {
       );
     }
 
-    const slots = Array.from({ length: desktopListColumns }, (_, index) => destinations[currentIndex + index] ?? null);
+    const slots = Array.from(
+      { length: desktopListColumns },
+      (_, index) => destinationsWithTimeline[currentIndex + index] ?? null
+    );
     const gridTemplateColumns = [...Array.from({ length: desktopListColumns }).flatMap(() => ["auto", "minmax(0, 1fr)"]), "auto"].join(" ");
     const hasVisibleDestinations = slots.some((destination) => destination !== null);
     const lastVisibleIndex = hasVisibleDestinations ? Math.min(destinations.length - 1, currentIndex + desktopListColumns - 1) : null;
@@ -691,8 +701,8 @@ export const TripPage = (): ReactElement => {
                   {destination ? (
                     <DestinationCard
                       destination={destination}
-                      nextDestination={destinations[absoluteIndex + 1]}
-                      previousDestination={absoluteIndex > 0 ? destinations[absoluteIndex - 1] : undefined}
+                      nextDestination={destinationsWithTimeline[absoluteIndex + 1]}
+                      previousDestination={absoluteIndex > 0 ? destinationsWithTimeline[absoluteIndex - 1] : undefined}
                       onDestinationChange={handleDestinationChange}
                       onRemove={() => handleRemoveDestination(destination.id)}
                       shouldFocus={destination.id === newlyCreatedId}
@@ -763,7 +773,7 @@ export const TripPage = (): ReactElement => {
             gap: 2,
           }}
         >
-          {destinations.map((destination, index) => (
+          {destinationsWithTimeline.map((destination, index) => (
             <Box
               key={destination.id}
               sx={{
@@ -788,8 +798,8 @@ export const TripPage = (): ReactElement => {
               </Box>
               <DestinationCard
                 destination={destination}
-                nextDestination={destinations[index + 1]}
-                previousDestination={index > 0 ? destinations[index - 1] : undefined}
+                nextDestination={destinationsWithTimeline[index + 1]}
+                previousDestination={index > 0 ? destinationsWithTimeline[index - 1] : undefined}
                 onDestinationChange={handleDestinationChange}
                 onRemove={() => handleRemoveDestination(destination.id)}
                 shouldFocus={destination.id === newlyCreatedId}

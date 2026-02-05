@@ -1,4 +1,4 @@
-import { type Trip } from '../types/trip';
+import { type Trip } from "../types/trip";
 
 const TRIPS_STORAGE_KEY = 'travel_trips';
 
