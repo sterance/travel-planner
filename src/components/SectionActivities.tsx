@@ -57,7 +57,8 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
     if (!activity.endDateTime) {
       return latest;
     }
-    const end = dayjs(activity.endDateTime);
+    // activity.endDateTime is already Dayjs or null
+    const end = activity.endDateTime;
     if (!latest || end.isAfter(latest)) {
       return end;
     }
@@ -76,15 +77,12 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
       setEditingActivityIndex(index);
       setActivityName(activity.name ?? "");
       setActivityAddress(activity.address ?? "");
-      try {
-        const start = activity.startDateTime ? dayjs(activity.startDateTime) : null;
-        setActivityStart(start && start.isValid() ? start : null);
-        const end = activity.endDateTime ? dayjs(activity.endDateTime) : null;
-        setActivityEnd(end && end.isValid() ? end : null);
-      } catch (error) {
-        setActivityStart(null);
-        setActivityEnd(null);
-      }
+      
+      const start = activity.startDateTime ?? null;
+      setActivityStart(start && start.isValid() ? start : null);
+      
+      const end = activity.endDateTime ?? null;
+      setActivityEnd(end && end.isValid() ? end : null);
     } else {
       setEditingActivityIndex(null);
       setActivityName("");
@@ -109,8 +107,8 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
       id: existing?.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: activityName || undefined,
       address: activityAddress || undefined,
-      startDateTime: activityStart?.toISOString(),
-      endDateTime: activityEnd?.toISOString(),
+      startDateTime: activityStart,
+      endDateTime: activityEnd,
     };
 
     if (editingActivityIndex !== null && activities[editingActivityIndex]) {

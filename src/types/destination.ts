@@ -4,15 +4,14 @@ export interface Destination {
   id: string;
   name: string;
   displayName: string;
-  placeDetails?: PlaceDetails;
-  transport?: string | null;
   nights?: number | "none" | "dates" | null;
   arrivalDate?: Dayjs | null;
+  arrivalTime?: Dayjs | null;
   departureDate?: Dayjs | null;
+  placeDetails?: PlaceDetails;
   transportDetails?: TransportDetails;
   accommodations?: AccommodationDetails[];
   activities?: ActivityDetails[];
-  customArrivalDateTime?: string;
 }
 
 export interface PlaceDetails {
@@ -28,25 +27,26 @@ export interface PlaceDetails {
 }
 
 export interface TransportDetails {
-  departureDateTime?: string;
-  arrivalDateTime?: string;
+  mode: string;
   departureLocation?: string;
   arrivalLocation?: string;
   flightNumber?: string;
+  departureDateTime?: Dayjs | null;
+  arrivalDateTime?: Dayjs | null;
 }
 
 export interface AccommodationDetails {
   id: string;
   name?: string;
   address?: string;
-  checkInDateTime?: string;
-  checkOutDateTime?: string;
+  checkInDateTime?: Dayjs | null;
+  checkOutDateTime?: Dayjs | null;
 }
 
 export interface ActivityDetails {
   id: string;
   name?: string;
   address?: string;
-  startDateTime?: string;
-  endDateTime?: string;
+  startDateTime?: Dayjs | null;
+  endDateTime?: Dayjs | null;
 }

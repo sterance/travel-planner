@@ -6,7 +6,7 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
-import dayjs, { type Dayjs } from "dayjs";
+import { type Dayjs } from "dayjs";
 import { getTransportLinks, type TransportLink } from "../utils/externalLinks";
 import { ButtonGrid } from "./utility/ButtonGrid";
 import { SectionCard } from "./utility/SectionCard";
@@ -116,7 +116,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
   const [isLoadingDepartureLocation, setIsLoadingDepartureLocation] = useState(false);
   const [isLoadingArrivalLocation, setIsLoadingArrivalLocation] = useState(false);
 
-  const isFlight = nextDestination?.transport === "by plane";
+  const nextTransportMode = nextDestination?.transportDetails?.mode;
+  const isFlight = nextTransportMode === "by plane";
 
   useEffect(() => {
     if (!isFlight || departureLocation.length < 2) {
@@ -207,12 +208,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     
     try {
       if (details?.departureDateTime) {
-        const parsed = dayjs(details.departureDateTime);
-        if (parsed.isValid()) {
-          setDepartureDateTime(parsed);
-        } else {
-          setDepartureDateTime(null);
-        }
+        const parsed = details.departureDateTime;
+        setDepartureDateTime(parsed && parsed.isValid() ? parsed : null);
       } else {
         let defaultDepartureDate: Dayjs | null = null;
         
@@ -230,12 +227,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
       }
 
       if (details?.arrivalDateTime) {
-        const parsed = dayjs(details.arrivalDateTime);
-        if (parsed.isValid()) {
-          setArrivalDateTime(parsed);
-        } else {
-          setArrivalDateTime(null);
-        }
+        const parsed = details.arrivalDateTime;
+        setArrivalDateTime(parsed && parsed.isValid() ? parsed : null);
       } else {
         setArrivalDateTime(null);
       }
@@ -263,8 +256,9 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     onDestinationChange({
       ...destination,
       transportDetails: {
-        departureDateTime: departureDateTime?.toISOString(),
-        arrivalDateTime: arrivalDateTime?.toISOString(),
+        mode: destination.transportDetails?.mode ?? "unsure",
+        departureDateTime: departureDateTime,
+        arrivalDateTime: arrivalDateTime,
         departureLocation: departureLocation || undefined,
         arrivalLocation: arrivalLocation || undefined,
         flightNumber: flightNumber || undefined,
@@ -285,7 +279,9 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     return <></>;
   }
 
-  if (!nextDestination.transport) {
+  const nextMode = nextDestination.transportDetails?.mode;
+
+  if (!nextMode) {
     return (
       <SectionCard title="Onwards">
         <Typography variant="body2" color="text.secondary">
@@ -295,7 +291,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     );
   }
 
-  const hasBookedDetails = !selfTransportModes.includes(nextDestination.transport) && !!destination.transportDetails;
+  const hasBookedDetails = !selfTransportModes.includes(nextMode) && 
+    (!!destination.transportDetails?.departureDateTime && !!destination.transportDetails?.arrivalDateTime);
 
   if (hasBookedDetails && destination.transportDetails) {
     const onwardsButtons = [
@@ -324,13 +321,13 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
               <Typography variant="body1" component="span">
-                {formatLocationDisplay(destination.transportDetails.departureLocation, nextDestination?.transport) || "Origin"}
+                {formatLocationDisplay(destination.transportDetails.departureLocation, nextMode) || "Origin"}
               </Typography>
               <Typography variant="body1" component="span">
                 →
               </Typography>
               <Typography variant="body1" component="span">
-                {formatLocationDisplay(destination.transportDetails.arrivalLocation, nextDestination?.transport) || "Destination"}
+                {formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}
               </Typography>
             </Box>
             <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={handleTransportDetailsModalOpen}>
@@ -375,7 +372,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
           )}
         </SectionCard>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DetailsModal open={transportDetailsModalOpen} onClose={handleTransportDetailsModalClose} title={getTransportDetailsModalTitle(nextDestination.transport)} onSave={handleTransportDetailsSave} onClear={handleTransportDetailsClear} hasDetails={!!destination.transportDetails} saveLabel="Save" cancelLabel="Cancel" clearLabel="Clear">
+          <DetailsModal open={transportDetailsModalOpen} onClose={handleTransportDetailsModalClose} title={getTransportDetailsModalTitle(nextMode)} onSave={handleTransportDetailsSave} onClear={handleTransportDetailsClear} hasDetails={!!destination.transportDetails} saveLabel="Save" cancelLabel="Cancel" clearLabel="Clear">
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
               {isFlight ? (
                 <>
@@ -450,6 +447,9 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                       },
                     }}
                   />
+                  <Button variant="outlined" fullWidth disabled>
+                    add from confirmation email{" "}
+                  </Button>
                 </>
               ) : (
                 <>
@@ -479,6 +479,9 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                       },
                     }}
                   />
+                  <Button variant="outlined" fullWidth disabled>
+                    add from confirmation email{" "}
+                  </Button>
                 </>
               )}
             </Box>
@@ -488,22 +491,22 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     );
   }
 
-  const links = getTransportLinks(destination, nextDestination, nextDestination.transport || "", undefined);
+  const links = getTransportLinks(destination, nextDestination, nextMode || "", undefined);
 
   return (
     <>
       <SectionCard title="Onwards">
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {links.length > 0 ? renderTransportLinks(links) : "link to transport booking"}
-          {!selfTransportModes.includes(nextDestination.transport || "") && (
+          {!selfTransportModes.includes(nextMode || "") && (
             <Button variant="contained" startIcon={<AddIcon />} onClick={handleTransportDetailsModalOpen} fullWidth>
-              Add {getTransportLabel(nextDestination.transport || "")} details
+              Add {getTransportLabel(nextMode || "")} details
             </Button>
           )}
         </Box>
       </SectionCard>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DetailsModal open={transportDetailsModalOpen} onClose={handleTransportDetailsModalClose} title={getTransportDetailsModalTitle(nextDestination.transport)} onSave={handleTransportDetailsSave} onClear={handleTransportDetailsClear} hasDetails={!!destination.transportDetails} saveLabel="Save" cancelLabel="Cancel" clearLabel="Clear">
+        <DetailsModal open={transportDetailsModalOpen} onClose={handleTransportDetailsModalClose} title={getTransportDetailsModalTitle(nextMode)} onSave={handleTransportDetailsSave} onClear={handleTransportDetailsClear} hasDetails={!!destination.transportDetails} saveLabel="Save" cancelLabel="Cancel" clearLabel="Clear">
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
             {isFlight ? (
               <>
@@ -575,49 +578,49 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                     textField: {
                       fullWidth: true,
                       variant: "outlined",
-                    },
-                  }}
-                />
-                <Button variant="outlined" fullWidth disabled>
-                  add from confirmation email{" "}
-                </Button>
-              </>
-            ) : (
-              <>
-                <TextField label="Departure Location" value={departureLocation} onChange={(e) => setDepartureLocation(e.target.value)} fullWidth variant="outlined" />
-                <DateTimePicker
-                  label="Departure Date & Time"
-                  value={getSafeDayjsValue(departureDateTime)}
-                  onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      variant: "outlined",
-                    },
-                  }}
-                />
-                <TextField label="Arrival Location" value={arrivalLocation} onChange={(e) => setArrivalLocation(e.target.value)} fullWidth variant="outlined" />
-                <DateTimePicker
-                  label="Arrival Date & Time"
-                  value={getSafeDayjsValue(arrivalDateTime)}
-                  onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      variant: "outlined",
-                    },
-                  }}
-                />
-                <Button variant="outlined" fullWidth disabled>
-                  add from confirmation email{" "}
-                </Button>
-              </>
-            )}
-          </Box>
-        </DetailsModal>
-      </LocalizationProvider>
-    </>
-  );
-};
+                      },
+                    }}
+                  />
+                  <Button variant="outlined" fullWidth disabled>
+                    add from confirmation email{" "}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <TextField label="Departure Location" value={departureLocation} onChange={(e) => setDepartureLocation(e.target.value)} fullWidth variant="outlined" />
+                  <DateTimePicker
+                    label="Departure Date & Time"
+                    value={getSafeDayjsValue(departureDateTime)}
+                    onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: "outlined",
+                      },
+                    }}
+                  />
+                  <TextField label="Arrival Location" value={arrivalLocation} onChange={(e) => setArrivalLocation(e.target.value)} fullWidth variant="outlined" />
+                  <DateTimePicker
+                    label="Arrival Date & Time"
+                    value={getSafeDayjsValue(arrivalDateTime)}
+                    onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: "outlined",
+                      },
+                    }}
+                  />
+                  <Button variant="outlined" fullWidth disabled>
+                    add from confirmation email{" "}
+                  </Button>
+                </>
+              )}
+            </Box>
+          </DetailsModal>
+        </LocalizationProvider>
+      </>
+    );
+  }

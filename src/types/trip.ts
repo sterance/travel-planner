@@ -1,14 +1,12 @@
 import { type Destination } from "./destination";
-
-export interface TripSettings {
-  startDate: string | null;
-}
+import { type Dayjs } from "dayjs";
 
 export interface Trip {
   id: string;
   name: string;
-  startDate: string | null;
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
   destinations: Destination[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Dayjs | null;
+  updatedAt: Dayjs | null;
 }

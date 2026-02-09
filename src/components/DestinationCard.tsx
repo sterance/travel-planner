@@ -326,19 +326,40 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
 
   const handleTransportSelect = (transport: string | "unsure"): void => {
     if (transport === "unsure") {
-      onDestinationChange({ ...destination, transport: undefined });
+      // Clear or set to specific 'unsure' mode
+      onDestinationChange({ 
+        ...destination, 
+        transportDetails: {
+          ...destination.transportDetails,
+          mode: "unsure"
+        } 
+      });
     } else {
-      onDestinationChange({ ...destination, transport });
+      onDestinationChange({ 
+        ...destination, 
+        transportDetails: {
+          ...destination.transportDetails,
+          mode: transport
+        }
+      });
     }
     handleTransportClose();
   };
+
+  const currentTransport = destination.transportDetails?.mode; // Use transportDetails.mode
+  const isTransportSet = currentTransport && currentTransport !== "unsure";
+
+  // .. inside render ..
+  // Update usages of destination.transport to currentTransport
+
 
   const selfTransportModes = ["by car", "by motorbike", "by bicycle", "on foot", "starting point"];
 
   const isOnwardsTravelBooked = (): boolean => {
     if (!nextDestination) return true;
-    if (!nextDestination.transport) return true;
-    if (selfTransportModes.includes(nextDestination.transport)) return true;
+    const nextTransport = nextDestination.transportDetails?.mode;
+    if (!nextTransport) return true;
+    if (selfTransportModes.includes(nextTransport)) return true;
     const details = destination.transportDetails;
     return !!(details?.departureDateTime && details?.arrivalDateTime);
   };
@@ -361,7 +382,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
   const calculatedNights = getCalculatedNights();
 
   const getTransportIcon = (): ReactElement => {
-    switch (destination.transport) {
+    switch (currentTransport) {
       case "starting point":
         return <OutlinedFlagIcon sx={{ fontSize: "2rem" }} />;
       case "by plane":
@@ -549,7 +570,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                 ) : (
                   <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
                     <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
-                      <StatusBadge variant="info" visible={!destination.transport}>
+                      <StatusBadge variant="info" visible={!isTransportSet}>
                         <IconButton aria-label="transport" size="small" onClick={handleTransportClick} sx={{ padding: 0.5 }}>
                           {getTransportIcon()}
                         </IconButton>
@@ -736,7 +757,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                     <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
                       {expanded && (
                         <Typography variant="body2" sx={{ textTransform: "capitalize", flexShrink: 0 }}>
-                          {destination.transport || "\u00A0"}
+                          {currentTransport || "\u00A0"}
                         </Typography>
                       )}
                       {!expanded && layoutMode === "portrait" && arrivalDate && (
@@ -786,7 +807,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   >
                     <Box sx={{ justifySelf: "start" }}>
                       <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                        {destination.transport || "\u00A0"}
+                        {currentTransport || "\u00A0"}
                       </Typography>
                     </Box>
                     <Box sx={{ justifySelf: "end" }}>
@@ -853,16 +874,16 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   </StatusBadge>
                 )}
               </Box>
-              {destination.transport !== "starting point" && (
+              {currentTransport !== "starting point" && (
                 <>
                   <SectionArrival
                     destination={destination}
                     previousDestination={previousDestination}
                     arrivalDate={arrivalDate}
-                    onArrivalTimeChange={(dateTime: string | null) => {
+                    onArrivalTimeChange={(dateTime: Dayjs | null) => {
                       onDestinationChange({
                         ...destination,
-                        customArrivalDateTime: dateTime ?? undefined,
+                        arrivalTime: dateTime,
                       });
                     }}
                     arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}

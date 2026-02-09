@@ -17,7 +17,7 @@ interface ArrivalWeatherProps {
   destination: Destination;
   previousDestination?: Destination;
   arrivalDate: Dayjs | null;
-  onArrivalTimeChange: (dateTime: string | null) => void;
+  onArrivalTimeChange: (dateTime: Dayjs | null) => void;
   backgroundMode?: "default" | "light" | "dark";
 }
 
@@ -41,8 +41,8 @@ export const ArrivalWeather = ({
   }, [previousDestination?.transportDetails?.arrivalDateTime]);
 
   const customArrivalTime = useMemo(() => {
-    return destination.customArrivalDateTime ? dayjs(destination.customArrivalDateTime) : null;
-  }, [destination.customArrivalDateTime]);
+    return destination.arrivalTime || null;
+  }, [destination.arrivalTime]);
 
   const effectiveArrivalTime = useMemo(() => {
     return customArrivalTime || defaultArrivalTime;
@@ -173,7 +173,7 @@ export const ArrivalWeather = ({
 
     const [hours, minutes] = timeValue.split(":").map(Number);
     const newDateTime = arrivalDate.hour(hours).minute(minutes).second(0).millisecond(0);
-    onArrivalTimeChange(newDateTime.toISOString());
+    onArrivalTimeChange(newDateTime);
     setIsEditing(false);
   };
 
@@ -332,11 +332,14 @@ export const ArrivalWeather = ({
 
           {weather && !isLoadingWeather && (
             <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 }}>
-              <Typography variant="h3" sx={{ color: mainTextColor }}>
+                <Typography variant="h3" sx={{ color: mainTextColor }}>
                 {weather.temperature}°C
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "center", gap: 1, alignItems: "center" }}>
-                {getWeatherIcon(weather.weatherCode, { width: 48, height: 48, color: iconColor })}
+                {(() => {
+                  const WeatherIcon = getWeatherIcon(weather.weatherCode);
+                  return <WeatherIcon sx={{ width: 48, height: 48, color: iconColor }} />;
+                })()}
                 <Typography variant="body1" sx={{ textTransform: "capitalize", color: mainTextColor }}>
                   {weather.condition}
                 </Typography>

@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, type ReactElement } from 'react';
+import dayjs from 'dayjs';
 import { type Trip } from '../types/trip';
 import { loadTrips, saveTrips, createTrip as createTripStorage } from '../services/storageService';
+import { calculateTripEndDate, computeDestinationTimeline } from '../utils/dateCalculation';
 
 interface TripContextType {
   trips: Trip[];
@@ -65,8 +67,18 @@ export const TripContextProvider = ({ children }: TripContextProviderProps): Rea
   };
 
   const updateTrip = (trip: Trip): void => {
+    const { destinationsWithTimeline } = computeDestinationTimeline(trip.startDate, trip.destinations);
+    const endDate = calculateTripEndDate(trip.startDate, destinationsWithTimeline);
+
+    const updatedTrip = {
+      ...trip,
+      destinations: destinationsWithTimeline,
+      endDate,
+      updatedAt: dayjs(),
+    };
+
     setTrips((prev) =>
-      prev.map((t) => (t.id === trip.id ? { ...trip, updatedAt: new Date().toISOString() } : t))
+      prev.map((t) => (t.id === trip.id ? updatedTrip : t))
     );
   };
 

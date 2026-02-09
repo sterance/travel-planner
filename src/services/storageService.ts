@@ -1,4 +1,7 @@
+import dayjs from "dayjs";
 import { type Trip } from "../types/trip";
+import type { Destination, TransportDetails, AccommodationDetails, ActivityDetails } from "../types/destination";
+import { calculateTripEndDate } from "../utils/dateCalculation";
 
 const TRIPS_STORAGE_KEY = 'travel_trips';
 
@@ -49,8 +52,48 @@ export const setStringItem = (key: string, value: string): void => {
   }
 };
 
+const hydrateActivity = (activity: any): ActivityDetails => {
+  return {
+    ...activity,
+    startDateTime: activity.startDateTime ? dayjs(activity.startDateTime) : null,
+    endDateTime: activity.endDateTime ? dayjs(activity.endDateTime) : null,
+  };
+};
+
+const hydrateAccommodation = (accommodation: any): AccommodationDetails => {
+  return {
+    ...accommodation,
+    checkInDateTime: accommodation.checkInDateTime ? dayjs(accommodation.checkInDateTime) : null,
+    checkOutDateTime: accommodation.checkOutDateTime ? dayjs(accommodation.checkOutDateTime) : null,
+  };
+};
+
+const hydrateTransport = (transport: any): TransportDetails => {
+  return {
+    ...transport,
+    mode: transport.mode ?? "unsure", // fallback for safety, though user said no back-compat, this effectively inits new field
+    departureDateTime: transport.departureDateTime ? dayjs(transport.departureDateTime) : null,
+    arrivalDateTime: transport.arrivalDateTime ? dayjs(transport.arrivalDateTime) : null,
+  };
+};
+
+const hydrateDestination = (destination: any): Destination => {
+  return {
+    ...destination,
+    arrivalDate: destination.arrivalDate ? dayjs(destination.arrivalDate) : null,
+    departureDate: destination.departureDate ? dayjs(destination.departureDate) : null,
+    arrivalDateTime: destination.arrivalDateTime ? dayjs(destination.arrivalDateTime) : null,
+    transportDetails: destination.transportDetails ? hydrateTransport(destination.transportDetails) : undefined,
+    accommodations: destination.accommodations?.map(hydrateAccommodation) ?? [],
+    activities: destination.activities?.map(hydrateActivity) ?? [],
+  };
+};
+
+
+
 export const loadTrips = (): Trip[] => {
-  return getItem<Trip[]>(TRIPS_STORAGE_KEY, []);
+  const rawTrips = getItem<any[]>(TRIPS_STORAGE_KEY, []);
+  return rawTrips.map(hydrateTrip);
 };
 
 export const saveTrips = (trips: Trip[]): void => {
@@ -58,11 +101,12 @@ export const saveTrips = (trips: Trip[]): void => {
 };
 
 export const createTrip = (name?: string): Trip => {
-  const now = new Date().toISOString();
+  const now = dayjs();
   return {
     id: generateId(),
     name: name ?? 'New Trip',
     startDate: null,
+    endDate: null,
     destinations: [],
     createdAt: now,
     updatedAt: now,
@@ -73,7 +117,7 @@ export const updateTrip = (trip: Trip): void => {
   const trips = loadTrips();
   const index = trips.findIndex((t) => t.id === trip.id);
   if (index !== -1) {
-    trips[index] = { ...trip, updatedAt: new Date().toISOString() };
+    trips[index] = { ...trip, updatedAt: dayjs() };
     saveTrips(trips);
   }
 };
@@ -98,4 +142,19 @@ const generateId = (): string => {
     }
   }
   return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+};
+
+const hydrateTrip = (trip: any): Trip => {
+  const startDate = trip.startDate ? dayjs(trip.startDate) : null;
+  const destinations = trip.destinations?.map(hydrateDestination) ?? [];
+  const endDate = trip.endDate ? dayjs(trip.endDate) : calculateTripEndDate(startDate, destinations);
+
+  return {
+    ...trip,
+    startDate,
+    endDate,
+    destinations,
+    createdAt: trip.createdAt ? dayjs(trip.createdAt) : null,
+    updatedAt: trip.updatedAt ? dayjs(trip.updatedAt) : null,
+  };
 };

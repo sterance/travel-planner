@@ -135,7 +135,10 @@ export const WeatherTestPage = (): ReactElement => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {getWeatherIcon(example.code, { width: 40, height: 40, color: textColors.main })}
+                    {(() => {
+                      const WeatherIcon = getWeatherIcon(example.code);
+                      return <WeatherIcon sx={{ width: 40, height: 40, color: textColors.main }} />;
+                    })()}
                   </Box>
                 </Box>
               </CardContent>

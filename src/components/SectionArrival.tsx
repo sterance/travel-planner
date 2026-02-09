@@ -11,7 +11,7 @@ interface SectionArrivalProps {
   destination: Destination;
   previousDestination?: Destination;
   arrivalDate: Dayjs | null;
-  onArrivalTimeChange: (dateTime: string | null) => void;
+  onArrivalTimeChange: (dateTime: Dayjs | null) => void;
   arrivalWeatherBackgroundMode?: "default" | "light" | "dark";
 }
 

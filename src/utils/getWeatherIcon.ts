@@ -1,4 +1,4 @@
-import { type ReactElement } from "react";
+import { type SvgIconComponent } from "@mui/icons-material";
 import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import CloudIcon from "@mui/icons-material/Cloud";
 import CloudQueueIcon from "@mui/icons-material/CloudQueue";
@@ -7,12 +7,6 @@ import WaterDropIcon from "@mui/icons-material/WaterDrop";
 import ThunderstormIcon from "@mui/icons-material/Thunderstorm";
 import FoggyIcon from "@mui/icons-material/Foggy";
 import GrainIcon from "@mui/icons-material/Grain";
-
-interface GetWeatherIconOptions {
-  width?: number | string;
-  height?: number | string;
-  color?: string;
-}
 
 const WEATHER_GRADIENTS = {
   clear: {
@@ -92,40 +86,27 @@ export const getWeatherBackgroundGradient = (weatherCode: number | null | undefi
   return WEATHER_GRADIENTS[category][themeKey];
 };
 
-export const getWeatherIcon = (weatherCode: number, options?: GetWeatherIconOptions): ReactElement => {
-  const sx: Record<string, unknown> = {};
-  if (options?.width !== undefined) {
-    sx.width = options.width;
-  }
-  if (options?.height !== undefined) {
-    sx.height = options.height;
-  }
-  if (options?.color !== undefined) {
-    sx.color = options.color;
-  }
-
-  const iconProps = Object.keys(sx).length > 0 ? { sx } : {};
-
+export const getWeatherIcon = (weatherCode: number): SvgIconComponent => {
   const category = getWeatherCategory(weatherCode);
 
   switch (category) {
     case "clear":
-      return <WbSunnyIcon {...iconProps} />;
+      return WbSunnyIcon;
     case "partlyCloudy":
-      return <CloudQueueIcon {...iconProps} />;
+      return CloudQueueIcon;
     case "overcast":
-      return <CloudIcon {...iconProps} />;
+      return CloudIcon;
     case "fog":
-      return <FoggyIcon {...iconProps} />;
+      return FoggyIcon;
     case "drizzle":
-      return <GrainIcon {...iconProps} />;
+      return GrainIcon;
     case "rain":
-      return <WaterDropIcon {...iconProps} />;
+      return WaterDropIcon;
     case "snow":
-      return <AcUnitIcon {...iconProps} />;
+      return AcUnitIcon;
     case "thunderstorm":
-      return <ThunderstormIcon {...iconProps} />;
+      return ThunderstormIcon;
     default:
-      return <CloudIcon {...iconProps} />;
+      return CloudIcon;
   }
 };

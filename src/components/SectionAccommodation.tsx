@@ -72,7 +72,7 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
     if (!accommodation.checkOutDateTime) {
       return latest;
     }
-    const checkOut = dayjs(accommodation.checkOutDateTime);
+    const checkOut = accommodation.checkOutDateTime;
     if (!latest || checkOut.isAfter(latest)) {
       return checkOut;
     }
@@ -91,15 +91,12 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
       setEditingAccommodationIndex(index);
       setAccommodationName(accommodation.name ?? "");
       setAccommodationAddress(accommodation.address ?? "");
-      try {
-        const checkIn = accommodation.checkInDateTime ? dayjs(accommodation.checkInDateTime) : null;
-        setAccommodationCheckIn(checkIn && checkIn.isValid() ? checkIn : null);
-        const checkOut = accommodation.checkOutDateTime ? dayjs(accommodation.checkOutDateTime) : null;
-        setAccommodationCheckOut(checkOut && checkOut.isValid() ? checkOut : null);
-      } catch (error) {
-        setAccommodationCheckIn(null);
-        setAccommodationCheckOut(null);
-      }
+      
+      const checkIn = accommodation.checkInDateTime ?? null;
+      setAccommodationCheckIn(checkIn && checkIn.isValid() ? checkIn : null);
+      
+      const checkOut = accommodation.checkOutDateTime ?? null;
+      setAccommodationCheckOut(checkOut && checkOut.isValid() ? checkOut : null);
     } else {
       setEditingAccommodationIndex(null);
       setAccommodationName("");
@@ -124,8 +121,8 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
       id: existing?.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: accommodationName || undefined,
       address: accommodationAddress || undefined,
-      checkInDateTime: accommodationCheckIn?.toISOString(),
-      checkOutDateTime: accommodationCheckOut?.toISOString(),
+      checkInDateTime: accommodationCheckIn,
+      checkOutDateTime: accommodationCheckOut,
     };
 
     if (editingAccommodationIndex !== null && accommodations[editingAccommodationIndex]) {

@@ -74,12 +74,8 @@ export function calculateDestinationDates(
 
     if (departureDate && i < destinations.length - 1) {
       if (destination.transportDetails) {
-        const depTime = destination.transportDetails.departureDateTime
-          ? dayjs(destination.transportDetails.departureDateTime)
-          : null;
-        const arrTime = destination.transportDetails.arrivalDateTime
-          ? dayjs(destination.transportDetails.arrivalDateTime)
-          : null;
+        const depTime = destination.transportDetails.departureDateTime || null;
+        const arrTime = destination.transportDetails.arrivalDateTime || null;
 
         if (depTime && arrTime && depTime.isValid() && arrTime.isValid()) {
           const depDate = depTime.startOf("day");

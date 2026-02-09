@@ -69,7 +69,7 @@ export const TripPage = (): ReactElement => {
   }, [tripId, currentTrip?.id, setCurrentTrip]);
 
   const destinations = currentTrip?.destinations ?? [];
-  const tripStartDate = currentTrip?.startDate ? dayjs(currentTrip.startDate) : null;
+  const tripStartDate = currentTrip?.startDate ?? null;
   const isDesktopList = layoutMode === "desktop" && viewMode === "list";
   const desktopListColumns = isDesktopList ? Math.max(columns, 3) : columns;
 
@@ -276,12 +276,12 @@ export const TripPage = (): ReactElement => {
     if (!currentTrip) return;
     updateTrip({
       ...currentTrip,
-      startDate: date?.toISOString() ?? null,
+      startDate: date,
     });
   };
 
   useEffect(() => {
-    if (viewMode !== "carousel" || layoutMode !== "desktop" || destinations.length === 0) {
+    if (viewMode !== "carousel" || destinations.length === 0) {
       return;
     }
 
@@ -596,7 +596,7 @@ export const TripPage = (): ReactElement => {
           justifyContent: "center",
           alignItems: "center",
           gap: 0.5,
-          px: 1,
+          px: 0.5,
           whiteSpace: "nowrap",
           writingMode: "vertical-lr",
           textOrientation: "upright",
