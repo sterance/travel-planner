@@ -3,7 +3,7 @@ import { type Trip } from "../types/trip";
 import type { Destination, TransportDetails, AccommodationDetails, ActivityDetails } from "../types/destination";
 import { calculateTripEndDate } from "../utils/dateCalculation";
 
-const TRIPS_STORAGE_KEY = 'travel_trips';
+const TRIPS_STORAGE_KEY = 'trips';
 
 export const getItem = <T>(key: string, defaultValue: T): T => {
   try {
@@ -81,8 +81,8 @@ const hydrateDestination = (destination: any): Destination => {
   return {
     ...destination,
     arrivalDate: destination.arrivalDate ? dayjs(destination.arrivalDate) : null,
+    arrivalTime: destination.arrivalTime ? dayjs(destination.arrivalTime) : null,
     departureDate: destination.departureDate ? dayjs(destination.departureDate) : null,
-    arrivalDateTime: destination.arrivalDateTime ? dayjs(destination.arrivalDateTime) : null,
     transportDetails: destination.transportDetails ? hydrateTransport(destination.transportDetails) : undefined,
     accommodations: destination.accommodations?.map(hydrateAccommodation) ?? [],
     activities: destination.activities?.map(hydrateActivity) ?? [],

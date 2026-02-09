@@ -21,13 +21,7 @@ interface ArrivalWeatherProps {
   backgroundMode?: "default" | "light" | "dark";
 }
 
-export const ArrivalWeather = ({
-  destination,
-  previousDestination,
-  arrivalDate,
-  onArrivalTimeChange,
-  backgroundMode = "default",
-}: ArrivalWeatherProps): ReactElement => {
+export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, onArrivalTimeChange, backgroundMode = "default" }: ArrivalWeatherProps): ReactElement => {
   const theme = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [timeValue, setTimeValue] = useState("");
@@ -52,31 +46,13 @@ export const ArrivalWeather = ({
 
   const paletteModeForGradient = backgroundMode === "default" ? theme.palette.mode : backgroundMode;
 
-  const backgroundGradient = useMemo(
-    () => getWeatherBackgroundGradient(weather?.weatherCode ?? null, paletteModeForGradient),
-    [weather?.weatherCode, paletteModeForGradient]
-  );
+  const backgroundGradient = useMemo(() => getWeatherBackgroundGradient(weather?.weatherCode ?? null, paletteModeForGradient), [weather?.weatherCode, paletteModeForGradient]);
 
-  const mainTextColor =
-    backgroundMode === "default"
-      ? theme.palette.text.primary
-      : backgroundMode === "dark"
-      ? "#ffffff"
-      : "#111111";
+  const mainTextColor = backgroundMode === "default" ? theme.palette.text.primary : backgroundMode === "dark" ? "#ffffff" : "#111111";
 
-  const secondaryTextColor =
-    backgroundMode === "default"
-      ? theme.palette.text.secondary
-      : backgroundMode === "dark"
-      ? "rgba(255, 255, 255, 0.7)"
-      : "rgba(0, 0, 0, 0.6)";
+  const secondaryTextColor = backgroundMode === "default" ? theme.palette.text.secondary : backgroundMode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)";
 
-  const iconColor =
-    backgroundMode === "default"
-      ? theme.palette.text.primary
-      : backgroundMode === "dark"
-      ? "#ffffff"
-      : "#111111";
+  const iconColor = backgroundMode === "default" ? theme.palette.text.primary : backgroundMode === "dark" ? "#ffffff" : "#111111";
 
   const useOverrideEditStyling = backgroundMode !== "default" && hasEffectiveArrivalTime;
 
@@ -243,10 +219,7 @@ export const ArrivalWeather = ({
                       color: useOverrideEditStyling ? mainTextColor : undefined,
                     },
                     "& input[type='time']::-webkit-calendar-picker-indicator": {
-                      filter:
-                        (useOverrideEditStyling ? paletteModeForGradient : theme.palette.mode) === "dark"
-                          ? "invert(1)"
-                          : "invert(0)",
+                      filter: (useOverrideEditStyling ? paletteModeForGradient : theme.palette.mode) === "dark" ? "invert(1)" : "invert(0)",
                       cursor: "pointer",
                     },
                     "& input[type='time']::-webkit-calendar-picker-indicator:hover": {
@@ -267,15 +240,9 @@ export const ArrivalWeather = ({
                     useOverrideEditStyling
                       ? {
                           color: backgroundMode === "dark" ? "#ffffff" : "#111111",
-                          backgroundColor:
-                            backgroundMode === "dark"
-                              ? "rgba(0, 0, 0, 0.6)"
-                              : "rgba(255, 255, 255, 0.85)",
+                          backgroundColor: backgroundMode === "dark" ? "rgba(0, 0, 0, 0.6)" : "rgba(255, 255, 255, 0.85)",
                           "&:hover": {
-                            backgroundColor:
-                              backgroundMode === "dark"
-                                ? "rgba(0, 0, 0, 0.7)"
-                                : "rgba(255, 255, 255, 0.95)",
+                            backgroundColor: backgroundMode === "dark" ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 255, 255, 0.95)",
                           },
                         }
                       : undefined
@@ -283,20 +250,11 @@ export const ArrivalWeather = ({
                 >
                   Save
                 </Button>
-                <Button
-                  size="small"
-                  onClick={handleCancel}
-                  sx={useOverrideEditStyling ? { color: mainTextColor } : undefined}
-                >
+                <Button size="small" onClick={handleCancel} sx={useOverrideEditStyling ? { color: mainTextColor } : undefined}>
                   Cancel
                 </Button>
                 {hasDefault && (
-                  <Button
-                    size="small"
-                    onClick={handleReset}
-                    startIcon={<RefreshIcon />}
-                    sx={useOverrideEditStyling ? { color: mainTextColor } : undefined}
-                  >
+                  <Button size="small" onClick={handleReset} startIcon={<RefreshIcon />} sx={useOverrideEditStyling ? { color: mainTextColor } : undefined}>
                     Reset
                   </Button>
                 )}
@@ -316,10 +274,7 @@ export const ArrivalWeather = ({
                 }}
                 sx={{
                   cursor: "pointer",
-                  color:
-                    effectiveArrivalTime && effectiveArrivalTime.isValid()
-                      ? secondaryTextColor
-                      : theme.palette.text.secondary,
+                  color: effectiveArrivalTime && effectiveArrivalTime.isValid() ? secondaryTextColor : theme.palette.text.secondary,
                   "&:hover": {
                     opacity: 0.7,
                   },
@@ -332,7 +287,7 @@ export const ArrivalWeather = ({
 
           {weather && !isLoadingWeather && (
             <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 }}>
-                <Typography variant="h3" sx={{ color: mainTextColor }}>
+              <Typography variant="h3" sx={{ color: mainTextColor }}>
                 {weather.temperature}°C
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "center", gap: 1, alignItems: "center" }}>

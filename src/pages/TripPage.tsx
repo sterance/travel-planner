@@ -6,8 +6,12 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import { useSwipeable } from "react-swipeable";
 import AddIcon from "@mui/icons-material/Add";
+import { InfoOutline } from "@mui/icons-material";
+import { QuestionMark } from "@mui/icons-material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
@@ -28,6 +32,10 @@ interface OutletContext {
   setColumns: (value: number) => void;
   arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
   setArrivalWeatherBackgroundMode: (value: ArrivalWeatherBackgroundMode) => void;
+  showExploreButton: boolean;
+  setShowExploreButton: (value: boolean) => void;
+  showInfoButton: boolean;
+  setShowInfoButton: (value: boolean) => void;
 }
 
 const isTextInputElement = (element: HTMLElement | null): boolean => {
@@ -51,7 +59,7 @@ const isTextInputElement = (element: HTMLElement | null): boolean => {
 };
 
 export const TripPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode } = useOutletContext<OutletContext>();
+  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton } = useOutletContext<OutletContext>();
   const { tripId } = useParams<{ tripId: string }>();
   const { currentTrip, updateTrip, setCurrentTrip } = useTripContext();
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
@@ -61,6 +69,7 @@ export const TripPage = (): ReactElement => {
   const isNarrowScreen = useMediaQuery(`(max-width: 399px)`);
   const [autoMaxAdjacent, setAutoMaxAdjacent] = useState(2);
   const carouselRef = useRef<HTMLDivElement | null>(null);
+  const [exploreAnchorEl, setExploreAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
 
   useEffect(() => {
     if (tripId && tripId !== currentTrip?.id) {
@@ -74,10 +83,7 @@ export const TripPage = (): ReactElement => {
   const desktopListColumns = isDesktopList ? Math.max(columns, 3) : columns;
 
   const startDateDayjs = tripStartDate;
-  const { infos: destinationDates, destinationsWithTimeline } = useMemo(
-    () => computeDestinationTimeline(startDateDayjs, destinations),
-    [startDateDayjs, destinations]
-  );
+  const { infos: destinationDates, destinationsWithTimeline } = useMemo(() => computeDestinationTimeline(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const tripEndDate = useMemo(() => calculateTripEndDate(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const dateErrorsExist = useMemo(() => hasDateErrors(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const referenceDateForStart = useMemo(() => {
@@ -97,9 +103,7 @@ export const TripPage = (): ReactElement => {
       return dayjs();
     }
 
-    return candidateDates.reduce((earliest, current) =>
-      current.isBefore(earliest, "day") ? current : earliest
-    );
+    return candidateDates.reduce((earliest, current) => (current.isBefore(earliest, "day") ? current : earliest));
   }, [destinations]);
 
   useEffect(() => {
@@ -128,21 +132,11 @@ export const TripPage = (): ReactElement => {
     }
   }, [destinations.length, viewMode, currentIndex, isDesktopList, desktopListColumns]);
 
-  if (!currentTrip) {
-    return (
-      <Box sx={{ p: 3, textAlign: "center" }}>
-        <Typography>No trip selected</Typography>
-      </Box>
-    );
-  }
-
   const generateId = (): string => {
     if (typeof crypto !== "undefined" && crypto.randomUUID) {
       try {
         return crypto.randomUUID();
-      } catch {
-        // fallback for non-secure contexts
-      }
+      } catch {}
     }
     return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   };
@@ -166,14 +160,8 @@ export const TripPage = (): ReactElement => {
       newDestinations.push(newDestination);
       if (viewMode === "carousel") {
         setCurrentIndex(destinations.length);
-      } else if (
-        isDesktopList &&
-        destinations.length >= desktopListColumns &&
-        currentIndex + desktopListColumns === destinations.length
-      ) {
-        setCurrentIndex((prev) =>
-          Math.min(Math.max(0, newDestinations.length - desktopListColumns), prev + 1),
-        );
+      } else if (isDesktopList && destinations.length >= desktopListColumns && currentIndex + desktopListColumns === destinations.length) {
+        setCurrentIndex((prev) => Math.min(Math.max(0, newDestinations.length - desktopListColumns), prev + 1));
       }
     }
     updateTrip({
@@ -216,9 +204,22 @@ export const TripPage = (): ReactElement => {
 
   const handleDestinationChange = (updatedDestination: DestinationType): void => {
     if (!currentTrip) return;
-    const updatedDestinations = destinations.map((dest) =>
-      dest.id === updatedDestination.id ? updatedDestination : dest
-    );
+
+    const updatedIndex = destinations.findIndex((dest) => dest.id === updatedDestination.id);
+    const updatedDestinations = destinations.map((dest) => (dest.id === updatedDestination.id ? updatedDestination : dest));
+
+    if (updatedIndex !== -1 && updatedIndex < destinations.length - 1) {
+      const nextDestination = updatedDestinations[updatedIndex + 1];
+      const arrivalDateTime = updatedDestination.transportDetails?.arrivalDateTime;
+
+      if (arrivalDateTime && nextDestination) {
+        updatedDestinations[updatedIndex + 1] = {
+          ...nextDestination,
+          arrivalTime: arrivalDateTime,
+        };
+      }
+    }
+
     updateTrip({
       ...currentTrip,
       destinations: updatedDestinations,
@@ -278,6 +279,19 @@ export const TripPage = (): ReactElement => {
       ...currentTrip,
       startDate: date,
     });
+  };
+
+  const handleExploreClick = (event: React.MouseEvent<HTMLElement>, index: number): void => {
+    setExploreAnchorEl((prev) => ({ ...prev, [index]: event.currentTarget }));
+  };
+
+  const handleExploreClose = (index: number): void => {
+    setExploreAnchorEl((prev) => ({ ...prev, [index]: null }));
+  };
+
+  const handleExploreSelect = (index: number, option: string): void => {
+    console.log(`Explore option selected for destination ${index}: ${option}`);
+    handleExploreClose(index);
   };
 
   useEffect(() => {
@@ -388,13 +402,7 @@ export const TripPage = (): ReactElement => {
           }}
         >
           <Box sx={{ gridColumn: "1", gridRow: "1" }}>
-            <TripDateCard
-              startDate={tripStartDate}
-              endDate={tripEndDate}
-              onStartDateChange={handleStartDateChange}
-              hasDateErrors={dateErrorsExist}
-              referenceDateForStart={referenceDateForStart}
-            />
+            <TripDateCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
           </Box>
           <Box sx={{ gridColumn: "2", gridRow: "1" }}>
             <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly={true} expanded={mapExpanded} onExpandChange={setMapExpanded} />
@@ -413,17 +421,19 @@ export const TripPage = (): ReactElement => {
           gap: 2,
         }}
       >
-        <TripDateCard
-          startDate={tripStartDate}
-          endDate={tripEndDate}
-          onStartDateChange={handleStartDateChange}
-          hasDateErrors={dateErrorsExist}
-          referenceDateForStart={referenceDateForStart}
-        />
+        <TripDateCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={handleStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
         <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={setMapExpanded} />
       </Box>
     );
   };
+
+  if (!currentTrip) {
+    return (
+      <Box sx={{ p: 3, textAlign: "center" }}>
+        <Typography>No trip selected</Typography>
+      </Box>
+    );
+  }
 
   if (viewMode === "carousel") {
     const hasDestinations = destinations.length > 0;
@@ -452,7 +462,7 @@ export const TripPage = (): ReactElement => {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                mb: 2,
+                mb: 4,
               }}
             >
               <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 1 }}>
@@ -528,22 +538,7 @@ export const TripPage = (): ReactElement => {
                       transition: "all 0.3s ease",
                     }}
                   >
-                    <DestinationCard
-                      destination={destinationsWithTimeline[absoluteIndex]}
-                      nextDestination={destinationsWithTimeline[absoluteIndex + 1]}
-                      previousDestination={absoluteIndex > 0 ? destinationsWithTimeline[absoluteIndex - 1] : undefined}
-                      onDestinationChange={handleDestinationChange}
-                      onRemove={() => handleRemoveDestination(destinations[absoluteIndex].id)}
-                      shouldFocus={destinations[absoluteIndex].id === newlyCreatedId}
-                      alwaysExpanded
-                      isFirst={absoluteIndex === 0}
-                      arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null}
-                      departureDate={destinationDates[absoluteIndex]?.departureDate ?? null}
-                      dateError={destinationDates[absoluteIndex]?.error}
-                      layoutMode={layoutMode}
-                      tripStartDate={tripStartDate}
-                      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-                    />
+                    <DestinationCard destination={destinationsWithTimeline[absoluteIndex]} nextDestination={destinationsWithTimeline[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinationsWithTimeline[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} onRemove={() => handleRemoveDestination(destinations[absoluteIndex].id)} shouldFocus={destinations[absoluteIndex].id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode} />
                   </Box>
                 );
               })}
@@ -572,10 +567,7 @@ export const TripPage = (): ReactElement => {
       );
     }
 
-    const slots = Array.from(
-      { length: desktopListColumns },
-      (_, index) => destinationsWithTimeline[currentIndex + index] ?? null
-    );
+    const slots = Array.from({ length: desktopListColumns }, (_, index) => destinationsWithTimeline[currentIndex + index] ?? null);
     const gridTemplateColumns = [...Array.from({ length: desktopListColumns }).flatMap(() => ["auto", "minmax(0, 1fr)"]), "auto"].join(" ");
     const hasVisibleDestinations = slots.some((destination) => destination !== null);
     const lastVisibleIndex = hasVisibleDestinations ? Math.min(destinations.length - 1, currentIndex + desktopListColumns - 1) : null;
@@ -727,9 +719,43 @@ export const TripPage = (): ReactElement => {
                   {isAddButtonWithText ? (
                     verticalAddButton
                   ) : hasDestination ? (
-                    <IconButton onClick={() => handleAddDestination(insertIndex)} color="primary" size="small" aria-label="add destination">
-                      <AddIcon />
-                    </IconButton>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <>
+                        {showExploreButton && (
+                          <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)}>
+                            <QuestionMark />
+                          </IconButton>
+                        )}
+                        <Menu anchorEl={exploreAnchorEl[insertIndex]} open={Boolean(exploreAnchorEl[insertIndex])} onClose={() => handleExploreClose(insertIndex)}>
+                          <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
+                            Explore...
+                          </MenuItem>
+                          {insertIndex > 0 && <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-prev`)}>Near {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"}</MenuItem>}
+                          <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-next`)}>Near {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}</MenuItem>
+                          {insertIndex > 0 && (
+                            <MenuItem onClick={() => handleExploreSelect(insertIndex, `between`)}>
+                              Between {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"} and {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}
+                            </MenuItem>
+                          )}
+                        </Menu>
+                      </>
+                      <IconButton onClick={() => handleAddDestination(insertIndex)} color="primary" size="small" aria-label="add destination">
+                        <AddIcon />
+                      </IconButton>
+                      {showInfoButton && (
+                        <IconButton size="small">
+                          <InfoOutline />
+                        </IconButton>
+                      )}
+                    </Box>
                   ) : null}
                 </Box>
               );
@@ -744,41 +770,20 @@ export const TripPage = (): ReactElement => {
                     overflow: "visible",
                     gridColumn: relativeIndex * 2 + 2,
                     gridRow: 1,
-                    ...(destination && reorderDragOverIndex === absoluteIndex && {
-                      outline: 2,
-                      outlineStyle: "dashed",
-                      outlineColor: "primary.main",
-                      borderRadius: 1,
-                    }),
+                    ...(destination &&
+                      reorderDragOverIndex === absoluteIndex && {
+                        outline: 2,
+                        outlineStyle: "dashed",
+                        outlineColor: "primary.main",
+                        borderRadius: 1,
+                      }),
                   }}
                   {...(destination && {
                     onDragOver: (e: React.DragEvent) => handleReorderDragOver(e, absoluteIndex),
                     onDrop: (e: React.DragEvent) => handleReorderDrop(e, absoluteIndex),
                   })}
                 >
-                  {destination ? (
-                    <DestinationCard
-                      destination={destination}
-                      nextDestination={destinationsWithTimeline[absoluteIndex + 1]}
-                      previousDestination={absoluteIndex > 0 ? destinationsWithTimeline[absoluteIndex - 1] : undefined}
-                      onDestinationChange={handleDestinationChange}
-                      onRemove={() => handleRemoveDestination(destination.id)}
-                      shouldFocus={destination.id === newlyCreatedId}
-                      alwaysExpanded
-                      isFirst={absoluteIndex === 0}
-                      arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null}
-                      departureDate={destinationDates[absoluteIndex]?.departureDate ?? null}
-                      dateError={destinationDates[absoluteIndex]?.error}
-                      layoutMode={layoutMode}
-                      tripStartDate={tripStartDate}
-                      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-                      isListMode={viewMode === "list"}
-                      onReorderDragStart={(e) => handleReorderDragStart(e, destination.id)}
-                      onReorderDragEnd={handleReorderDragEnd}
-                    />
-                  ) : (
-                    <Box sx={{ height: 1 }} />
-                  )}
+                  {destination ? <DestinationCard destination={destination} nextDestination={destinationsWithTimeline[absoluteIndex + 1]} previousDestination={absoluteIndex > 0 ? destinationsWithTimeline[absoluteIndex - 1] : undefined} onDestinationChange={handleDestinationChange} onRemove={() => handleRemoveDestination(destination.id)} shouldFocus={destination.id === newlyCreatedId} alwaysExpanded isFirst={absoluteIndex === 0} arrivalDate={destinationDates[absoluteIndex]?.arrivalDate ?? null} departureDate={destinationDates[absoluteIndex]?.departureDate ?? null} dateError={destinationDates[absoluteIndex]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode} isListMode={viewMode === "list"} onReorderDragStart={(e) => handleReorderDragStart(e, destination.id)} onReorderDragEnd={handleReorderDragEnd} /> : <Box sx={{ height: 1 }} />}
                 </Box>
               );
             })}
@@ -837,41 +842,49 @@ export const TripPage = (): ReactElement => {
               sx={{
                 minWidth: 0,
                 overflow: "visible",
-                ...(viewMode === "list" && reorderDragOverIndex === index && {
-                  outline: 2,
-                  outlineStyle: "dashed",
-                  outlineColor: "primary.main",
-                  borderRadius: 1,
-                }),
+                ...(viewMode === "list" &&
+                  reorderDragOverIndex === index && {
+                    outline: 2,
+                    outlineStyle: "dashed",
+                    outlineColor: "primary.main",
+                    borderRadius: 1,
+                  }),
               }}
               {...(viewMode === "list" && {
                 onDragOver: (e: React.DragEvent) => handleReorderDragOver(e, index),
                 onDrop: (e: React.DragEvent) => handleReorderDrop(e, index),
               })}
             >
-              <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+              <Box sx={{ display: "flex", justifyContent: "center", mb: 1, gap: 8 }}>
+                <>
+                  {showExploreButton && (
+                    <IconButton size="small" onClick={(e) => handleExploreClick(e, index)}>
+                      <QuestionMark />
+                    </IconButton>
+                  )}
+                  <Menu anchorEl={exploreAnchorEl[index]} open={Boolean(exploreAnchorEl[index])} onClose={() => handleExploreClose(index)}>
+                    <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
+                      Explore...
+                    </MenuItem>
+                    {index > 0 && <MenuItem onClick={() => handleExploreSelect(index, `near-prev`)}>Near {destinationsWithTimeline[index - 1]?.displayName || destinationsWithTimeline[index - 1]?.name || "previous"}</MenuItem>}
+                    <MenuItem onClick={() => handleExploreSelect(index, `near-next`)}>Near {destinationsWithTimeline[index]?.displayName || destinationsWithTimeline[index]?.name || "next"}</MenuItem>
+                    {index > 0 && (
+                      <MenuItem onClick={() => handleExploreSelect(index, `between`)}>
+                        Between {destinationsWithTimeline[index - 1]?.displayName || destinationsWithTimeline[index - 1]?.name || "previous"} and {destinationsWithTimeline[index]?.displayName || destinationsWithTimeline[index]?.name || "next"}
+                      </MenuItem>
+                    )}
+                  </Menu>
+                </>
                 <IconButton onClick={() => handleAddDestination(index)} color="primary" size="small">
                   <AddIcon />
                 </IconButton>
+                {showInfoButton && (
+                  <IconButton size="small">
+                    <InfoOutline />
+                  </IconButton>
+                )}
               </Box>
-              <DestinationCard
-                destination={destination}
-                nextDestination={destinationsWithTimeline[index + 1]}
-                previousDestination={index > 0 ? destinationsWithTimeline[index - 1] : undefined}
-                onDestinationChange={handleDestinationChange}
-                onRemove={() => handleRemoveDestination(destination.id)}
-                shouldFocus={destination.id === newlyCreatedId}
-                isFirst={index === 0}
-                arrivalDate={destinationDates[index]?.arrivalDate ?? null}
-                departureDate={destinationDates[index]?.departureDate ?? null}
-                dateError={destinationDates[index]?.error}
-                layoutMode={layoutMode}
-                tripStartDate={tripStartDate}
-                isListMode={viewMode === "list"}
-                onReorderDragStart={viewMode === "list" ? (e: React.DragEvent) => handleReorderDragStart(e, destination.id) : undefined}
-                onReorderDragEnd={viewMode === "list" ? handleReorderDragEnd : undefined}
-                arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-              />
+              <DestinationCard destination={destination} nextDestination={destinationsWithTimeline[index + 1]} previousDestination={index > 0 ? destinationsWithTimeline[index - 1] : undefined} onDestinationChange={handleDestinationChange} onRemove={() => handleRemoveDestination(destination.id)} shouldFocus={destination.id === newlyCreatedId} isFirst={index === 0} arrivalDate={destinationDates[index]?.arrivalDate ?? null} departureDate={destinationDates[index]?.departureDate ?? null} dateError={destinationDates[index]?.error} layoutMode={layoutMode} tripStartDate={tripStartDate} isListMode={viewMode === "list"} onReorderDragStart={viewMode === "list" ? (e: React.DragEvent) => handleReorderDragStart(e, destination.id) : undefined} onReorderDragEnd={viewMode === "list" ? handleReorderDragEnd : undefined} arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode} />
             </Box>
           ))}
         </Box>

@@ -326,33 +326,27 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
 
   const handleTransportSelect = (transport: string | "unsure"): void => {
     if (transport === "unsure") {
-      // Clear or set to specific 'unsure' mode
-      onDestinationChange({ 
-        ...destination, 
+      onDestinationChange({
+        ...destination,
         transportDetails: {
           ...destination.transportDetails,
-          mode: "unsure"
-        } 
+          mode: "unsure",
+        },
       });
     } else {
-      onDestinationChange({ 
-        ...destination, 
+      onDestinationChange({
+        ...destination,
         transportDetails: {
           ...destination.transportDetails,
-          mode: transport
-        }
+          mode: transport,
+        },
       });
     }
     handleTransportClose();
   };
 
-  const currentTransport = destination.transportDetails?.mode; // Use transportDetails.mode
+  const currentTransport = destination.transportDetails?.mode;
   const isTransportSet = currentTransport && currentTransport !== "unsure";
-
-  // .. inside render ..
-  // Update usages of destination.transport to currentTransport
-
-
   const selfTransportModes = ["by car", "by motorbike", "by bicycle", "on foot", "starting point"];
 
   const isOnwardsTravelBooked = (): boolean => {
@@ -405,6 +399,8 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
         return <ModeOfTravelIcon sx={{ fontSize: "2rem" }} />;
     }
   };
+
+  // RENDERING
   return (
     <>
       <Box
@@ -634,17 +630,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       </Typography>
                     </Box>
                     <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
-                      <StatusBadge
-                        variant="info"
-                        visible={
-                          !(
-                            typeof destination.nights === "number" ||
-                            (destination.nights === "dates" &&
-                              destination.arrivalDate &&
-                              destination.departureDate)
-                          )
-                        }
-                      >
+                      <StatusBadge variant="info" visible={!(typeof destination.nights === "number" || (destination.nights === "dates" && destination.arrivalDate && destination.departureDate))}>
                         <IconButton aria-label="calendar" size="small" onClick={handleCalendarClick} sx={{ padding: 0.5 }}>
                           {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? (
                             <Box
@@ -888,39 +874,14 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                     }}
                     arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
                   />
-                  <SectionAccommodation
-                    destination={destination}
-                    onDestinationChange={onDestinationChange}
-                    arrivalDate={arrivalDate}
-                  />
-                  <SectionActivities
-                    destination={destination}
-                    onDestinationChange={onDestinationChange}
-                    arrivalDate={arrivalDate}
-                  />
+                  <SectionAccommodation destination={destination} onDestinationChange={onDestinationChange} arrivalDate={arrivalDate} />
+                  <SectionActivities destination={destination} onDestinationChange={onDestinationChange} arrivalDate={arrivalDate} />
                 </>
               )}
-              {nextDestination && (
-                <SectionOnwards
-                  destination={destination}
-                  nextDestination={nextDestination}
-                  onDestinationChange={onDestinationChange}
-                  departureDate={departureDate}
-                />
-              )}
+              {nextDestination && <SectionOnwards destination={destination} nextDestination={nextDestination} onDestinationChange={onDestinationChange} departureDate={departureDate} />}
             </CardContent>
           </Collapse>
-          <DoubleDatePicker
-            open={Boolean(datePickerAnchorEl)}
-            anchorEl={datePickerAnchorEl}
-            onClose={() => setDatePickerAnchorEl(null)}
-            checkInDate={destination.arrivalDate ?? arrivalDate}
-            checkOutDate={destination.departureDate ?? departureDate}
-            tripStartDate={tripStartDate}
-            calculatedArrivalDate={arrivalDate}
-            isFirst={isFirst}
-            onDateChange={handleDateRangeChange}
-          />
+          <DoubleDatePicker open={Boolean(datePickerAnchorEl)} anchorEl={datePickerAnchorEl} onClose={() => setDatePickerAnchorEl(null)} checkInDate={destination.arrivalDate ?? arrivalDate} checkOutDate={destination.departureDate ?? departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
         </Card>
       </Box>
       <ConfirmDialog

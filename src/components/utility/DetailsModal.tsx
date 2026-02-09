@@ -19,18 +19,7 @@ interface DetailsModalProps {
   clearLabel?: string;
 }
 
-export const DetailsModal = ({
-  open,
-  onClose,
-  title,
-  children,
-  onSave,
-  onClear,
-  hasDetails = false,
-  saveLabel = "Save",
-  cancelLabel = "Cancel",
-  clearLabel = "Clear",
-}: DetailsModalProps): ReactElement => {
+export const DetailsModal = ({ open, onClose, title, children, onSave, onClear, hasDetails = false, saveLabel = "Save", cancelLabel = "Cancel", clearLabel = "Clear" }: DetailsModalProps): ReactElement => {
   useEffect(() => {
     if (open) {
     }
@@ -44,6 +33,7 @@ export const DetailsModal = ({
     }
   };
 
+  // RENDERING
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>

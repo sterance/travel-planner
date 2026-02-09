@@ -8,6 +8,7 @@ interface ButtonGridProps {
 }
 
 export const ButtonGrid = ({ children, columns = 2, gap = 1 }: ButtonGridProps): ReactElement => {
+  // RENDERING
   return (
     <Box
       sx={{

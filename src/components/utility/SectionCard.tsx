@@ -9,6 +9,7 @@ interface SectionCardProps {
 }
 
 export const SectionCard = ({ title, children }: SectionCardProps): ReactElement => {
+  // RENDERING
   return (
     <Paper
       variant="outlined"
@@ -28,4 +29,3 @@ export const SectionCard = ({ title, children }: SectionCardProps): ReactElement
     </Paper>
   );
 };
-
