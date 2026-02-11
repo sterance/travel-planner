@@ -23,21 +23,31 @@ export const useAirportAutocomplete = (enabled: boolean): UseAirportAutocomplete
 
     const timeoutId = setTimeout(() => {
       setIsLoading(true);
-      const results = searchAirports(value);
-      setSuggestions(
-        results.map((airport) => ({
-          name: formatAirportDisplay(airport),
-          displayName: formatAirportDisplay(airport),
-          placeDetails: {
-            osmId: 0,
-            osmType: "",
-            placeType: "airport",
-            coordinates: [0, 0],
-            country: "",
-          },
-        })),
-      );
-      setIsLoading(false);
+      (async () => {
+        try {
+          const results = await searchAirports(value);
+          setSuggestions(
+            results.map((airport) => ({
+              name: formatAirportDisplay(airport),
+              displayName: formatAirportDisplay(airport),
+              placeDetails: {
+                osmId: 0,
+                osmType: "",
+                placeType: "airport",
+                coordinates: [0, 0],
+                country: "",
+              },
+            })),
+          );
+        } catch {
+          setSuggestions([]);
+        } finally {
+          setIsLoading(false);
+        }
+      })().catch(() => {
+        setIsLoading(false);
+        setSuggestions([]);
+      });
     }, 300);
 
     return () => {

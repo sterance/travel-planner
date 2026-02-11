@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type ReactElement } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense, type ReactElement } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -12,9 +12,21 @@ import { useTripLayout } from "../hooks/useTripLayout";
 import { useTripExploreMenu } from "../hooks/useTripExploreMenu";
 import { useTripCarousel } from "../hooks/useTripCarousel";
 import { type TripSettingsAndMapProps } from "../components/TripSettingsAndMap";
-import { TripCarouselLayout } from "../components/TripCarouselLayout";
-import { TripDesktopListLayout } from "../components/TripDesktopListLayout";
-import { TripPortraitListLayout } from "../components/TripPortraitListLayout";
+
+const TripCarouselLayout = lazy(async () => {
+  const module = await import("../components/TripCarouselLayout");
+  return { default: module.TripCarouselLayout };
+});
+
+const TripDesktopListLayout = lazy(async () => {
+  const module = await import("../components/TripDesktopListLayout");
+  return { default: module.TripDesktopListLayout };
+});
+
+const TripPortraitListLayout = lazy(async () => {
+  const module = await import("../components/TripPortraitListLayout");
+  return { default: module.TripPortraitListLayout };
+});
 
 interface OutletContext {
   viewMode: ViewMode;
@@ -189,36 +201,90 @@ export const TripPage = (): ReactElement => {
 
   if (viewMode === "carousel") {
     return (
-      <TripCarouselLayout
-        viewMode={viewMode}
-        destinationsWithTimeline={destinationsWithTimeline}
-        destinationDates={destinationDates}
-        currentIndex={currentIndex}
-        autoMaxAdjacent={autoMaxAdjacent}
-        isNarrowScreen={isNarrowScreen}
-        newlyCreatedId={newlyCreatedId}
-        arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-        handleAddDestination={handleAddDestination}
-        handlePrevious={handlePrevious}
-        handleNext={handleNext}
-        handleDestinationChange={handleDestinationChange}
-        handleRemoveDestination={handleRemoveDestination}
-        carouselRef={carouselRef}
-        swipeHandlers={swipeHandlers}
-        {...tripSettingsAndMapProps}
-      />
+      <Suspense
+        fallback={
+          <Box sx={{ p: 3, textAlign: "center" }}>
+            <Typography>Loading trip view...</Typography>
+          </Box>
+        }
+      >
+        <TripCarouselLayout
+          viewMode={viewMode}
+          destinationsWithTimeline={destinationsWithTimeline}
+          destinationDates={destinationDates}
+          currentIndex={currentIndex}
+          autoMaxAdjacent={autoMaxAdjacent}
+          isNarrowScreen={isNarrowScreen}
+          newlyCreatedId={newlyCreatedId}
+          arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+          handleAddDestination={handleAddDestination}
+          handlePrevious={handlePrevious}
+          handleNext={handleNext}
+          handleDestinationChange={handleDestinationChange}
+          handleRemoveDestination={handleRemoveDestination}
+          carouselRef={carouselRef}
+          swipeHandlers={swipeHandlers}
+          {...tripSettingsAndMapProps}
+        />
+      </Suspense>
     );
   }
 
   if (layoutMode === "desktop" && viewMode === "list") {
     return (
-      <TripDesktopListLayout
+      <Suspense
+        fallback={
+          <Box sx={{ p: 3, textAlign: "center" }}>
+            <Typography>Loading trip view...</Typography>
+          </Box>
+        }
+      >
+        <TripDesktopListLayout
+          viewMode={viewMode}
+          destinationsWithTimeline={destinationsWithTimeline}
+          destinationDates={destinationDates}
+          currentIndex={currentIndex}
+          desktopListColumns={desktopListColumns}
+          columns={columns}
+          reorderDragOverIndex={reorderDragOverIndex}
+          newlyCreatedId={newlyCreatedId}
+          showExploreButton={showExploreButton}
+          showInfoButton={showInfoButton}
+          arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+          exploreAnchorEl={exploreAnchorEl}
+          handleAddDestination={handleAddDestination}
+          handleIncreaseColumns={handleIncreaseColumns}
+          handleDecreaseColumns={handleDecreaseColumns}
+          handleListPrevious={handleListPrevious}
+          handleListNext={handleListNext}
+          handleDestinationChange={handleDestinationChange}
+          handleRemoveDestination={handleRemoveDestination}
+          handleReorderDragStart={handleReorderDragStart}
+          handleReorderDragOver={handleReorderDragOver}
+          handleReorderDrop={handleReorderDrop}
+          handleReorderDragEnd={handleReorderDragEnd}
+          handleExploreClick={handleExploreClick}
+          handleExploreClose={handleExploreClose}
+          handleExploreSelect={handleExploreSelect}
+          {...tripSettingsAndMapProps}
+        />
+      </Suspense>
+    );
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <Box sx={{ p: 3, textAlign: "center" }}>
+          <Typography>Loading trip view...</Typography>
+        </Box>
+      }
+    >
+      <TripPortraitListLayout
         viewMode={viewMode}
         destinationsWithTimeline={destinationsWithTimeline}
         destinationDates={destinationDates}
         currentIndex={currentIndex}
-        desktopListColumns={desktopListColumns}
-        columns={columns}
         reorderDragOverIndex={reorderDragOverIndex}
         newlyCreatedId={newlyCreatedId}
         showExploreButton={showExploreButton}
@@ -226,10 +292,6 @@ export const TripPage = (): ReactElement => {
         arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
         exploreAnchorEl={exploreAnchorEl}
         handleAddDestination={handleAddDestination}
-        handleIncreaseColumns={handleIncreaseColumns}
-        handleDecreaseColumns={handleDecreaseColumns}
-        handleListPrevious={handleListPrevious}
-        handleListNext={handleListNext}
         handleDestinationChange={handleDestinationChange}
         handleRemoveDestination={handleRemoveDestination}
         handleReorderDragStart={handleReorderDragStart}
@@ -241,32 +303,6 @@ export const TripPage = (): ReactElement => {
         handleExploreSelect={handleExploreSelect}
         {...tripSettingsAndMapProps}
       />
-    );
-  }
-
-  return (
-    <TripPortraitListLayout
-      viewMode={viewMode}
-      destinationsWithTimeline={destinationsWithTimeline}
-      destinationDates={destinationDates}
-      currentIndex={currentIndex}
-      reorderDragOverIndex={reorderDragOverIndex}
-      newlyCreatedId={newlyCreatedId}
-      showExploreButton={showExploreButton}
-      showInfoButton={showInfoButton}
-      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-      exploreAnchorEl={exploreAnchorEl}
-      handleAddDestination={handleAddDestination}
-      handleDestinationChange={handleDestinationChange}
-      handleRemoveDestination={handleRemoveDestination}
-      handleReorderDragStart={handleReorderDragStart}
-      handleReorderDragOver={handleReorderDragOver}
-      handleReorderDrop={handleReorderDrop}
-      handleReorderDragEnd={handleReorderDragEnd}
-      handleExploreClick={handleExploreClick}
-      handleExploreClose={handleExploreClose}
-      handleExploreSelect={handleExploreSelect}
-      {...tripSettingsAndMapProps}
-    />
+    </Suspense>
   );
 };

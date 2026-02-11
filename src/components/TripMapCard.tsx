@@ -9,6 +9,7 @@ import Box from "@mui/material/Box";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { type Destination } from "../types/destination";
 import { type LayoutMode } from "../App";
 import { getStringItem, setStringItem } from "../services/storageService";

@@ -1,18 +1,23 @@
-import { type ReactElement } from "react";
+import { type ReactElement, lazy, Suspense } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
 import { QuestionMark } from "@mui/icons-material";
 import { type Dayjs } from "dayjs";
-import { DestinationCard } from "./DestinationCard";
 import { TripSettingsAndMap, type TripSettingsAndMapProps } from "./TripSettingsAndMap";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
+
+const DestinationCard = lazy(async () => {
+  const module = await import("./DestinationCard");
+  return { default: module.DestinationCard };
+});
 
 interface DestinationDateInfo {
   arrivalDate?: Dayjs | null;
@@ -139,24 +144,32 @@ export const TripPortraitListLayout = ({
                   </IconButton>
                 )}
               </Box>
-              <DestinationCard
-                destination={destination}
-                nextDestination={destinationsWithTimeline[index + 1]}
-                previousDestination={index > 0 ? destinationsWithTimeline[index - 1] : undefined}
-                onDestinationChange={handleDestinationChange}
-                onRemove={() => handleRemoveDestination(destination.id)}
-                shouldFocus={destination.id === newlyCreatedId}
-                isFirst={index === 0}
-                arrivalDate={destinationDates[index]?.arrivalDate ?? null}
-                departureDate={destinationDates[index]?.departureDate ?? null}
-                dateError={destinationDates[index]?.error ?? undefined}
-                layoutMode={layoutMode}
-                tripStartDate={settingsProps.tripStartDate}
-                isListMode={viewMode === "list"}
-                onReorderDragStart={viewMode === "list" ? (e: React.DragEvent) => handleReorderDragStart(e, destination.id) : undefined}
-                onReorderDragEnd={viewMode === "list" ? handleReorderDragEnd : undefined}
-                arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-              />
+              <Suspense
+                fallback={
+                  <Box sx={{ p: 2 }}>
+                    <Typography variant="body2">Loading destination...</Typography>
+                  </Box>
+                }
+              >
+                <DestinationCard
+                  destination={destination}
+                  nextDestination={destinationsWithTimeline[index + 1]}
+                  previousDestination={index > 0 ? destinationsWithTimeline[index - 1] : undefined}
+                  onDestinationChange={handleDestinationChange}
+                  onRemove={() => handleRemoveDestination(destination.id)}
+                  shouldFocus={destination.id === newlyCreatedId}
+                  isFirst={index === 0}
+                  arrivalDate={destinationDates[index]?.arrivalDate ?? null}
+                  departureDate={destinationDates[index]?.departureDate ?? null}
+                  dateError={destinationDates[index]?.error ?? undefined}
+                  layoutMode={layoutMode}
+                  tripStartDate={settingsProps.tripStartDate}
+                  isListMode={viewMode === "list"}
+                  onReorderDragStart={viewMode === "list" ? (e: React.DragEvent) => handleReorderDragStart(e, destination.id) : undefined}
+                  onReorderDragEnd={viewMode === "list" ? handleReorderDragEnd : undefined}
+                  arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+                />
+              </Suspense>
             </Box>
           ))}
         </Box>

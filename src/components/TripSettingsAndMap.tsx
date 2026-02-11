@@ -1,10 +1,14 @@
-import { type ReactElement } from "react";
+import { type ReactElement, lazy, Suspense } from "react";
 import Box from "@mui/material/Box";
 import { type Dayjs } from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
 import { type LayoutMode } from "../App";
 import { TripDateCard } from "./TripDateCard";
-import { TripMapCard } from "./TripMapCard";
+
+const TripMapCard = lazy(async () => {
+  const module = await import("./TripMapCard");
+  return { default: module.TripMapCard };
+});
 
 export interface TripSettingsAndMapProps {
   layoutMode: LayoutMode;
@@ -45,10 +49,14 @@ export const TripSettingsAndMap = ({
           <TripDateCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={onStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
         </Box>
         <Box sx={{ gridColumn: "2", gridRow: "1" }}>
-          <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+          <Suspense fallback={null}>
+            <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+          </Suspense>
         </Box>
         <Box sx={{ gridColumn: "1 / -1", gridRow: "2" }}>
-          <TripMapCard destinations={destinations} layoutMode={layoutMode} bodyOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+          <Suspense fallback={null}>
+            <TripMapCard destinations={destinations} layoutMode={layoutMode} bodyOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+          </Suspense>
         </Box>
       </Box>
     );
@@ -63,7 +71,9 @@ export const TripSettingsAndMap = ({
       }}
     >
       <TripDateCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={onStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
-      <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+      <Suspense fallback={null}>
+        <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+      </Suspense>
     </Box>
   );
 };

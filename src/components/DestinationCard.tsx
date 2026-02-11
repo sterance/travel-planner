@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactElement } from "react";
+import { useState, useEffect, useRef, lazy, Suspense, type ReactElement } from "react";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
@@ -12,18 +12,35 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import dayjs, { type Dayjs } from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
 import { type LayoutMode } from "../App";
-import { getLocationImage } from "../services/imagesService";
-import { DoubleDatePicker } from "./utility/DoubleDatePicker";
 import { StatusBadge } from "./utility/StatusBadge";
 import { ConfirmDialog } from "./utility/ConfirmDialog";
-import { SectionArrival } from "./SectionArrival";
-import { SectionAccommodation } from "./SectionAccommodation";
-import { SectionActivities } from "./SectionActivities";
+const DestinationCardHeaderLazy = lazy(async () => {
+  const module = await import("./DestinationCardHeader");
+  return { default: module.DestinationCardHeaderLazy };
+});
+const DestinationImage = lazy(async () => {
+  const module = await import("./DestinationImage");
+  return { default: module.DestinationImage };
+});
+const SectionArrival = lazy(async () => {
+  const module = await import("./SectionArrival");
+  return { default: module.SectionArrival };
+});
+const SectionAccommodation = lazy(async () => {
+  const module = await import("./SectionAccommodation");
+  return { default: module.SectionAccommodation };
+});
+const SectionActivities = lazy(async () => {
+  const module = await import("./SectionActivities");
+  return { default: module.SectionActivities };
+});
+const DoubleDatePicker = lazy(async () => {
+  const module = await import("./utility/DoubleDatePicker");
+  return { default: module.DoubleDatePicker };
+});
 import { SectionOnwards } from "./SectionOnwards";
 import { useMenuState } from "../hooks/useMenuState";
-import { useDestinationSearch } from "../hooks/useDestinationSearch";
 import { useNightSelection } from "../hooks/useNightSelection";
-import { DestinationCardHeaderDisplay, DestinationCardHeaderEdit } from "./DestinationCardHeader";
 import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
 
 interface DestinationCardProps {
@@ -54,16 +71,10 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
       setExpanded(true);
     }
   }, [alwaysExpanded]);
-  const [locationImageUrl, setLocationImageUrl] = useState<string | null>(null);
   const [buttonHover, setButtonHover] = useState<"remove" | "reorder" | null>(null);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
   const { calendar, transport, datePicker } = useMenuState();
-  const { inputValue, suggestions, isLoading, isEditing, autocompleteRef, handleInputChange, handleChange, handleBlur, handleEditClick } = useDestinationSearch({
-    destination,
-    onDestinationChange,
-    shouldFocus,
-  });
 
   const openDatePickerFromCalendar = (): void => {
     if (calendar.anchorEl) {
@@ -78,54 +89,6 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
     onOpenDatePicker: openDatePickerFromCalendar,
     onCloseCalendar: calendar.close,
   });
-
-  useEffect(() => {
-    const fetchImage = async (): Promise<void> => {
-      if (!destination.placeDetails && !destination.displayName && !destination.name) {
-        console.log("[Destination] skipping image fetch, no destination details", {
-          id: destination.id,
-          name: destination.name,
-          displayName: destination.displayName,
-          placeDetails: destination.placeDetails,
-        });
-        setLocationImageUrl(null);
-        return;
-      }
-
-      const searchQuery = destination.displayName || destination.placeDetails?.city || destination.placeDetails?.country || destination.name;
-
-      if (!searchQuery) {
-        console.log("[Destination] no search query derived from destination, clearing image", {
-          id: destination.id,
-          name: destination.name,
-          displayName: destination.displayName,
-          placeDetails: destination.placeDetails,
-        });
-        setLocationImageUrl(null);
-        return;
-      }
-
-      console.log("[Destination] fetching image for destination", {
-        id: destination.id,
-        searchQuery,
-      });
-
-      try {
-        const imageUrl = await getLocationImage(searchQuery, { width: 800, height: 400 });
-        console.log("[Destination] image fetch completed", {
-          id: destination.id,
-          searchQuery,
-          imageUrl,
-          hasImage: Boolean(imageUrl),
-        });
-        setLocationImageUrl(imageUrl);
-      } catch {
-        setLocationImageUrl(null);
-      }
-    };
-
-    fetchImage().catch(() => {});
-  }, [destination.displayName, destination.placeDetails, destination.name]);
 
   const handleExpandClick = (): void => {
     setExpanded(!expanded);
@@ -301,43 +264,40 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
           )}
           <CardHeader
             title={
-              <Box sx={{ width: "100%" }}>
-                {isEditing ? (
-                  <DestinationCardHeaderEdit inputValue={inputValue} suggestions={suggestions} isLoading={isLoading} autocompleteRef={autocompleteRef as React.RefObject<HTMLDivElement | null>} onInputChange={handleInputChange} onChange={handleChange} onBlur={handleBlur} />
-                ) : (
-                  <DestinationCardHeaderDisplay
-                    destination={destination}
-                    layoutMode={layoutMode}
-                    arrivalDate={arrivalDate}
-                    departureDate={departureDate}
-                    alwaysExpanded={alwaysExpanded}
-                    expanded={expanded}
-                    isFirst={isFirst}
-                    currentTransport={currentTransport}
-                    isTransportSet={Boolean(isTransportSet)}
-                    calculatedNights={calculatedNights}
-                    showCustomNights={showCustomNights}
-                    customNightsValue={customNightsValue}
-                    calendarOpen={calendar.isOpen}
-                    calendarAnchorEl={calendar.anchorEl}
-                    transportAnchorEl={transport.anchorEl}
-                    transportOpen={transport.isOpen}
-                    onTransportClick={handleTransportClick}
-                    onTransportClose={handleTransportClose}
-                    onTransportSelect={handleTransportSelect}
-                    onCalendarClick={handleCalendarClick}
-                    onCalendarClose={handleCalendarClose}
-                    onNightSelect={handleNightSelect}
-                    onExpandClick={handleExpandClick}
-                    onEditClick={handleEditClick}
-                    isOnwardsTravelBooked={isOnwardsTravelBooked}
-                    customNightsInputRef={customNightsInputRef as React.RefObject<HTMLInputElement | null>}
-                    onCustomNightsChange={setCustomNightsValue}
-                    onCustomNightsKeyDown={handleCustomNightsKeyDown}
-                    onCustomNightsSubmit={handleCustomNightsSubmit}
-                  />
-                )}
-              </Box>
+              <Suspense fallback={<Box sx={{ width: "100%" }} />}>
+                <DestinationCardHeaderLazy
+                  destination={destination}
+                  layoutMode={layoutMode}
+                  arrivalDate={arrivalDate}
+                  departureDate={departureDate}
+                  alwaysExpanded={alwaysExpanded}
+                  expanded={expanded}
+                  isFirst={isFirst}
+                  currentTransport={currentTransport}
+                  isTransportSet={Boolean(isTransportSet)}
+                  calculatedNights={calculatedNights}
+                  showCustomNights={showCustomNights}
+                  customNightsValue={customNightsValue}
+                  calendarOpen={calendar.isOpen}
+                  calendarAnchorEl={calendar.anchorEl}
+                  transportAnchorEl={transport.anchorEl}
+                  transportOpen={transport.isOpen}
+                  onTransportClick={handleTransportClick}
+                  onTransportClose={handleTransportClose}
+                  onTransportSelect={handleTransportSelect}
+                  onCalendarClick={handleCalendarClick}
+                  onCalendarClose={handleCalendarClose}
+                  onNightSelect={handleNightSelect}
+                  onExpandClick={handleExpandClick}
+                  isOnwardsTravelBooked={isOnwardsTravelBooked}
+                  customNightsInputRef={customNightsInputRef as React.RefObject<HTMLInputElement | null>}
+                  onCustomNightsChange={setCustomNightsValue}
+                  onCustomNightsKeyDown={handleCustomNightsKeyDown}
+                  onCustomNightsSubmit={handleCustomNightsSubmit}
+                  onDestinationChange={onDestinationChange}
+                  shouldFocus={shouldFocus}
+                />
+              </Suspense>
             }
             sx={(theme) => ({
               "& .MuiCardHeader-content": {
@@ -362,24 +322,9 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                 overflow: "hidden",
               }}
             >
-              {locationImageUrl && (
-                <Box
-                  component="img"
-                  src={locationImageUrl}
-                  alt={destination.displayName || destination.name || "Location"}
-                  sx={{
-                    width: "100%",
-                    height: "auto",
-                    maxHeight: "250px",
-                    objectFit: "cover",
-                    borderRadius: 0,
-                    display: "block",
-                  }}
-                  onError={() => {
-                    setLocationImageUrl(null);
-                  }}
-                />
-              )}
+              <Suspense fallback={null}>
+                <DestinationImage destination={destination} />
+              </Suspense>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: arrivalDate && departureDate ? "space-between" : arrivalDate ? "flex-start" : "flex-end", py: 1.5, px: 2, position: "relative", overflow: "visible" }}>
                 {arrivalDate && (
                   <StatusBadge variant="warning" visible={!!dateError} attachToText>
@@ -398,26 +343,46 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
               </Box>
               {currentTransport !== "starting point" && (
                 <>
-                  <SectionArrival
-                    destination={destination}
-                    previousDestination={previousDestination}
-                    arrivalDate={arrivalDate}
-                    onArrivalTimeChange={(dateTime: Dayjs | null) => {
-                      onDestinationChange({
-                        ...destination,
-                        arrivalTime: dateTime,
-                      });
-                    }}
-                    arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-                  />
-                  <SectionAccommodation destination={destination} onDestinationChange={onDestinationChange} arrivalDate={arrivalDate} />
-                  <SectionActivities destination={destination} onDestinationChange={onDestinationChange} arrivalDate={arrivalDate} />
+                  <Suspense fallback={null}>
+                    <SectionArrival
+                      destination={destination}
+                      previousDestination={previousDestination}
+                      arrivalDate={arrivalDate}
+                      onArrivalTimeChange={(dateTime: Dayjs | null) => {
+                        onDestinationChange({
+                          ...destination,
+                          arrivalTime: dateTime,
+                        });
+                      }}
+                      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+                    />
+                  </Suspense>
+                  <Suspense fallback={null}>
+                    <SectionAccommodation destination={destination} onDestinationChange={onDestinationChange} arrivalDate={arrivalDate} />
+                  </Suspense>
+                  <Suspense fallback={null}>
+                    <SectionActivities destination={destination} onDestinationChange={onDestinationChange} arrivalDate={arrivalDate} />
+                  </Suspense>
                 </>
               )}
               {nextDestination && <SectionOnwards destination={destination} nextDestination={nextDestination} onDestinationChange={onDestinationChange} departureDate={departureDate} />}
             </CardContent>
           </Collapse>
-          <DoubleDatePicker open={datePicker.isOpen} anchorEl={datePicker.anchorEl} onClose={datePicker.close} checkInDate={destination.arrivalDate ?? arrivalDate} checkOutDate={destination.departureDate ?? departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
+          {datePicker.isOpen && (
+            <Suspense fallback={null}>
+              <DoubleDatePicker
+                open={datePicker.isOpen}
+                anchorEl={datePicker.anchorEl}
+                onClose={datePicker.close}
+                checkInDate={destination.arrivalDate ?? arrivalDate}
+                checkOutDate={destination.departureDate ?? departureDate}
+                tripStartDate={tripStartDate}
+                calculatedArrivalDate={arrivalDate}
+                isFirst={isFirst}
+                onDateChange={handleDateRangeChange}
+              />
+            </Suspense>
+          )}
         </Card>
       </Box>
       <ConfirmDialog

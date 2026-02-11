@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactElement } from "react";
+import { useState, useEffect, type ReactElement, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -21,10 +21,14 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { useThemeMode } from "./theme/ThemeContext";
 import { useTripContext } from "./hooks/useTripContext";
 import { TripSidebarItem } from "./components/TripSidebarItem";
-import { TripPage } from "./pages/TripPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { getStringItem, setStringItem } from "./services/storageService";
 import { WeatherTestPage } from "./pages/WeatherTestPage.tsx";
+
+const TripPage = lazy(async () => {
+  const module = await import("./pages/TripPage");
+  return { default: module.TripPage };
+});
 
 const DRAWER_WIDTH = 240;
 const ASPECT_RATIO_BREAKPOINT = 1;
@@ -268,7 +272,14 @@ function App(): ReactElement {
             >
               <Route path="/" element={<TripRedirect />} />
               <Route path="/trip" element={<TripRedirect />} />
-              <Route path="/trip/:tripId" element={<TripPage />} />
+              <Route
+                path="/trip/:tripId"
+                element={
+                  <Suspense fallback={<Box sx={{ p: 3 }}>Loading trip...</Box>}>
+                    <TripPage />
+                  </Suspense>
+                }
+              />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/weather-test" element={<WeatherTestPage />} />
             </Route>

@@ -1,3 +1,2 @@
 - fix weather forecast for longer than 16 days reloading
-- 'add activity' button to add and keep track of activities (date/time optional)
 - investigate behavior: make new destination (1), set trip start date, make destination (2). 2 should not have a start date, it should not propograte through like that unless dest 1 has an end date

@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { type ReactElement, lazy, Suspense } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -12,7 +12,10 @@ import { formatDateTime } from "../utils/dateUtils";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
 import { useOnwardsDetailsModal } from "../hooks/useOnwardsDetailsModal";
-import { OnwardsDetailsModal } from "./OnwardsDetailsModal";
+const OnwardsDetailsModal = lazy(async () => {
+  const module = await import("./OnwardsDetailsModal");
+  return { default: module.OnwardsDetailsModal };
+});
 
 interface SectionOnwardsProps {
   destination: Destination;
@@ -149,7 +152,11 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
             </Box>
           )}
         </SectionCard>
-        <OnwardsDetailsModal state={modalState} />
+        {modalState.isOpen && (
+          <Suspense fallback={null}>
+            <OnwardsDetailsModal state={modalState} />
+          </Suspense>
+        )}
       </>
     );
   }
@@ -178,7 +185,11 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
           )}
         </Box>
       </SectionCard>
-      <OnwardsDetailsModal state={modalState} />
+      {modalState.isOpen && (
+        <Suspense fallback={null}>
+          <OnwardsDetailsModal state={modalState} />
+        </Suspense>
+      )}
       </>
     );
   }
