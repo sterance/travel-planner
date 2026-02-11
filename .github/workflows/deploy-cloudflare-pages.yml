@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   actions: write
+  deployments: write
 
 concurrency:
   group: cloudflare-pages-${{ github.ref }}
@@ -39,13 +40,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bundle-analysis
-          path: stats.html
+          path: dist/artifacts/stats.html
           retention-days: 7
 
       - name: deploy
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ secrets.CLOUDFLARE_PAGES_PROJECT_NAME }}
-          directory: dist
+          command: pages deploy dist --project-name=${{ secrets.CLOUDFLARE_PAGES_PROJECT_NAME }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
