@@ -1,24 +1,18 @@
-import { useState, useEffect, type ReactElement } from "react";
+import type { ReactElement } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import { type Dayjs } from "dayjs";
-import { getTransportLinks, type TransportLink } from "../utils/externalLinks";
-import { ButtonGrid } from "./utility/ButtonGrid";
+import { getTransportLinks } from "../utils/externalLinks";
 import { SectionCard } from "./utility/SectionCard";
 import { type Destination } from "../types/destination";
-import { LinkButton } from "./utility/LinkButton";
-import { DetailsModal } from "./utility/DetailsModal";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { searchAirports, formatAirportDisplay } from "../services/airportService";
-import { type PlaceSuggestion } from "../services/placeService";
 import { formatDateTime } from "../utils/dateUtils";
+import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
+import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
+import { useOnwardsDetailsModal } from "../hooks/useOnwardsDetailsModal";
+import { OnwardsDetailsModal } from "./OnwardsDetailsModal";
 
 interface SectionOnwardsProps {
   destination: Destination;
@@ -26,8 +20,6 @@ interface SectionOnwardsProps {
   onDestinationChange: (destination: Destination) => void;
   departureDate?: Dayjs | null;
 }
-
-const selfTransportModes = ["by car", "by motorbike", "by bicycle", "on foot", "starting point"];
 
 const getTransportLabel = (transport: string): string => {
   switch (transport) {
@@ -65,216 +57,7 @@ const formatLocationDisplay = (location: string | undefined, transport?: string 
   return location;
 };
 
-const renderTransportLinks = (links: TransportLink[]): ReactElement | null => {
-  if (links.length === 0) {
-    return null;
-  }
-
-  if (links.length === 1) {
-    const link = links[0];
-    return (
-      <LinkButton site={link.icon ?? ""} url={link.url}>
-        {link.label}
-      </LinkButton>
-    );
-  }
-
-  return (
-    <ButtonGrid columns={2}>
-      {links.map((link) => (
-        <LinkButton key={link.label} site={link.icon ?? ""} url={link.url}>
-          {link.label}
-        </LinkButton>
-      ))}
-    </ButtonGrid>
-  );
-};
-
-const getTransportDetailsModalTitle = (transport?: string | null): string => {
-  if (!transport) return "Transport Details";
-  if (transport === "by plane") return "Flight Details";
-  if (transport === "by bus") return "Bus Details";
-  if (transport === "by train") return "Train Details";
-  if (transport === "by boat") return "Voyage Details";
-  return "Transport Details";
-};
-
-const getSafeDayjsValue = (value: Dayjs | null): Dayjs | null => {
-  if (!value) return null;
-  return value.isValid() ? value : null;
-};
-
 export const SectionOnwards = ({ destination, nextDestination, onDestinationChange }: SectionOnwardsProps): ReactElement => {
-  const [transportDetailsModalOpen, setTransportDetailsModalOpen] = useState(false);
-  const [departureDateTime, setDepartureDateTime] = useState<Dayjs | null>(null);
-  const [arrivalDateTime, setArrivalDateTime] = useState<Dayjs | null>(null);
-  const [departureLocation, setDepartureLocation] = useState("");
-  const [arrivalLocation, setArrivalLocation] = useState("");
-  const [flightNumber, setFlightNumber] = useState("");
-  const [departureLocationSuggestions, setDepartureLocationSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [arrivalLocationSuggestions, setArrivalLocationSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [isLoadingDepartureLocation, setIsLoadingDepartureLocation] = useState(false);
-  const [isLoadingArrivalLocation, setIsLoadingArrivalLocation] = useState(false);
-
-  const nextTransportMode = nextDestination?.transportDetails?.mode;
-  const isFlight = nextTransportMode === "by plane";
-
-  useEffect(() => {
-    if (!isFlight || departureLocation.length < 2) {
-      setDepartureLocationSuggestions([]);
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setIsLoadingDepartureLocation(true);
-      const results = searchAirports(departureLocation);
-      setDepartureLocationSuggestions(
-        results.map((airport) => ({
-          name: formatAirportDisplay(airport),
-          displayName: formatAirportDisplay(airport),
-          placeDetails: {
-            osmId: 0,
-            osmType: "",
-            placeType: "airport",
-            coordinates: [0, 0],
-            country: "",
-          },
-        })),
-      );
-      setIsLoadingDepartureLocation(false);
-    }, 300);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [departureLocation, isFlight]);
-
-  useEffect(() => {
-    if (!isFlight || arrivalLocation.length < 2) {
-      setArrivalLocationSuggestions([]);
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setIsLoadingArrivalLocation(true);
-      const results = searchAirports(arrivalLocation);
-      setArrivalLocationSuggestions(
-        results.map((airport) => ({
-          name: formatAirportDisplay(airport),
-          displayName: formatAirportDisplay(airport),
-          placeDetails: {
-            osmId: 0,
-            osmType: "",
-            placeType: "airport",
-            coordinates: [0, 0],
-            country: "",
-          },
-        })),
-      );
-      setIsLoadingArrivalLocation(false);
-    }, 300);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [arrivalLocation, isFlight]);
-
-  useEffect(() => {
-    if (transportDetailsModalOpen && !destination.transportDetails?.departureDateTime && departureDateTime === null) {
-      try {
-        let defaultDepartureDate: Dayjs | null = null;
-
-        if (destination.departureDate) {
-          defaultDepartureDate = destination.departureDate.startOf("day").hour(12).minute(0);
-        } else if (destination.arrivalDate && typeof destination.nights === "number") {
-          defaultDepartureDate = destination.arrivalDate
-            .add(destination.nights, "day")
-            .startOf("day")
-            .hour(12)
-            .minute(0);
-        }
-
-        if (defaultDepartureDate) {
-          setDepartureDateTime(defaultDepartureDate);
-        }
-      } catch (error) {
-        setDepartureDateTime(null);
-      }
-    }
-  }, [transportDetailsModalOpen, destination.arrivalDate, destination.departureDate, destination.nights, destination.transportDetails?.departureDateTime]);
-
-  const handleTransportDetailsModalOpen = (): void => {
-    const details = destination.transportDetails;
-    
-    try {
-      if (details?.departureDateTime) {
-        const parsed = details.departureDateTime;
-        setDepartureDateTime(parsed && parsed.isValid() ? parsed : null);
-      } else {
-        let defaultDepartureDate: Dayjs | null = null;
-        
-        if (destination.departureDate) {
-          defaultDepartureDate = destination.departureDate.startOf("day").hour(12).minute(0);
-        } else if (destination.arrivalDate && typeof destination.nights === "number") {
-          defaultDepartureDate = destination.arrivalDate
-            .add(destination.nights, "day")
-            .startOf("day")
-            .hour(12)
-            .minute(0);
-        }
-        
-        setDepartureDateTime(defaultDepartureDate);
-      }
-
-      if (details?.arrivalDateTime) {
-        const parsed = details.arrivalDateTime;
-        setArrivalDateTime(parsed && parsed.isValid() ? parsed : null);
-      } else {
-        setArrivalDateTime(null);
-      }
-    } catch (error) {
-      setDepartureDateTime(null);
-      setArrivalDateTime(null);
-    }
-
-    setDepartureLocation(details?.departureLocation || "");
-    setArrivalLocation(details?.arrivalLocation || "");
-    setFlightNumber(details?.flightNumber || "");
-    setTransportDetailsModalOpen(true);
-  };
-
-  const handleTransportDetailsModalClose = (): void => {
-    setTransportDetailsModalOpen(false);
-    setDepartureDateTime(null);
-    setArrivalDateTime(null);
-    setDepartureLocation("");
-    setArrivalLocation("");
-    setFlightNumber("");
-  };
-
-  const handleTransportDetailsSave = (): void => {
-    onDestinationChange({
-      ...destination,
-      transportDetails: {
-        mode: destination.transportDetails?.mode ?? "unsure",
-        departureDateTime: departureDateTime,
-        arrivalDateTime: arrivalDateTime,
-        departureLocation: departureLocation || undefined,
-        arrivalLocation: arrivalLocation || undefined,
-        flightNumber: flightNumber || undefined,
-      },
-    });
-    setTransportDetailsModalOpen(false);
-  };
-
-  const handleTransportDetailsClear = (): void => {
-    onDestinationChange({
-      ...destination,
-      transportDetails: undefined,
-    });
-    setTransportDetailsModalOpen(false);
-  };
-
   if (!nextDestination) {
     return <></>;
   }
@@ -291,8 +74,19 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     );
   }
 
-  const hasBookedDetails = !selfTransportModes.includes(nextMode) && 
-    (!!destination.transportDetails?.departureDateTime && !!destination.transportDetails?.arrivalDateTime);
+  const isFlight = nextMode === "by plane";
+
+  const modalState = useOnwardsDetailsModal({
+    destination,
+    transportMode: nextMode,
+    isFlight,
+    onDestinationChange,
+  });
+
+  const hasBookedDetails =
+    !SELF_TRANSPORT_MODES.includes(nextMode as (typeof SELF_TRANSPORT_MODES)[number]) &&
+    !!destination.transportDetails?.departureDateTime &&
+    !!destination.transportDetails?.arrivalDateTime;
 
   if (hasBookedDetails && destination.transportDetails) {
     const onwardsButtons = [
@@ -330,7 +124,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                 {formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}
               </Typography>
             </Box>
-            <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={handleTransportDetailsModalOpen}>
+            <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={modalState.open}>
               Edit
             </Button>
           </Box>
@@ -351,142 +145,11 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
           </Box>
           {destination.transportDetails.departureLocation && (
             <Box sx={{ mt: 1 }}>
-              {onwardsButtons.length % 2 === 0 ? (
-                <ButtonGrid columns={2}>
-                  {onwardsButtons.map((button) => (
-                    <LinkButton key={button.label} site={button.site} url={button.url}>
-                      {button.label}
-                    </LinkButton>
-                  ))}
-                </ButtonGrid>
-              ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {onwardsButtons.map((button) => (
-                    <LinkButton key={button.label} site={button.site} url={button.url}>
-                      {button.label}
-                    </LinkButton>
-                  ))}
-                </Box>
-              )}
+              <ExternalLinksGrid links={onwardsButtons} />
             </Box>
           )}
         </SectionCard>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DetailsModal open={transportDetailsModalOpen} onClose={handleTransportDetailsModalClose} title={getTransportDetailsModalTitle(nextMode)} onSave={handleTransportDetailsSave} onClear={handleTransportDetailsClear} hasDetails={!!destination.transportDetails} saveLabel="Save" cancelLabel="Cancel" clearLabel="Clear">
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-              {isFlight ? (
-                <>
-                  <TextField label="Flight Number" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} fullWidth variant="outlined" />
-                  <Autocomplete
-                    freeSolo
-                    options={departureLocationSuggestions}
-                    getOptionLabel={(option) => {
-                      if (typeof option === "string") {
-                        return option;
-                      }
-                      return option.name;
-                    }}
-                    inputValue={departureLocation}
-                    onInputChange={(_event, newValue) => {
-                      setDepartureLocation(newValue);
-                    }}
-                    onChange={(_event, value) => {
-                      if (value && typeof value !== "string") {
-                        setDepartureLocation(value.name);
-                      } else if (typeof value === "string") {
-                        setDepartureLocation(value);
-                      }
-                    }}
-                    loading={isLoadingDepartureLocation}
-                    renderInput={(params) => <TextField {...params} label="Departure Airport" variant="outlined" fullWidth />}
-                  />
-                  <DateTimePicker
-                    label="Departure Date & Time"
-                    value={getSafeDayjsValue(departureDateTime)}
-                    onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        variant: "outlined",
-                      },
-                    }}
-                  />
-                  <Autocomplete
-                    freeSolo
-                    options={arrivalLocationSuggestions}
-                    getOptionLabel={(option) => {
-                      if (typeof option === "string") {
-                        return option;
-                      }
-                      return option.name;
-                    }}
-                    inputValue={arrivalLocation}
-                    onInputChange={(_event, newValue) => {
-                      setArrivalLocation(newValue);
-                    }}
-                    onChange={(_event, value) => {
-                      if (value && typeof value !== "string") {
-                        setArrivalLocation(value.name);
-                      } else if (typeof value === "string") {
-                        setArrivalLocation(value);
-                      }
-                    }}
-                    loading={isLoadingArrivalLocation}
-                    renderInput={(params) => <TextField {...params} label="Arrival Airport" variant="outlined" fullWidth />}
-                  />
-                  <DateTimePicker
-                    label="Arrival Date & Time"
-                    value={getSafeDayjsValue(arrivalDateTime)}
-                    onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        variant: "outlined",
-                      },
-                    }}
-                  />
-                  <Button variant="outlined" fullWidth disabled>
-                    add from confirmation email{" "}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <TextField label="Departure Location" value={departureLocation} onChange={(e) => setDepartureLocation(e.target.value)} fullWidth variant="outlined" />
-                  <DateTimePicker
-                    label="Departure Date & Time"
-                    value={getSafeDayjsValue(departureDateTime)}
-                    onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        variant: "outlined",
-                      },
-                    }}
-                  />
-                  <TextField label="Arrival Location" value={arrivalLocation} onChange={(e) => setArrivalLocation(e.target.value)} fullWidth variant="outlined" />
-                  <DateTimePicker
-                    label="Arrival Date & Time"
-                    value={getSafeDayjsValue(arrivalDateTime)}
-                    onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        variant: "outlined",
-                      },
-                    }}
-                  />
-                  <Button variant="outlined" fullWidth disabled>
-                    add from confirmation email{" "}
-                  </Button>
-                </>
-              )}
-            </Box>
-          </DetailsModal>
-        </LocalizationProvider>
+        <OnwardsDetailsModal state={modalState} />
       </>
     );
   }
@@ -497,130 +160,25 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     <>
       <SectionCard title="Onwards">
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          {links.length > 0 ? renderTransportLinks(links) : "link to transport booking"}
-          {!selfTransportModes.includes(nextMode || "") && (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={handleTransportDetailsModalOpen} fullWidth>
+          {links.length > 0 ? (
+            <ExternalLinksGrid
+              links={links.map((link) => ({
+                label: link.label,
+                url: link.url,
+                site: link.icon ?? "",
+              }))}
+            />
+          ) : (
+            "link to transport booking"
+          )}
+          {!SELF_TRANSPORT_MODES.includes((nextMode || "") as (typeof SELF_TRANSPORT_MODES)[number]) && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={modalState.open} fullWidth>
               Add {getTransportLabel(nextMode || "")} details
             </Button>
           )}
         </Box>
       </SectionCard>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DetailsModal open={transportDetailsModalOpen} onClose={handleTransportDetailsModalClose} title={getTransportDetailsModalTitle(nextMode)} onSave={handleTransportDetailsSave} onClear={handleTransportDetailsClear} hasDetails={!!destination.transportDetails} saveLabel="Save" cancelLabel="Cancel" clearLabel="Clear">
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            {isFlight ? (
-              <>
-                <TextField label="Flight Number" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} fullWidth variant="outlined" />
-                <Autocomplete
-                  freeSolo
-                  options={departureLocationSuggestions}
-                  getOptionLabel={(option) => {
-                    if (typeof option === "string") {
-                      return option;
-                    }
-                    return option.name;
-                  }}
-                  inputValue={departureLocation}
-                  onInputChange={(_event, newValue) => {
-                    setDepartureLocation(newValue);
-                  }}
-                  onChange={(_event, value) => {
-                    if (value && typeof value !== "string") {
-                      setDepartureLocation(value.name);
-                    } else if (typeof value === "string") {
-                      setDepartureLocation(value);
-                    }
-                  }}
-                  loading={isLoadingDepartureLocation}
-                  renderInput={(params) => <TextField {...params} label="Departure Airport" variant="outlined" fullWidth />}
-                />
-                <DateTimePicker
-                  label="Departure Date & Time"
-                  value={getSafeDayjsValue(departureDateTime)}
-                  onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      variant: "outlined",
-                    },
-                  }}
-                />
-                <Autocomplete
-                  freeSolo
-                  options={arrivalLocationSuggestions}
-                  getOptionLabel={(option) => {
-                    if (typeof option === "string") {
-                      return option;
-                    }
-                    return option.name;
-                  }}
-                  inputValue={arrivalLocation}
-                  onInputChange={(_event, newValue) => {
-                    setArrivalLocation(newValue);
-                  }}
-                  onChange={(_event, value) => {
-                    if (value && typeof value !== "string") {
-                      setArrivalLocation(value.name);
-                    } else if (typeof value === "string") {
-                      setArrivalLocation(value);
-                    }
-                  }}
-                  loading={isLoadingArrivalLocation}
-                  renderInput={(params) => <TextField {...params} label="Arrival Airport" variant="outlined" fullWidth />}
-                />
-                <DateTimePicker
-                  label="Arrival Date & Time"
-                  value={getSafeDayjsValue(arrivalDateTime)}
-                  onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                  referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      variant: "outlined",
-                      },
-                    }}
-                  />
-                  <Button variant="outlined" fullWidth disabled>
-                    add from confirmation email{" "}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <TextField label="Departure Location" value={departureLocation} onChange={(e) => setDepartureLocation(e.target.value)} fullWidth variant="outlined" />
-                  <DateTimePicker
-                    label="Departure Date & Time"
-                    value={getSafeDayjsValue(departureDateTime)}
-                    onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        variant: "outlined",
-                      },
-                    }}
-                  />
-                  <TextField label="Arrival Location" value={arrivalLocation} onChange={(e) => setArrivalLocation(e.target.value)} fullWidth variant="outlined" />
-                  <DateTimePicker
-                    label="Arrival Date & Time"
-                    value={getSafeDayjsValue(arrivalDateTime)}
-                    onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
-                    referenceDate={destination.departureDate ?? destination.arrivalDate ?? undefined}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        variant: "outlined",
-                      },
-                    }}
-                  />
-                  <Button variant="outlined" fullWidth disabled>
-                    add from confirmation email{" "}
-                  </Button>
-                </>
-              )}
-            </Box>
-          </DetailsModal>
-        </LocalizationProvider>
+      <OnwardsDetailsModal state={modalState} />
       </>
     );
   }

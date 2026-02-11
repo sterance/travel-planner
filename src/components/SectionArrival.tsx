@@ -1,9 +1,8 @@
 import { type ReactElement } from "react";
 import Box from "@mui/material/Box";
 import { ArrivalWeather } from "./ArrivalWeather";
-import { ButtonGrid } from "./utility/ButtonGrid";
 import { SectionCard } from "./utility/SectionCard";
-import { LinkButton } from "./utility/LinkButton";
+import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { type Destination } from "../types/destination";
 import { type Dayjs } from "dayjs";
 
@@ -49,31 +48,7 @@ export const SectionArrival = ({
         backgroundMode={arrivalWeatherBackgroundMode}
       />
       <Box sx={{ mt: 1 }}>
-        {arrivalButtons.length % 2 === 0 ? (
-          <ButtonGrid columns={2}>
-            {arrivalButtons.map((button) => (
-              <LinkButton
-                key={button.label}
-                site={button.site}
-                url={button.url}
-              >
-                {button.label}
-              </LinkButton>
-            ))}
-          </ButtonGrid>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {arrivalButtons.map((button) => (
-              <LinkButton
-                key={button.label}
-                site={button.site}
-                url={button.url}
-              >
-                {button.label}
-              </LinkButton>
-            ))}
-          </Box>
-        )}
+        <ExternalLinksGrid links={arrivalButtons} />
       </Box>
     </SectionCard>
   );

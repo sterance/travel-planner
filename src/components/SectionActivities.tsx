@@ -1,26 +1,21 @@
-import { useState, type ReactElement } from "react";
+import { type ReactElement } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import { ButtonGrid } from "./utility/ButtonGrid";
 import { SectionCard } from "./utility/SectionCard";
-import { type Destination } from "../types/destination";
-import { LinkButton } from "./utility/LinkButton";
 import { StatusBadge } from "./utility/StatusBadge";
 import { DetailsModal } from "./utility/DetailsModal";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs, { type Dayjs } from "dayjs";
-import { formatDateTime } from "../utils/dateUtils";
-
-const getSafeDayjsValue = (value: Dayjs | null): Dayjs | null => {
-  if (!value) return null;
-  return value.isValid() ? value : null;
-};
+import type { Dayjs } from "dayjs";
+import { type Destination, type ActivityDetails } from "../types/destination";
+import { formatDateTime, getSafeDayjsValue } from "../utils/dateUtils";
+import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
+import { useSectionItemList } from "../hooks/useSectionItemList";
 
 interface SectionActivitiesProps {
   destination: Destination;
@@ -29,13 +24,6 @@ interface SectionActivitiesProps {
 }
 
 export const SectionActivities = ({ destination, onDestinationChange, arrivalDate }: SectionActivitiesProps): ReactElement => {
-  const [activityModalOpen, setActivityModalOpen] = useState(false);
-  const [editingActivityIndex, setEditingActivityIndex] = useState<number | null>(null);
-  const [activityName, setActivityName] = useState("");
-  const [activityAddress, setActivityAddress] = useState("");
-  const [activityStart, setActivityStart] = useState<Dayjs | null>(null);
-  const [activityEnd, setActivityEnd] = useState<Dayjs | null>(null);
-
   const activityButtons = [
     {
       label: "TripAdvisor",
@@ -53,125 +41,60 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
 
   const destinationCheckOut = destination.departureDate ?? null;
 
-  const latestActivityEnd = activities.reduce<dayjs.Dayjs | null>((latest, activity) => {
-    if (!activity.endDateTime) {
-      return latest;
-    }
-    // activity.endDateTime is already Dayjs or null
-    const end = activity.endDateTime;
-    if (!latest || end.isAfter(latest)) {
-      return end;
-    }
-    return latest;
-  }, null);
-
-  const hasCoverageToDestinationEnd = destinationCheckOut !== null && latestActivityEnd !== null && latestActivityEnd.isSame(destinationCheckOut, "day");
-
-  const hasCoveragePastDestinationEnd = destinationCheckOut !== null && latestActivityEnd !== null && latestActivityEnd.isAfter(destinationCheckOut, "day");
-
-  const showAddActivityButton = !hasCoverageToDestinationEnd;
-
-  const handleActivityModalOpen = (index?: number): void => {
-    if (index !== undefined && index !== null && activities[index]) {
-      const activity = activities[index];
-      setEditingActivityIndex(index);
-      setActivityName(activity.name ?? "");
-      setActivityAddress(activity.address ?? "");
-      
-      const start = activity.startDateTime ?? null;
-      setActivityStart(start && start.isValid() ? start : null);
-      
-      const end = activity.endDateTime ?? null;
-      setActivityEnd(end && end.isValid() ? end : null);
-    } else {
-      setEditingActivityIndex(null);
-      setActivityName("");
-      setActivityAddress("");
-      setActivityStart(null);
-      setActivityEnd(null);
-    }
-
-    setActivityModalOpen(true);
-  };
-
-  const handleActivityModalClose = (): void => {
-    setActivityModalOpen(false);
-  };
-
-  const handleActivitySave = (): void => {
-    const activities = destination.activities ? [...destination.activities] : [];
-
-    const existing = editingActivityIndex !== null ? activities[editingActivityIndex] : undefined;
-
-    const updated = {
+  const {
+    isModalOpen,
+    editingIndex,
+    name,
+    address,
+    startDateTime,
+    endDateTime,
+    latestEndDate,
+    hasCoveragePastDestinationEnd,
+    showAddButton,
+    openForNew,
+    openForEdit,
+    closeModal,
+    saveCurrent,
+    clearCurrent,
+    setName,
+    setAddress,
+    setStartDateTime,
+    setEndDateTime,
+  } = useSectionItemList<ActivityDetails>({
+    items: activities,
+    onItemsChange: (updated) => {
+      onDestinationChange({
+        ...destination,
+        activities: updated,
+      });
+    },
+    destinationEndDate: destination.departureDate ?? null,
+    getStartDateTime: (item) => item.startDateTime ?? null,
+    getEndDateTime: (item) => item.endDateTime ?? null,
+    createOrUpdateItem: (existing, fields) => ({
       id: existing?.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      name: activityName || undefined,
-      address: activityAddress || undefined,
-      startDateTime: activityStart,
-      endDateTime: activityEnd,
-    };
-
-    if (editingActivityIndex !== null && activities[editingActivityIndex]) {
-      activities[editingActivityIndex] = updated;
-    } else {
-      activities.push(updated);
-    }
-
-    onDestinationChange({
-      ...destination,
-      activities,
-    });
-
-    setActivityModalOpen(false);
-  };
-
-  const handleActivityClear = (): void => {
-    if (!destination.activities || editingActivityIndex === null) {
-      setActivityModalOpen(false);
-      return;
-    }
-
-    const activities = destination.activities.filter((_, index) => index !== editingActivityIndex);
-
-    onDestinationChange({
-      ...destination,
-      activities,
-    });
-
-    setActivityModalOpen(false);
-  };
+      name: fields.name || undefined,
+      address: fields.address || undefined,
+      startDateTime: fields.startDateTime,
+      endDateTime: fields.endDateTime,
+    }),
+  });
 
   return (
     <>
       <SectionCard title="Activities">
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <Box sx={{ mt: 1 }}>
-            {activityButtons.length % 2 === 0 ? (
-              <ButtonGrid columns={2}>
-                {activityButtons.map((button) => (
-                  <LinkButton key={button.label} site={button.site} url={button.url}>
-                    {button.label}
-                  </LinkButton>
-                ))}
-              </ButtonGrid>
-            ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {activityButtons.map((button) => (
-                  <LinkButton key={button.label} site={button.site} url={button.url}>
-                    {button.label}
-                  </LinkButton>
-                ))}
-              </Box>
-            )}
+            <ExternalLinksGrid links={activityButtons} />
           </Box>
-          {hasCoveragePastDestinationEnd && destinationCheckOut && latestActivityEnd && (
+          {hasCoveragePastDestinationEnd && destinationCheckOut && latestEndDate && (
             <StatusBadge variant="warning" visible attachToText>
               <Typography variant="caption" color="text.secondary">
-                activity end ({latestActivityEnd.format("MMM D, YYYY")}) is after destination end ({destinationCheckOut.format("MMM D, YYYY")})
+                activity end ({latestEndDate.format("MMM D, YYYY")}) is after destination end ({destinationCheckOut.format("MMM D, YYYY")})
               </Typography>
             </StatusBadge>
           )}
-          {activities.map((activity, index) => (
+          {activities.map((activity: ActivityDetails, index: number) => (
             <Box
               key={activity.id}
               sx={{
@@ -195,27 +118,37 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
                   {formatDateTime(activity.startDateTime) || "No start"} – {formatDateTime(activity.endDateTime) || "No end"}
                 </Typography>
               </Box>
-              <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => handleActivityModalOpen(index)}>
+              <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => openForEdit(index)}>
                 edit
               </Button>
             </Box>
           ))}
-          {showAddActivityButton && (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleActivityModalOpen()} fullWidth>
+          {showAddButton && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={openForNew} fullWidth>
               add activities
             </Button>
           )}
         </Box>
       </SectionCard>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DetailsModal open={activityModalOpen} onClose={handleActivityModalClose} title="Activity Details" onSave={handleActivitySave} onClear={handleActivityClear} hasDetails={editingActivityIndex !== null} saveLabel="Save" cancelLabel="Cancel" clearLabel="Remove">
+        <DetailsModal
+          open={isModalOpen}
+          onClose={closeModal}
+          title="Activity Details"
+          onSave={saveCurrent}
+          onClear={clearCurrent}
+          hasDetails={editingIndex !== null}
+          saveLabel="Save"
+          cancelLabel="Cancel"
+          clearLabel="Remove"
+        >
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            <TextField label="Name" value={activityName} onChange={(e) => setActivityName(e.target.value)} fullWidth variant="outlined" />
-            <TextField label="Address" value={activityAddress} onChange={(e) => setActivityAddress(e.target.value)} fullWidth variant="outlined" />
+            <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} fullWidth variant="outlined" />
+            <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth variant="outlined" />
             <DateTimePicker
               label="Start date & time"
-              value={getSafeDayjsValue(activityStart)}
-              onChange={(newValue) => setActivityStart(getSafeDayjsValue(newValue))}
+              value={getSafeDayjsValue(startDateTime)}
+              onChange={(newValue) => setStartDateTime(getSafeDayjsValue(newValue))}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {
@@ -226,8 +159,8 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
             />
             <DateTimePicker
               label="End date & time"
-              value={getSafeDayjsValue(activityEnd)}
-              onChange={(newValue) => setActivityEnd(getSafeDayjsValue(newValue))}
+              value={getSafeDayjsValue(endDateTime)}
+              onChange={(newValue) => setEndDateTime(getSafeDayjsValue(newValue))}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {

@@ -19,7 +19,7 @@ import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlin
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useThemeMode } from "./theme/ThemeContext";
-import { useTripContext } from "./context/TripContext";
+import { useTripContext } from "./hooks/useTripContext";
 import { TripSidebarItem } from "./components/TripSidebarItem";
 import { TripPage } from "./pages/TripPage";
 import { SettingsPage } from "./pages/SettingsPage";

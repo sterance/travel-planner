@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, type ReactNode, type ReactElement } from 'react';
-import dayjs from 'dayjs';
-import { type Trip } from '../types/trip';
-import { loadTrips, saveTrips, createTrip as createTripStorage } from '../services/storageService';
-import { calculateTripEndDate, computeDestinationTimeline } from '../utils/dateCalculation';
+import React, { createContext, useContext, useState, useEffect, type ReactNode, type ReactElement } from "react";
+import dayjs from "dayjs";
+import { type Trip } from "../types/trip";
+import { loadTrips, saveTrips, createTrip as createTripStorage } from "../services/storageService";
+import { calculateTripEndDate, computeDestinationTimeline } from "../utils/dateCalculation";
 
 interface TripContextType {
   trips: Trip[];
@@ -22,7 +22,7 @@ const TripContext = createContext<TripContextType | undefined>(undefined);
 export const useTripContext = (): TripContextType => {
   const context = useContext(TripContext);
   if (!context) {
-    throw new Error('useTripContext must be used within TripContextProvider');
+    throw new Error("useTripContext must be used within TripContextProvider");
   }
   return context;
 };
@@ -39,7 +39,7 @@ export const TripContextProvider = ({ children }: TripContextProviderProps): Rea
   useEffect(() => {
     const loadedTrips = loadTrips();
     if (loadedTrips.length === 0) {
-      const newTrip = createTripStorage('Trip 1');
+      const newTrip = createTripStorage("Trip 1");
       const initialTrips = [newTrip];
       setTrips(initialTrips);
       setCurrentTripId(newTrip.id);
@@ -70,16 +70,14 @@ export const TripContextProvider = ({ children }: TripContextProviderProps): Rea
     const { destinationsWithTimeline } = computeDestinationTimeline(trip.startDate, trip.destinations);
     const endDate = calculateTripEndDate(trip.startDate, destinationsWithTimeline);
 
-    const updatedTrip = {
+    const updatedTrip: Trip = {
       ...trip,
       destinations: destinationsWithTimeline,
       endDate,
       updatedAt: dayjs(),
     };
 
-    setTrips((prev) =>
-      prev.map((t) => (t.id === trip.id ? updatedTrip : t))
-    );
+    setTrips((prev) => prev.map((t) => (t.id === trip.id ? updatedTrip : t)));
   };
 
   const deleteTrip = (id: string): void => {
@@ -89,7 +87,7 @@ export const TripContextProvider = ({ children }: TripContextProviderProps): Rea
       if (updatedTrips.length > 0) {
         setCurrentTripId(updatedTrips[0].id);
       } else {
-        const newTrip = createTripStorage('Trip 1');
+        const newTrip = createTripStorage("Trip 1");
         setTrips([newTrip]);
         setCurrentTripId(newTrip.id);
       }
@@ -109,9 +107,10 @@ export const TripContextProvider = ({ children }: TripContextProviderProps): Rea
 
   const currentTrip = currentTripId ? trips.find((t) => t.id === currentTripId) ?? null : null;
 
-  return (
-    <TripContext.Provider
-      value={{
+  return React.createElement(
+    TripContext.Provider,
+    {
+      value: {
         trips,
         currentTripId,
         currentTrip,
@@ -122,9 +121,9 @@ export const TripContextProvider = ({ children }: TripContextProviderProps): Rea
         setCurrentTrip,
         renameTrip,
         setEditingTripId,
-      }}
-    >
-      {children}
-    </TripContext.Provider>
+      },
+    },
+    children,
   );
 };
+

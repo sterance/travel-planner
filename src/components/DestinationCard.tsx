@@ -4,33 +4,14 @@ import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
 import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import FlightIcon from "@mui/icons-material/Flight";
-import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
-import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
-import TrainIcon from "@mui/icons-material/Train";
-import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import DirectionsBoatIcon from "@mui/icons-material/DirectionsBoat";
-import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
-import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
-import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
-import ModeOfTravelIcon from "@mui/icons-material/ModeOfTravel";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import dayjs, { type Dayjs } from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
 import { type LayoutMode } from "../App";
-import { searchPlaces, type PlaceSuggestion } from "../services/placeService";
 import { getLocationImage } from "../services/imagesService";
 import { DoubleDatePicker } from "./utility/DoubleDatePicker";
 import { StatusBadge } from "./utility/StatusBadge";
@@ -39,18 +20,11 @@ import { SectionArrival } from "./SectionArrival";
 import { SectionAccommodation } from "./SectionAccommodation";
 import { SectionActivities } from "./SectionActivities";
 import { SectionOnwards } from "./SectionOnwards";
-import calendar0Icon from "../assets/icons/calendar/calendar-0.svg";
-import calendar1Icon from "../assets/icons/calendar/calendar-1.svg";
-import calendar2Icon from "../assets/icons/calendar/calendar-2.svg";
-import calendar3Icon from "../assets/icons/calendar/calendar-3.svg";
-import calendar4Icon from "../assets/icons/calendar/calendar-4.svg";
-import calendar5Icon from "../assets/icons/calendar/calendar-5.svg";
-import calendar6Icon from "../assets/icons/calendar/calendar-6.svg";
-import calendar7Icon from "../assets/icons/calendar/calendar-7.svg";
-import calendar8Icon from "../assets/icons/calendar/calendar-8.svg";
-import calendar9Icon from "../assets/icons/calendar/calendar-9.svg";
-
-const calendarIcons = [calendar0Icon, calendar1Icon, calendar2Icon, calendar3Icon, calendar4Icon, calendar5Icon, calendar6Icon, calendar7Icon, calendar8Icon, calendar9Icon];
+import { useMenuState } from "../hooks/useMenuState";
+import { useDestinationSearch } from "../hooks/useDestinationSearch";
+import { useNightSelection } from "../hooks/useNightSelection";
+import { DestinationCardHeaderDisplay, DestinationCardHeaderEdit } from "./DestinationCardHeader";
+import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
 
 interface DestinationCardProps {
   destination: DestinationType;
@@ -80,69 +54,30 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
       setExpanded(true);
     }
   }, [alwaysExpanded]);
-  const [inputValue, setInputValue] = useState(destination.name);
-  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(destination.name === "" || shouldFocus);
-  const [calendarAnchorEl, setCalendarAnchorEl] = useState<null | HTMLElement>(null);
-  const [transportAnchorEl, setTransportAnchorEl] = useState<null | HTMLElement>(null);
-  const [showCustomNights, setShowCustomNights] = useState(false);
-  const [customNightsValue, setCustomNightsValue] = useState("");
   const [locationImageUrl, setLocationImageUrl] = useState<string | null>(null);
-  const [datePickerAnchorEl, setDatePickerAnchorEl] = useState<HTMLElement | null>(null);
   const [buttonHover, setButtonHover] = useState<"remove" | "reorder" | null>(null);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
-  const autocompleteRef = useRef<HTMLDivElement>(null);
   const customNightsInputRef = useRef<HTMLInputElement>(null);
+  const { calendar, transport, datePicker } = useMenuState();
+  const { inputValue, suggestions, isLoading, isEditing, autocompleteRef, handleInputChange, handleChange, handleBlur, handleEditClick } = useDestinationSearch({
+    destination,
+    onDestinationChange,
+    shouldFocus,
+  });
 
-  useEffect(() => {
-    setInputValue(destination.name);
-  }, [destination.name]);
-
-  useEffect(() => {
-    if (shouldFocus) {
-      const timeoutId = setTimeout(() => {
-        if (autocompleteRef.current) {
-          const input = autocompleteRef.current.querySelector("input");
-          if (input) {
-            input.focus();
-            setIsEditing(true);
-          }
-        }
-      }, 50);
-      return () => {
-        clearTimeout(timeoutId);
-      };
+  const openDatePickerFromCalendar = (): void => {
+    if (calendar.anchorEl) {
+      datePicker.open(calendar.anchorEl);
     }
-  }, [shouldFocus]);
+  };
 
-  useEffect(() => {
-    if (!isEditing || inputValue.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      (async () => {
-        try {
-          setIsLoading(true);
-          const results = await searchPlaces(inputValue);
-          setSuggestions(results);
-          setIsLoading(false);
-        } catch {
-          setIsLoading(false);
-          setSuggestions([]);
-        }
-      })().catch(() => {
-        setIsLoading(false);
-        setSuggestions([]);
-      });
-    }, 300);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [inputValue, isEditing]);
+  const { showCustomNights, customNightsValue, setCustomNightsValue, handleNightSelect, handleDateRangeChange: handleNightDateRangeChange, handleCustomNightsSubmit, handleCustomNightsKeyDown } = useNightSelection({
+    destination,
+    onDestinationChange,
+    customNightsInputRef,
+    onOpenDatePicker: openDatePickerFromCalendar,
+    onCloseCalendar: calendar.close,
+  });
 
   useEffect(() => {
     const fetchImage = async (): Promise<void> => {
@@ -196,132 +131,25 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
     setExpanded(!expanded);
   };
 
-  const handleInputChange = (_event: unknown, newValue: string | null): void => {
-    const value = newValue || "";
-    setInputValue(value);
-    if (!value) {
-      onDestinationChange({
-        ...destination,
-        name: "",
-        displayName: "",
-        placeDetails: undefined,
-      });
-    }
-  };
-
-  const handleChange = (_event: unknown, value: string | PlaceSuggestion | null, _reason?: unknown, _details?: unknown): void => {
-    if (value && typeof value !== "string") {
-      onDestinationChange({
-        ...destination,
-        name: value.name,
-        displayName: value.displayName,
-        placeDetails: value.placeDetails,
-      });
-      setIsEditing(false);
-    } else if (typeof value === "string") {
-      const cityName = value.includes(",") ? value.split(",")[0].trim() : value;
-      onDestinationChange({
-        ...destination,
-        name: value,
-        displayName: cityName,
-        placeDetails: undefined,
-      });
-    }
-  };
-
-  const handleBlur = (): void => {
-    if (inputValue && !destination.placeDetails) {
-      const cityName = inputValue.includes(",") ? inputValue.split(",")[0].trim() : inputValue;
-      onDestinationChange({
-        ...destination,
-        name: inputValue,
-        displayName: cityName,
-      });
-    }
-    setIsEditing(false);
-  };
-
-  const handleEditClick = (): void => {
-    setIsEditing(true);
-    setTimeout(() => {
-      const input = autocompleteRef.current?.querySelector("input");
-      if (input) {
-        input.focus();
-      }
-    }, 0);
-  };
-
   const handleCalendarClick = (event: React.MouseEvent<HTMLElement>): void => {
-    setCalendarAnchorEl(event.currentTarget);
+    calendar.open(event.currentTarget);
   };
 
   const handleCalendarClose = (): void => {
-    setCalendarAnchorEl(null);
-  };
-
-  const handleNightSelect = (nights: number | "none" | "more" | "dates" | "unsure"): void => {
-    if (nights === "more") {
-      setShowCustomNights(true);
-      handleCalendarClose();
-      setTimeout(() => {
-        customNightsInputRef.current?.focus();
-      }, 0);
-    } else if (nights === "dates") {
-      handleCalendarClose();
-      setDatePickerAnchorEl(calendarAnchorEl);
-    } else if (nights === "unsure") {
-      onDestinationChange({
-        ...destination,
-        nights: null,
-        arrivalDate: undefined,
-        departureDate: undefined,
-      });
-      handleCalendarClose();
-    } else {
-      onDestinationChange({
-        ...destination,
-        nights,
-        arrivalDate: undefined,
-        departureDate: undefined,
-      });
-      handleCalendarClose();
-    }
+    calendar.close();
   };
 
   const handleDateRangeChange = (checkIn: Dayjs | null, checkOut: Dayjs | null): void => {
-    onDestinationChange({
-      ...destination,
-      nights: "dates",
-      arrivalDate: checkIn ?? null,
-      departureDate: checkOut ?? null,
-    });
-    setDatePickerAnchorEl(null);
-  };
-
-  const handleCustomNightsSubmit = (): void => {
-    const parsed = parseInt(customNightsValue, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      onDestinationChange({ ...destination, nights: parsed });
-    }
-    setShowCustomNights(false);
-    setCustomNightsValue("");
-  };
-
-  const handleCustomNightsKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === "Enter") {
-      handleCustomNightsSubmit();
-    } else if (event.key === "Escape") {
-      setShowCustomNights(false);
-      setCustomNightsValue("");
-    }
+    handleNightDateRangeChange(checkIn, checkOut);
+    datePicker.close();
   };
 
   const handleTransportClick = (event: React.MouseEvent<HTMLElement>): void => {
-    setTransportAnchorEl(event.currentTarget);
+    transport.open(event.currentTarget);
   };
 
   const handleTransportClose = (): void => {
-    setTransportAnchorEl(null);
+    transport.close();
   };
 
   const handleTransportSelect = (transport: string | "unsure"): void => {
@@ -347,13 +175,12 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
 
   const currentTransport = destination.transportDetails?.mode;
   const isTransportSet = currentTransport && currentTransport !== "unsure";
-  const selfTransportModes = ["by car", "by motorbike", "by bicycle", "on foot", "starting point"];
 
   const isOnwardsTravelBooked = (): boolean => {
     if (!nextDestination) return true;
     const nextTransport = nextDestination.transportDetails?.mode;
     if (!nextTransport) return true;
-    if (selfTransportModes.includes(nextTransport)) return true;
+    if (SELF_TRANSPORT_MODES.includes(nextTransport as (typeof SELF_TRANSPORT_MODES)[number])) return true;
     const details = destination.transportDetails;
     return !!(details?.departureDateTime && details?.arrivalDateTime);
   };
@@ -374,31 +201,6 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
   };
 
   const calculatedNights = getCalculatedNights();
-
-  const getTransportIcon = (): ReactElement => {
-    switch (currentTransport) {
-      case "starting point":
-        return <OutlinedFlagIcon sx={{ fontSize: "2rem" }} />;
-      case "by plane":
-        return <FlightIcon sx={{ fontSize: "2rem" }} />;
-      case "by bus":
-        return <DirectionsBusIcon sx={{ fontSize: "2rem" }} />;
-      case "by train":
-        return <TrainIcon sx={{ fontSize: "2rem" }} />;
-      case "by boat":
-        return <DirectionsBoatIcon sx={{ fontSize: "2rem" }} />;
-      case "by car":
-        return <DirectionsCarIcon sx={{ fontSize: "2rem" }} />;
-      case "on foot":
-        return <DirectionsWalkIcon sx={{ fontSize: "2rem" }} />;
-      case "by bicycle":
-        return <DirectionsBikeIcon sx={{ fontSize: "2rem" }} />;
-      case "by motorbike":
-        return <TwoWheelerIcon sx={{ fontSize: "2rem" }} />;
-      default:
-        return <ModeOfTravelIcon sx={{ fontSize: "2rem" }} />;
-    }
-  };
 
   // RENDERING
   return (
@@ -501,305 +303,39 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
             title={
               <Box sx={{ width: "100%" }}>
                 {isEditing ? (
-                  <Box sx={{ position: "relative", width: "100%" }}>
-                    <Autocomplete
-                      ref={autocompleteRef}
-                      freeSolo
-                      options={suggestions}
-                      getOptionLabel={(option) => {
-                        if (typeof option === "string") {
-                          return option;
-                        }
-                        return option.name;
-                      }}
-                      inputValue={inputValue}
-                      onInputChange={handleInputChange}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      loading={isLoading}
-                      renderInput={(params) => {
-                        const { InputProps: inputProps, ...textFieldParams } = params;
-                        return (
-                          <TextField
-                            {...textFieldParams}
-                            placeholder="Destination name"
-                            variant="standard"
-                            sx={{
-                              width: "100%",
-                              "& .MuiInputBase-input": {
-                                textAlign: "center",
-                              },
-                              "& .MuiInput-underline:before": {
-                                display: "none",
-                              },
-                              "& .MuiInput-underline:after": {
-                                display: "none",
-                              },
-                              "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-                                display: "none",
-                              },
-                            }}
-                            slotProps={{
-                              input: {
-                                ...inputProps,
-                              },
-                            }}
-                          />
-                        );
-                      }}
-                      sx={{
-                        width: "100%",
-                        "& .MuiAutocomplete-endAdornment": {
-                          position: "absolute",
-                          right: "8px",
-                        },
-                        "& .MuiInputBase-root": {
-                          paddingRight: "0 !important",
-                        },
-                        "& .MuiInputBase-input": {
-                          paddingLeft: "40px !important",
-                          paddingRight: "40px !important",
-                        },
-                      }}
-                    />
-                  </Box>
+                  <DestinationCardHeaderEdit inputValue={inputValue} suggestions={suggestions} isLoading={isLoading} autocompleteRef={autocompleteRef as React.RefObject<HTMLDivElement | null>} onInputChange={handleInputChange} onChange={handleChange} onBlur={handleBlur} />
                 ) : (
-                  <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
-                    <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
-                      <StatusBadge variant="info" visible={!isTransportSet}>
-                        <IconButton aria-label="transport" size="small" onClick={handleTransportClick} sx={{ padding: 0.5 }}>
-                          {getTransportIcon()}
-                        </IconButton>
-                      </StatusBadge>
-                    </Box>
-                    <Menu anchorEl={transportAnchorEl} open={Boolean(transportAnchorEl)} onClose={handleTransportClose}>
-                      <MenuItem onClick={() => handleTransportSelect("unsure")}>
-                        <HelpOutlineIcon sx={{ mr: 1 }} />
-                        Unsure
-                      </MenuItem>
-                      {isFirst && (
-                        <MenuItem onClick={() => handleTransportSelect("starting point")}>
-                          <OutlinedFlagIcon sx={{ mr: 1 }} />
-                          Starting point
-                        </MenuItem>
-                      )}
-                      <MenuItem onClick={() => handleTransportSelect("by plane")}>
-                        <FlightIcon sx={{ mr: 1 }} />
-                        By plane
-                      </MenuItem>
-                      <MenuItem onClick={() => handleTransportSelect("by bus")}>
-                        <DirectionsBusIcon sx={{ mr: 1 }} />
-                        By bus
-                      </MenuItem>
-                      <MenuItem onClick={() => handleTransportSelect("by train")}>
-                        <TrainIcon sx={{ mr: 1 }} />
-                        By train
-                      </MenuItem>
-                      <MenuItem onClick={() => handleTransportSelect("by boat")}>
-                        <DirectionsBoatIcon sx={{ mr: 1 }} />
-                        By boat
-                      </MenuItem>
-                      <MenuItem onClick={() => handleTransportSelect("by car")}>
-                        <DirectionsCarIcon sx={{ mr: 1 }} />
-                        By car
-                      </MenuItem>
-                      <MenuItem onClick={() => handleTransportSelect("by motorbike")}>
-                        <TwoWheelerIcon sx={{ mr: 1 }} />
-                        By motorbike
-                      </MenuItem>
-                      <MenuItem onClick={() => handleTransportSelect("by bicycle")}>
-                        <DirectionsBikeIcon sx={{ mr: 1 }} />
-                        By bicycle
-                      </MenuItem>
-                      <MenuItem onClick={() => handleTransportSelect("on foot")}>
-                        <DirectionsWalkIcon sx={{ mr: 1 }} />
-                        On foot
-                      </MenuItem>
-                    </Menu>
-                    <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
-                      <Typography
-                        variant="h6"
-                        component="div"
-                        onClick={handleEditClick}
-                        sx={{
-                          textAlign: "center",
-                          cursor: "text",
-                        }}
-                      >
-                        {destination.displayName || destination.name || "Destination name"}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
-                      <StatusBadge variant="info" visible={!(typeof destination.nights === "number" || (destination.nights === "dates" && destination.arrivalDate && destination.departureDate))}>
-                        <IconButton aria-label="calendar" size="small" onClick={handleCalendarClick} sx={{ padding: 0.5 }}>
-                          {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? (
-                            <Box
-                              sx={{
-                                width: "2rem",
-                                height: "2rem",
-                                backgroundColor: "action.active",
-                                maskImage: `url(${calendarIcons[calculatedNights]})`,
-                                maskSize: "contain",
-                                maskRepeat: "no-repeat",
-                                maskPosition: "center",
-                                WebkitMaskImage: `url(${calendarIcons[calculatedNights]})`,
-                                WebkitMaskSize: "contain",
-                                WebkitMaskRepeat: "no-repeat",
-                                WebkitMaskPosition: "center",
-                              }}
-                            />
-                          ) : (
-                            <CalendarMonthOutlinedIcon sx={{ fontSize: "2rem" }} />
-                          )}
-                        </IconButton>
-                      </StatusBadge>
-                    </Box>
-                    <Menu anchorEl={calendarAnchorEl} open={Boolean(calendarAnchorEl)} onClose={handleCalendarClose}>
-                      <MenuItem onClick={() => handleNightSelect("unsure")} sx={{ justifyContent: "flex-end" }}>
-                        Unsure
-                        <HelpOutlineIcon sx={{ ml: 1 }} />
-                      </MenuItem>
-                      <MenuItem onClick={() => handleNightSelect("dates")} sx={{ justifyContent: "flex-end" }}>
-                        Select dates
-                        <CalendarMonthOutlinedIcon sx={{ ml: 1 }} />
-                      </MenuItem>
-                      {[0, 1, 2, 3, 4, 5, 6, 7].map((nights) => (
-                        <MenuItem key={nights} onClick={() => handleNightSelect(nights)} sx={{ justifyContent: "flex-end" }}>
-                          {nights} {nights === 1 ? "Night" : "Nights"}
-                          <Box
-                            sx={{
-                              ml: 1,
-                              width: 24,
-                              height: 24,
-                              backgroundColor: "action.active",
-                              maskImage: `url(${calendarIcons[nights]})`,
-                              maskSize: "contain",
-                              maskRepeat: "no-repeat",
-                              maskPosition: "center",
-                              WebkitMaskImage: `url(${calendarIcons[nights]})`,
-                              WebkitMaskSize: "contain",
-                              WebkitMaskRepeat: "no-repeat",
-                              WebkitMaskPosition: "center",
-                            }}
-                          />
-                        </MenuItem>
-                      ))}
-                      <MenuItem onClick={() => handleNightSelect("more")} sx={{ justifyContent: "flex-end" }}>
-                        More
-                        <MoreHorizIcon sx={{ ml: 1 }} />
-                      </MenuItem>
-                    </Menu>
-                    {showCustomNights && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          right: 0,
-                          top: "100%",
-                          zIndex: 1,
-                          bgcolor: "background.paper",
-                          boxShadow: 3,
-                          p: 1,
-                          borderRadius: 1,
-                        }}
-                      >
-                        <TextField
-                          inputRef={customNightsInputRef}
-                          value={customNightsValue}
-                          onChange={(e) => setCustomNightsValue(e.target.value)}
-                          onKeyDown={handleCustomNightsKeyDown}
-                          onBlur={handleCustomNightsSubmit}
-                          placeholder="Nights"
-                          type="number"
-                          size="small"
-                          sx={{
-                            width: 80,
-                            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
-                              WebkitAppearance: "none",
-                              margin: 0,
-                            },
-                            "& input[type=number]": {
-                              MozAppearance: "textfield",
-                            },
-                          }}
-                          slotProps={{
-                            htmlInput: { min: 1 },
-                          }}
-                        />
-                      </Box>
-                    )}
-                  </Box>
-                )}
-                {!alwaysExpanded && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "100%",
-                      position: "relative",
-                      overflow: "visible",
-                    }}
-                  >
-                    <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
-                      {expanded && (
-                        <Typography variant="body2" sx={{ textTransform: "capitalize", flexShrink: 0 }}>
-                          {currentTransport || "\u00A0"}
-                        </Typography>
-                      )}
-                      {!expanded && layoutMode === "portrait" && arrivalDate && (
-                        <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                          {arrivalDate.format("MMM D")}
-                        </Typography>
-                      )}
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <IconButton
-                        onClick={handleExpandClick}
-                        aria-expanded={expanded}
-                        aria-label="show more"
-                        sx={{
-                          transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                          transition: "transform 0.2s",
-                        }}
-                      >
-                        <ExpandMoreIcon />
-                      </IconButton>
-                    </Box>
-                    <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
-                      {expanded && (
-                        <Typography variant="body2" sx={{ flexShrink: 0 }}>
-                          {destination.nights === "none" ? "None" : calculatedNights !== null ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}` : "\u00A0"}
-                        </Typography>
-                      )}
-                      {!expanded && layoutMode === "portrait" && departureDate && (
-                        <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
-                          <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                            {departureDate.format("MMM D")}
-                          </Typography>
-                        </StatusBadge>
-                      )}
-                    </Box>
-                  </Box>
-                )}
-                {alwaysExpanded && (
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      alignItems: "center",
-                      width: "100%",
-                      mt: 1,
-                    }}
-                  >
-                    <Box sx={{ justifySelf: "start" }}>
-                      <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
-                        {currentTransport || "\u00A0"}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ justifySelf: "end" }}>
-                      <Typography variant="body2">{destination.nights === "none" ? "None" : calculatedNights !== null ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}` : "\u00A0"}</Typography>
-                    </Box>
-                  </Box>
+                  <DestinationCardHeaderDisplay
+                    destination={destination}
+                    layoutMode={layoutMode}
+                    arrivalDate={arrivalDate}
+                    departureDate={departureDate}
+                    alwaysExpanded={alwaysExpanded}
+                    expanded={expanded}
+                    isFirst={isFirst}
+                    currentTransport={currentTransport}
+                    isTransportSet={Boolean(isTransportSet)}
+                    calculatedNights={calculatedNights}
+                    showCustomNights={showCustomNights}
+                    customNightsValue={customNightsValue}
+                    calendarOpen={calendar.isOpen}
+                    calendarAnchorEl={calendar.anchorEl}
+                    transportAnchorEl={transport.anchorEl}
+                    transportOpen={transport.isOpen}
+                    onTransportClick={handleTransportClick}
+                    onTransportClose={handleTransportClose}
+                    onTransportSelect={handleTransportSelect}
+                    onCalendarClick={handleCalendarClick}
+                    onCalendarClose={handleCalendarClose}
+                    onNightSelect={handleNightSelect}
+                    onExpandClick={handleExpandClick}
+                    onEditClick={handleEditClick}
+                    isOnwardsTravelBooked={isOnwardsTravelBooked}
+                    customNightsInputRef={customNightsInputRef as React.RefObject<HTMLInputElement | null>}
+                    onCustomNightsChange={setCustomNightsValue}
+                    onCustomNightsKeyDown={handleCustomNightsKeyDown}
+                    onCustomNightsSubmit={handleCustomNightsSubmit}
+                  />
                 )}
               </Box>
             }
@@ -881,7 +417,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
               {nextDestination && <SectionOnwards destination={destination} nextDestination={nextDestination} onDestinationChange={onDestinationChange} departureDate={departureDate} />}
             </CardContent>
           </Collapse>
-          <DoubleDatePicker open={Boolean(datePickerAnchorEl)} anchorEl={datePickerAnchorEl} onClose={() => setDatePickerAnchorEl(null)} checkInDate={destination.arrivalDate ?? arrivalDate} checkOutDate={destination.departureDate ?? departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
+          <DoubleDatePicker open={datePicker.isOpen} anchorEl={datePicker.anchorEl} onClose={datePicker.close} checkInDate={destination.arrivalDate ?? arrivalDate} checkOutDate={destination.departureDate ?? departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
         </Card>
       </Box>
       <ConfirmDialog

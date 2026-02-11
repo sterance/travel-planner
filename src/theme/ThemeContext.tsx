@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, type ReactNode, type ReactElement } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { getTheme } from './theme';
 
 interface ThemeContextType {
   mode: 'light' | 'dark';
@@ -9,6 +8,14 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+const getTheme = (mode: 'light' | 'dark') =>
+  createTheme({
+    palette: { mode },
+    components: {
+      MuiCssBaseline: {},
+    },
+  });
 
 export const useThemeMode = (): ThemeContextType => {
   const context = useContext(ThemeContext);
