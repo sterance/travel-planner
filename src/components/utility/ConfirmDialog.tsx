@@ -18,7 +18,7 @@ interface ConfirmDialogProps {
 }
 
 export const ConfirmDialog = ({ open, onClose, title, message, confirmLabel, onConfirm, cancelLabel = "Cancel", confirmButtonColor = "primary" }: ConfirmDialogProps): ReactElement => (
-  // RENDERING
+  
   <Dialog open={open} onClose={onClose}>
     <DialogTitle>{title}</DialogTitle>
     <DialogContent>

@@ -33,7 +33,7 @@ export const DetailsModal = ({ open, onClose, title, children, onSave, onClear, 
     }
   };
 
-  // RENDERING
+  
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>

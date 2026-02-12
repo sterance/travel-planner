@@ -11,21 +11,21 @@ import { useTripDestinations } from "../hooks/useTripDestinations";
 import { useTripLayout } from "../hooks/useTripLayout";
 import { useTripExploreMenu } from "../hooks/useTripExploreMenu";
 import { useTripCarousel } from "../hooks/useTripCarousel";
-import { type TripSettingsAndMapProps } from "../components/TripSettingsAndMap";
+import { type TripHeaderProps } from "../components/TripHeader";
 
-const TripCarouselLayout = lazy(async () => {
-  const module = await import("../components/TripCarouselLayout");
-  return { default: module.TripCarouselLayout };
+const TripLayoutCarousel = lazy(async () => {
+  const module = await import("../components/TripLayoutCarousel");
+  return { default: module.TripLayoutCarousel };
 });
 
-const TripDesktopListLayout = lazy(async () => {
-  const module = await import("../components/TripDesktopListLayout");
-  return { default: module.TripDesktopListLayout };
+const TripLayoutDesktopList = lazy(async () => {
+  const module = await import("../components/TripLayoutDesktopList");
+  return { default: module.TripLayoutDesktopList };
 });
 
-const TripPortraitListLayout = lazy(async () => {
-  const module = await import("../components/TripPortraitListLayout");
-  return { default: module.TripPortraitListLayout };
+const TripLayoutPortraitList = lazy(async () => {
+  const module = await import("../components/TripLayoutPortraitList");
+  return { default: module.TripLayoutPortraitList };
 });
 
 interface OutletContext {
@@ -179,7 +179,7 @@ export const TripPage = (): ReactElement => {
     isTextInputElement,
   });
 
-  const tripSettingsAndMapProps: TripSettingsAndMapProps = {
+  const tripHeaderProps: TripHeaderProps = {
     layoutMode,
     tripStartDate,
     tripEndDate,
@@ -208,7 +208,7 @@ export const TripPage = (): ReactElement => {
           </Box>
         }
       >
-        <TripCarouselLayout
+        <TripLayoutCarousel
           viewMode={viewMode}
           destinationsWithTimeline={destinationsWithTimeline}
           destinationDates={destinationDates}
@@ -224,7 +224,7 @@ export const TripPage = (): ReactElement => {
           handleRemoveDestination={handleRemoveDestination}
           carouselRef={carouselRef}
           swipeHandlers={swipeHandlers}
-          {...tripSettingsAndMapProps}
+          {...tripHeaderProps}
         />
       </Suspense>
     );
@@ -239,7 +239,7 @@ export const TripPage = (): ReactElement => {
           </Box>
         }
       >
-        <TripDesktopListLayout
+        <TripLayoutDesktopList
           viewMode={viewMode}
           destinationsWithTimeline={destinationsWithTimeline}
           destinationDates={destinationDates}
@@ -266,7 +266,7 @@ export const TripPage = (): ReactElement => {
           handleExploreClick={handleExploreClick}
           handleExploreClose={handleExploreClose}
           handleExploreSelect={handleExploreSelect}
-          {...tripSettingsAndMapProps}
+          {...tripHeaderProps}
         />
       </Suspense>
     );
@@ -280,7 +280,7 @@ export const TripPage = (): ReactElement => {
         </Box>
       }
     >
-      <TripPortraitListLayout
+      <TripLayoutPortraitList
         viewMode={viewMode}
         destinationsWithTimeline={destinationsWithTimeline}
         destinationDates={destinationDates}
@@ -301,7 +301,7 @@ export const TripPage = (): ReactElement => {
         handleExploreClick={handleExploreClick}
         handleExploreClose={handleExploreClose}
         handleExploreSelect={handleExploreSelect}
-        {...tripSettingsAndMapProps}
+        {...tripHeaderProps}
       />
     </Suspense>
   );

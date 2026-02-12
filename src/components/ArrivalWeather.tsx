@@ -2,15 +2,14 @@ import type { ReactElement } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import type { Dayjs } from "dayjs";
 import { type Destination } from "../types/destination";
-import { getWeatherBackgroundGradient } from "../utils/getWeatherIcon";
+import { getWeatherBackgroundGradient, getWeatherIcon } from "../utils/getWeatherIcon";
 import { useArrivalWeather } from "../hooks/useArrivalWeather";
 import { ArrivalTimeEditor } from "./ArrivalTimeEditor";
-import { ArrivalWeatherSummary } from "./ArrivalWeatherSummary";
-import { ArrivalWeatherStatus } from "./ArrivalWeatherStatus";
 
 interface ArrivalWeatherProps {
   destination: Destination;
@@ -108,14 +107,37 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
             />
           </Box>
 
-          {weather && !isLoadingWeather && <ArrivalWeatherSummary weather={weather} mainTextColor={mainTextColor} iconColor={iconColor} />}
+          {weather && !isLoadingWeather && (() => {
+            const WeatherIcon = getWeatherIcon(weather.weatherCode);
+            return (
+              <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 }}>
+                <Typography variant="h3" sx={{ color: mainTextColor }}>
+                  {weather.temperature}°C
+                </Typography>
+                <Box sx={{ display: "flex", justifyContent: "center", gap: 1, alignItems: "center" }}>
+                  <WeatherIcon sx={{ width: 48, height: 48, color: iconColor }} />
+                  <Typography variant="body1" sx={{ textTransform: "capitalize", color: mainTextColor }}>
+                    {weather.condition}
+                  </Typography>
+                </Box>
+              </Box>
+            );
+          })()}
 
-          <ArrivalWeatherStatus
-            isLoadingWeather={isLoadingWeather}
-            weatherError={weatherError}
-            weatherErrorDateTime={weatherErrorDateTime}
-            textSecondaryColor={theme.palette.text.secondary}
-          />
+          {isLoadingWeather && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <CircularProgress size={16} />
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                Loading weather...
+              </Typography>
+            </Box>
+          )}
+          {weatherError && !isLoadingWeather && (
+            <Typography variant="body2" color="error">
+              Unable to load weather forecast
+              {weatherErrorDateTime && weatherErrorDateTime.isValid() ? ` for ${weatherErrorDateTime.format("MMM D, YYYY")}` : ""}
+            </Typography>
+          )}
         </Box>
       </CardContent>
     </Card>

@@ -14,7 +14,7 @@ import { type Destination } from "../types/destination";
 import { type LayoutMode } from "../App";
 import { getStringItem, setStringItem } from "../services/storageService";
 
-interface TripMapCardProps {
+interface TripCardMapProps {
   destinations: Destination[];
   layoutMode: LayoutMode;
   headerOnly?: boolean;
@@ -36,7 +36,7 @@ const MapBounds = ({ bounds }: { bounds: L.LatLngBoundsExpression }): null => {
   return null;
 };
 
-export const TripMapCard = ({ destinations, layoutMode, headerOnly = false, bodyOnly = false, expanded: controlledExpanded, onExpandChange }: TripMapCardProps): ReactElement => {
+export const TripCardMap = ({ destinations, layoutMode, headerOnly = false, bodyOnly = false, expanded: controlledExpanded, onExpandChange }: TripCardMapProps): ReactElement => {
   const [internalExpanded, setInternalExpanded] = useState(false);
   const expanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
   const [mapHeight, setMapHeight] = useState(DEFAULT_HEIGHT);

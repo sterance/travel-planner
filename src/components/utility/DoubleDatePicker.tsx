@@ -208,7 +208,7 @@ export const DoubleDatePicker = ({ open, anchorEl, onClose, checkInDate, checkOu
       />
     );
   };
-  // RENDERING
+  
   return (
     <Popover
       open={open}

@@ -10,7 +10,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
 import { QuestionMark } from "@mui/icons-material";
 import { type Dayjs } from "dayjs";
-import { TripSettingsAndMap, type TripSettingsAndMapProps } from "./TripSettingsAndMap";
+import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 
@@ -25,7 +25,7 @@ interface DestinationDateInfo {
   error?: string | null;
 }
 
-interface TripPortraitListLayoutProps extends TripSettingsAndMapProps {
+interface TripLayoutPortraitListProps extends TripHeaderProps {
   viewMode: ViewMode;
   layoutMode: LayoutMode;
   destinationsWithTimeline: DestinationType[];
@@ -49,7 +49,7 @@ interface TripPortraitListLayoutProps extends TripSettingsAndMapProps {
   handleExploreSelect: (index: number, option: string) => void;
 }
 
-export const TripPortraitListLayout = ({
+export const TripLayoutPortraitList = ({
   viewMode,
   layoutMode,
   destinationsWithTimeline,
@@ -71,7 +71,7 @@ export const TripPortraitListLayout = ({
   handleExploreClose,
   handleExploreSelect,
   ...settingsProps
-}: TripPortraitListLayoutProps): ReactElement => {
+}: TripLayoutPortraitListProps): ReactElement => {
   return (
     <Box
       sx={{
@@ -88,7 +88,7 @@ export const TripPortraitListLayout = ({
           scrollbarGutter: "stable both-edges",
         }}
       >
-        <TripSettingsAndMap layoutMode={layoutMode} destinations={destinationsWithTimeline} tripStartDate={settingsProps.tripStartDate} tripEndDate={settingsProps.tripEndDate} dateErrorsExist={settingsProps.dateErrorsExist} referenceDateForStart={settingsProps.referenceDateForStart} mapExpanded={settingsProps.mapExpanded} onMapExpandChange={settingsProps.onMapExpandChange} onStartDateChange={settingsProps.onStartDateChange} />
+        <TripHeader layoutMode={layoutMode} destinations={destinationsWithTimeline} tripStartDate={settingsProps.tripStartDate} tripEndDate={settingsProps.tripEndDate} dateErrorsExist={settingsProps.dateErrorsExist} referenceDateForStart={settingsProps.referenceDateForStart} mapExpanded={settingsProps.mapExpanded} onMapExpandChange={settingsProps.onMapExpandChange} onStartDateChange={settingsProps.onStartDateChange} />
         <Box
           sx={{
             display: "flex",
@@ -118,7 +118,7 @@ export const TripPortraitListLayout = ({
               <Box sx={{ display: "flex", justifyContent: "center", mb: 1, gap: 8 }}>
                 <>
                   {showExploreButton && (
-                    <IconButton size="small" onClick={(e) => handleExploreClick(e, index)}>
+                    <IconButton size="small" onClick={(e) => handleExploreClick(e, index)} sx={{ opacity: 0.7 }}>
                       <QuestionMark />
                     </IconButton>
                   )}
@@ -139,7 +139,7 @@ export const TripPortraitListLayout = ({
                   <AddIcon />
                 </IconButton>
                 {showInfoButton && (
-                  <IconButton size="small">
+                  <IconButton size="small" sx={{ opacity: 0.7 }}>
                     <InfoOutline />
                   </IconButton>
                 )}
@@ -180,4 +180,3 @@ export const TripPortraitListLayout = ({
     </Box>
   );
 };
-

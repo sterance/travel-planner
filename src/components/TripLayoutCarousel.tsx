@@ -9,7 +9,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import { type Dayjs } from "dayjs";
 import { type SwipeableHandlers } from "react-swipeable";
-import { TripSettingsAndMap, type TripSettingsAndMapProps } from "./TripSettingsAndMap";
+import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 
@@ -24,7 +24,7 @@ interface DestinationDateInfo {
   error?: string | null;
 }
 
-interface TripCarouselLayoutProps extends TripSettingsAndMapProps {
+interface TripLayoutCarouselProps extends TripHeaderProps {
   viewMode: ViewMode;
   layoutMode: LayoutMode;
   destinations: DestinationType[];
@@ -44,7 +44,7 @@ interface TripCarouselLayoutProps extends TripSettingsAndMapProps {
   swipeHandlers: SwipeableHandlers;
 }
 
-export const TripCarouselLayout = ({
+export const TripLayoutCarousel = ({
   viewMode,
   layoutMode,
   destinations,
@@ -63,7 +63,7 @@ export const TripCarouselLayout = ({
   carouselRef,
   swipeHandlers,
   ...settingsProps
-}: TripCarouselLayoutProps): ReactElement => {
+}: TripLayoutCarouselProps): ReactElement => {
   const hasDestinations = destinations.length > 0;
   const totalSlots = autoMaxAdjacent * 2 + 1;
 
@@ -84,7 +84,7 @@ export const TripCarouselLayout = ({
           scrollbarGutter: "stable both-edges",
         }}
       >
-        <TripSettingsAndMap layoutMode={layoutMode} destinations={destinationsWithTimeline} tripStartDate={settingsProps.tripStartDate} tripEndDate={settingsProps.tripEndDate} dateErrorsExist={settingsProps.dateErrorsExist} referenceDateForStart={settingsProps.referenceDateForStart} mapExpanded={settingsProps.mapExpanded} onMapExpandChange={settingsProps.onMapExpandChange} onStartDateChange={settingsProps.onStartDateChange} />
+        <TripHeader layoutMode={layoutMode} destinations={destinationsWithTimeline} tripStartDate={settingsProps.tripStartDate} tripEndDate={settingsProps.tripEndDate} dateErrorsExist={settingsProps.dateErrorsExist} referenceDateForStart={settingsProps.referenceDateForStart} mapExpanded={settingsProps.mapExpanded} onMapExpandChange={settingsProps.onMapExpandChange} onStartDateChange={settingsProps.onStartDateChange} />
         {hasDestinations && (
           <Box
             sx={{
@@ -188,6 +188,7 @@ export const TripCarouselLayout = ({
                       layoutMode={layoutMode}
                       tripStartDate={settingsProps.tripStartDate}
                       arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+                      isCarousel
                     />
                   </Suspense>
                 </Box>
@@ -203,4 +204,3 @@ export const TripCarouselLayout = ({
     </Box>
   );
 };
-

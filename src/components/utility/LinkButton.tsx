@@ -2,7 +2,6 @@ import { type ReactElement, type ReactNode } from "react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
-
 import googleMapsIcon from "../../assets/icons/google-maps.svg";
 import googleFlightsIcon from "../../assets/icons/google-flights.svg";
 import skyscannerIcon from "../../assets/icons/skyscanner.svg";
@@ -21,6 +20,19 @@ const imageIconSx = {
   flex: "0 0 auto",
 };
 
+const SITE_ICONS: Record<string, ReactElement> = {
+  "google-maps": <Box component="img" src={googleMapsIcon} alt="" sx={imageIconSx} />,
+  "google-flights": <Box component="img" src={googleFlightsIcon} alt="" sx={imageIconSx} />,
+  skyscanner: <Box component="img" src={skyscannerIcon} alt="" sx={imageIconSx} />,
+  rome2rio: <Box component="img" src={rome2rioIcon} alt="" sx={imageIconSx} />,
+  booking: <Box component="img" src={bookingIcon} alt="" sx={imageIconSx} />,
+  hostelworld: <Box component="img" src={hostelworldIcon} alt="" sx={imageIconSx} />,
+  uber: <Box component="img" src={uberIcon} alt="" sx={imageIconSx} />,
+  tripadvisor: <Box component="img" src={tripAdvisorIcon} alt="" sx={imageIconSx} />,
+  getyourguide: <Box component="img" src={getYourGuideIcon} alt="" sx={imageIconSx} />,
+  taxi: <LocalTaxiIcon sx={{ flex: "0 0 auto" }} />,
+};
+
 export interface LinkButtonProps {
   site: string;
   url: string;
@@ -28,33 +40,7 @@ export interface LinkButtonProps {
 }
 
 export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactElement => {
-  // RENDERING
-  const renderIcon = (): ReactElement | null => {
-    switch (site) {
-      case "google-maps":
-        return <Box component="img" src={googleMapsIcon} alt="" sx={imageIconSx} />;
-      case "google-flights":
-        return <Box component="img" src={googleFlightsIcon} alt="" sx={imageIconSx} />;
-      case "skyscanner":
-        return <Box component="img" src={skyscannerIcon} alt="" sx={imageIconSx} />;
-      case "rome2rio":
-        return <Box component="img" src={rome2rioIcon} alt="" sx={imageIconSx} />;
-      case "booking":
-        return <Box component="img" src={bookingIcon} alt="" sx={imageIconSx} />;
-      case "hostelworld":
-        return <Box component="img" src={hostelworldIcon} alt="" sx={imageIconSx} />;
-      case "uber":
-        return <Box component="img" src={uberIcon} alt="" sx={imageIconSx} />;
-      case "tripadvisor":
-        return <Box component="img" src={tripAdvisorIcon} alt="" sx={imageIconSx} />;
-      case "getyourguide":
-        return <Box component="img" src={getYourGuideIcon} alt="" sx={imageIconSx} />;
-      case "taxi":
-        return <LocalTaxiIcon sx={{ flex: "0 0 auto" }} />;
-      default:
-        return null;
-    }
-  };
+  const renderIcon = (): ReactElement | null => SITE_ICONS[site] ?? null;
 
   return (
     <Button

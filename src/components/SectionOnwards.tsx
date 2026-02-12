@@ -1,21 +1,23 @@
-import { type ReactElement, lazy, Suspense } from "react";
+import { type ReactElement } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import Autocomplete from "@mui/material/Autocomplete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { type Dayjs } from "dayjs";
 import { getTransportLinks } from "../utils/externalLinks";
 import { SectionCard } from "./utility/SectionCard";
+import { DetailsModal } from "./utility/DetailsModal";
 import { type Destination } from "../types/destination";
-import { formatDateTime } from "../utils/dateUtils";
+import { formatDateTime, getSafeDayjsValue } from "../utils/dateUtils";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
 import { useOnwardsDetailsModal } from "../hooks/useOnwardsDetailsModal";
-const OnwardsDetailsModal = lazy(async () => {
-  const module = await import("./OnwardsDetailsModal");
-  return { default: module.OnwardsDetailsModal };
-});
 
 interface SectionOnwardsProps {
   destination: Destination;
@@ -86,6 +88,138 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     onDestinationChange,
   });
 
+  const {
+    isOpen: isModalOpen,
+    title: modalTitle,
+    departureDateTime,
+    arrivalDateTime,
+    referenceDate,
+    departureAutocomplete,
+    arrivalAutocomplete,
+    flightNumber,
+    close: closeModal,
+    setDepartureDateTime,
+    setArrivalDateTime,
+    setDepartureLocation,
+    setArrivalLocation,
+    setFlightNumber,
+    save: saveModal,
+    clear: clearModal,
+  } = modalState;
+
+  const onwardsModal = (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DetailsModal
+        open={isModalOpen}
+        onClose={closeModal}
+        title={modalTitle}
+        onSave={saveModal}
+        onClear={clearModal}
+        hasDetails={
+          !!flightNumber ||
+          !!departureDateTime ||
+          !!arrivalDateTime ||
+          !!departureAutocomplete.value ||
+          !!arrivalAutocomplete.value
+        }
+        saveLabel="Save"
+        cancelLabel="Cancel"
+        clearLabel="Clear"
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          {isFlight ? (
+            <>
+              <TextField
+                label="Flight Number"
+                value={flightNumber}
+                onChange={(e) => setFlightNumber(e.target.value)}
+                fullWidth
+                variant="outlined"
+              />
+              <Autocomplete
+                freeSolo
+                options={departureAutocomplete.suggestions}
+                getOptionLabel={(option) => (typeof option === "string" ? option : option.name)}
+                inputValue={departureAutocomplete.value}
+                onInputChange={(_event, newValue) => setDepartureLocation(newValue)}
+                onChange={(_event, value) => {
+                  if (value && typeof value !== "string") setDepartureLocation(value.name);
+                  else if (typeof value === "string") setDepartureLocation(value);
+                }}
+                loading={departureAutocomplete.isLoading}
+                renderInput={(params) => <TextField {...params} label="Departure Airport" variant="outlined" fullWidth />}
+              />
+              <DateTimePicker
+                label="Departure Date & Time"
+                value={getSafeDayjsValue(departureDateTime)}
+                onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <Autocomplete
+                freeSolo
+                options={arrivalAutocomplete.suggestions}
+                getOptionLabel={(option) => (typeof option === "string" ? option : option.name)}
+                inputValue={arrivalAutocomplete.value}
+                onInputChange={(_event, newValue) => setArrivalLocation(newValue)}
+                onChange={(_event, value) => {
+                  if (value && typeof value !== "string") setArrivalLocation(value.name);
+                  else if (typeof value === "string") setArrivalLocation(value);
+                }}
+                loading={arrivalAutocomplete.isLoading}
+                renderInput={(params) => <TextField {...params} label="Arrival Airport" variant="outlined" fullWidth />}
+              />
+              <DateTimePicker
+                label="Arrival Date & Time"
+                value={getSafeDayjsValue(arrivalDateTime)}
+                onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <Button variant="outlined" fullWidth disabled>
+                add from confirmation email{" "}
+              </Button>
+            </>
+          ) : (
+            <>
+              <TextField
+                label="Departure Location"
+                value={departureAutocomplete.value}
+                onChange={(e) => setDepartureLocation(e.target.value)}
+                fullWidth
+                variant="outlined"
+              />
+              <DateTimePicker
+                label="Departure Date & Time"
+                value={getSafeDayjsValue(departureDateTime)}
+                onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <TextField
+                label="Arrival Location"
+                value={arrivalAutocomplete.value}
+                onChange={(e) => setArrivalLocation(e.target.value)}
+                fullWidth
+                variant="outlined"
+              />
+              <DateTimePicker
+                label="Arrival Date & Time"
+                value={getSafeDayjsValue(arrivalDateTime)}
+                onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <Button variant="outlined" fullWidth disabled>
+                add from confirmation email{" "}
+              </Button>
+            </>
+          )}
+        </Box>
+      </DetailsModal>
+    </LocalizationProvider>
+  );
+
   const hasBookedDetails =
     !SELF_TRANSPORT_MODES.includes(nextMode as (typeof SELF_TRANSPORT_MODES)[number]) &&
     !!destination.transportDetails?.departureDateTime &&
@@ -152,11 +286,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
             </Box>
           )}
         </SectionCard>
-        {modalState.isOpen && (
-          <Suspense fallback={null}>
-            <OnwardsDetailsModal state={modalState} />
-          </Suspense>
-        )}
+        {modalState.isOpen && onwardsModal}
       </>
     );
   }
@@ -185,11 +315,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
           )}
         </Box>
       </SectionCard>
-      {modalState.isOpen && (
-        <Suspense fallback={null}>
-          <OnwardsDetailsModal state={modalState} />
-        </Suspense>
-      )}
+      {modalState.isOpen && onwardsModal}
       </>
     );
   }

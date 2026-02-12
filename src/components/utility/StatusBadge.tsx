@@ -12,7 +12,7 @@ interface StatusBadgeProps {
 
 export const StatusBadge = ({ variant, visible = true, children, attachToText = false }: StatusBadgeProps): ReactElement | null => {
   const renderBadge = (): ReactElement | null => {
-    // RENDERING
+    
     if (!visible) return null;
 
     const baseStyles = {

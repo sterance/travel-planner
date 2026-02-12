@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { type Dayjs } from "dayjs";
@@ -135,6 +136,7 @@ interface DestinationCardHeaderDisplayProps {
   onCustomNightsChange: (value: string) => void;
   onCustomNightsKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onCustomNightsSubmit: () => void;
+  isCarousel?: boolean;
 }
 
 export const DestinationCardHeaderDisplay = ({
@@ -167,6 +169,7 @@ export const DestinationCardHeaderDisplay = ({
   onCustomNightsChange,
   onCustomNightsKeyDown,
   onCustomNightsSubmit,
+  isCarousel = false,
 }: DestinationCardHeaderDisplayProps): ReactElement => {
   return (
     <>
@@ -207,6 +210,7 @@ export const DestinationCardHeaderDisplay = ({
             sx={{
               textAlign: "center",
               cursor: "text",
+              ...(isCarousel && { transform: "translateY(1rem)" }),
             }}
           >
             {destination.displayName || destination.name || "Destination name"}
@@ -313,7 +317,7 @@ export const DestinationCardHeaderDisplay = ({
                 transition: "transform 0.2s",
               }}
             >
-              <MoreHorizIcon />
+              <ExpandMoreIcon />
             </IconButton>
           </Box>
           <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
@@ -393,6 +397,7 @@ interface DestinationCardHeaderLazyProps {
   onCustomNightsSubmit: () => void;
   onDestinationChange: (destination: DestinationType) => void;
   shouldFocus: boolean;
+  isCarousel?: boolean;
 }
 
 export const DestinationCardHeaderLazy = ({
@@ -426,6 +431,7 @@ export const DestinationCardHeaderLazy = ({
   onCustomNightsSubmit,
   onDestinationChange,
   shouldFocus,
+  isCarousel = false,
 }: DestinationCardHeaderLazyProps): ReactElement => {
   const { inputValue, suggestions, isLoading, isEditing, autocompleteRef, handleInputChange, handleChange, handleBlur, handleEditClick } = useDestinationSearch({
     destination,
@@ -477,65 +483,10 @@ export const DestinationCardHeaderLazy = ({
             onCustomNightsChange={onCustomNightsChange}
             onCustomNightsKeyDown={onCustomNightsKeyDown}
             onCustomNightsSubmit={onCustomNightsSubmit}
+            isCarousel={isCarousel}
           />
         )}
       </Box>
-      {!alwaysExpanded && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-            position: "relative",
-            overflow: "visible",
-          }}
-        >
-          <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
-            {expanded && (
-              <Typography variant="body2" sx={{ textTransform: "capitalize", flexShrink: 0 }}>
-                {currentTransport || "\u00A0"}
-              </Typography>
-            )}
-            {!expanded && layoutMode === "portrait" && arrivalDate && (
-              <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                {arrivalDate.format("MMM D")}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <StatusBadge variant="info" visible={!(typeof destination.nights === "number" || (destination.nights === "dates" && destination.arrivalDate && destination.departureDate))}>
-              <Typography
-                variant="body2"
-                sx={{
-                  cursor: "pointer",
-                }}
-                onClick={onExpandClick}
-              >
-                details
-              </Typography>
-            </StatusBadge>
-          </Box>
-          <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
-            {expanded && (
-              <Typography variant="body2" sx={{ flexShrink: 0 }}>
-                {destination.nights === "none"
-                  ? "None"
-                  : calculatedNights !== null
-                  ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}`
-                  : "\u00A0"}
-              </Typography>
-            )}
-            {!expanded && layoutMode === "portrait" && departureDate && (
-              <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
-                <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                  {departureDate.format("MMM D")}
-                </Typography>
-              </StatusBadge>
-            )}
-          </Box>
-        </Box>
-      )}
     </>
   );
 };

@@ -14,7 +14,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
 import { QuestionMark } from "@mui/icons-material";
 import { type Dayjs } from "dayjs";
-import { TripSettingsAndMap, type TripSettingsAndMapProps } from "./TripSettingsAndMap";
+import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 
@@ -29,7 +29,7 @@ interface DestinationDateInfo {
   error?: string | null;
 }
 
-interface TripDesktopListLayoutProps extends TripSettingsAndMapProps {
+interface TripLayoutDesktopListProps extends TripHeaderProps {
   viewMode: ViewMode;
   layoutMode: LayoutMode;
   destinations: DestinationType[];
@@ -60,7 +60,7 @@ interface TripDesktopListLayoutProps extends TripSettingsAndMapProps {
   handleExploreSelect: (index: number, option: string) => void;
 }
 
-export const TripDesktopListLayout = ({
+export const TripLayoutDesktopList = ({
   viewMode,
   layoutMode,
   destinations,
@@ -90,7 +90,7 @@ export const TripDesktopListLayout = ({
   handleExploreClose,
   handleExploreSelect,
   ...settingsProps
-}: TripDesktopListLayoutProps): ReactElement => {
+}: TripLayoutDesktopListProps): ReactElement => {
   if (destinations.length === 0) {
     return (
       <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -103,7 +103,7 @@ export const TripDesktopListLayout = ({
             scrollbarGutter: "stable both-edges",
           }}
         >
-          <TripSettingsAndMap
+          <TripHeader
             layoutMode={layoutMode}
             destinations={destinationsWithTimeline}
             tripStartDate={settingsProps.tripStartDate}
@@ -171,7 +171,7 @@ export const TripDesktopListLayout = ({
           scrollbarGutter: "stable both-edges",
         }}
       >
-        <TripSettingsAndMap
+        <TripHeader
           layoutMode={layoutMode}
           destinations={destinationsWithTimeline}
           tripStartDate={settingsProps.tripStartDate}
@@ -295,7 +295,7 @@ export const TripDesktopListLayout = ({
                   >
                     <>
                       {showExploreButton && (
-                        <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)}>
+                        <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)} sx={{ opacity: 0.7 }}>
                           <QuestionMark />
                         </IconButton>
                       )}
@@ -316,7 +316,7 @@ export const TripDesktopListLayout = ({
                       <AddIcon />
                     </IconButton>
                     {showInfoButton && (
-                      <IconButton size="small">
+                      <IconButton size="small" sx={{ opacity: 0.7 }}>
                         <InfoOutline />
                       </IconButton>
                     )}
@@ -406,4 +406,3 @@ export const TripDesktopListLayout = ({
     </Box>
   );
 };
-

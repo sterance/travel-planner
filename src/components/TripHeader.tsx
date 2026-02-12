@@ -3,14 +3,14 @@ import Box from "@mui/material/Box";
 import { type Dayjs } from "dayjs";
 import { type Destination as DestinationType } from "../types/destination";
 import { type LayoutMode } from "../App";
-import { TripDateCard } from "./TripDateCard";
+import { TripCardDate } from "./TripCardDate";
 
-const TripMapCard = lazy(async () => {
-  const module = await import("./TripMapCard");
-  return { default: module.TripMapCard };
+const TripCardMap = lazy(async () => {
+  const module = await import("./TripCardMap");
+  return { default: module.TripCardMap };
 });
 
-export interface TripSettingsAndMapProps {
+export interface TripHeaderProps {
   layoutMode: LayoutMode;
   tripStartDate: Dayjs | null;
   tripEndDate: Dayjs | null;
@@ -22,7 +22,7 @@ export interface TripSettingsAndMapProps {
   onStartDateChange: (date: Dayjs | null) => void;
 }
 
-export const TripSettingsAndMap = ({
+export const TripHeader = ({
   layoutMode,
   tripStartDate,
   tripEndDate,
@@ -32,7 +32,7 @@ export const TripSettingsAndMap = ({
   mapExpanded,
   onMapExpandChange,
   onStartDateChange,
-}: TripSettingsAndMapProps): ReactElement => {
+}: TripHeaderProps): ReactElement => {
   if (layoutMode === "desktop") {
     return (
       <Box
@@ -46,16 +46,16 @@ export const TripSettingsAndMap = ({
         }}
       >
         <Box sx={{ gridColumn: "1", gridRow: "1" }}>
-          <TripDateCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={onStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
+          <TripCardDate startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={onStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
         </Box>
         <Box sx={{ gridColumn: "2", gridRow: "1" }}>
           <Suspense fallback={null}>
-            <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+            <TripCardMap destinations={destinations} layoutMode={layoutMode} headerOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
           </Suspense>
         </Box>
         <Box sx={{ gridColumn: "1 / -1", gridRow: "2" }}>
           <Suspense fallback={null}>
-            <TripMapCard destinations={destinations} layoutMode={layoutMode} bodyOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+            <TripCardMap destinations={destinations} layoutMode={layoutMode} bodyOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
           </Suspense>
         </Box>
       </Box>
@@ -70,11 +70,10 @@ export const TripSettingsAndMap = ({
         gap: 2,
       }}
     >
-      <TripDateCard startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={onStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
+      <TripCardDate startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={onStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
       <Suspense fallback={null}>
-        <TripMapCard destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={onMapExpandChange} />
+        <TripCardMap destinations={destinations} layoutMode={layoutMode} headerOnly={false} bodyOnly={false} expanded={mapExpanded} onExpandChange={onMapExpandChange} />
       </Suspense>
     </Box>
   );
 };
-

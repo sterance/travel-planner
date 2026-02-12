@@ -61,9 +61,10 @@ interface DestinationCardProps {
   onReorderDragStart?: (e: React.DragEvent) => void;
   onReorderDragEnd?: () => void;
   arrivalWeatherBackgroundMode?: "default" | "light" | "dark";
+  isCarousel?: boolean;
 }
 
-export const DestinationCard = ({ destination, nextDestination, previousDestination, onDestinationChange, onRemove, shouldFocus = false, alwaysExpanded = false, isFirst = false, arrivalDate = null, departureDate = null, dateError, layoutMode = "portrait", tripStartDate = null, isListMode = false, onReorderDragStart, onReorderDragEnd, arrivalWeatherBackgroundMode = "default" }: DestinationCardProps): ReactElement => {
+export const DestinationCard = ({ destination, nextDestination, previousDestination, onDestinationChange, onRemove, shouldFocus = false, alwaysExpanded = false, isFirst = false, arrivalDate = null, departureDate = null, dateError, layoutMode = "portrait", tripStartDate = null, isListMode = false, onReorderDragStart, onReorderDragEnd, arrivalWeatherBackgroundMode = "default", isCarousel = false }: DestinationCardProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -165,7 +166,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
 
   const calculatedNights = getCalculatedNights();
 
-  // RENDERING
+  
   return (
     <>
       <Box
@@ -195,25 +196,59 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
             sx={(theme) => ({
               position: "absolute",
               top: -34,
-              right: 0,
+              ...(isCarousel
+                ? {
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    borderTopLeftRadius: theme.shape.borderRadius,
+                    borderTopRightRadius: theme.shape.borderRadius,
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      right: "100%",
+                      top: 0,
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: "inherit",
+                      backgroundImage: "inherit",
+                      clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
+                    },
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      left: "100%",
+                      top: 0,
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: "inherit",
+                      backgroundImage: "inherit",
+                      clipPath: "polygon(0% 0, 0% 100%, 100% 100%)",
+                    },
+                    "& .MuiSvgIcon-root": {
+                      transform: "translateY(0.5rem)",
+                    },
+                  }
+                : {
+                    right: 0,
+                    borderTopRightRadius: theme.shape.borderRadius,
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      right: "100%",
+                      top: 0,
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: "inherit",
+                      backgroundImage: "inherit",
+                      clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
+                    },
+                  }),
               zIndex: 0,
               boxShadow: "none",
               borderRadius: 0,
-              borderTopRightRadius: theme.shape.borderRadius,
               padding: 0,
               "&:hover": {
                 backgroundColor: theme.palette.mode === "dark" ? "rgba(211, 47, 47, 0.16)" : "rgba(211, 47, 47, 0.08)",
-              },
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                right: "100%",
-                top: 0,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "inherit",
-                backgroundImage: "inherit",
-                clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
               },
             })}
           >
@@ -296,6 +331,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   onCustomNightsSubmit={handleCustomNightsSubmit}
                   onDestinationChange={onDestinationChange}
                   shouldFocus={shouldFocus}
+                  isCarousel={isCarousel}
                 />
               </Suspense>
             }

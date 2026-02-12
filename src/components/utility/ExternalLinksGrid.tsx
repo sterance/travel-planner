@@ -1,6 +1,5 @@
 import { type ReactElement } from "react";
 import Box from "@mui/material/Box";
-import { ButtonGrid } from "./ButtonGrid";
 import { LinkButton } from "./LinkButton";
 
 export interface ExternalLink {
@@ -23,13 +22,19 @@ export const ExternalLinksGrid = ({ links, columns = 2 }: ExternalLinksGridProps
 
   if (useGridLayout) {
     return (
-      <ButtonGrid columns={columns}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${columns}, 1fr)`,
+          gap: 1,
+        }}
+      >
         {links.map((link) => (
           <LinkButton key={link.label} site={link.site} url={link.url}>
             {link.label}
           </LinkButton>
         ))}
-      </ButtonGrid>
+      </Box>
     );
   }
 
