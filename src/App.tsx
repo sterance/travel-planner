@@ -262,7 +262,7 @@ function App(): ReactElement {
           display: "flex",
           flexDirection: "column",
           px: 0,
-          py: 2,
+          pb: 2,
           mt: "64px",
           minHeight: 0,
           overflowX: "hidden",
