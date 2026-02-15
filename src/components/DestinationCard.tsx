@@ -232,7 +232,8 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   }
                 : {
                     right: 0,
-                    borderTopRightRadius: theme.shape.borderRadius,
+                    borderTopLeftRadius: 0,
+                    borderTopRightRadius: 15,
                     "&::after": {
                       content: '""',
                       position: "absolute",
@@ -247,14 +248,15 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   }),
               zIndex: 0,
               boxShadow: "none",
-              borderRadius: 0,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
               padding: 0,
               "&:hover": {
                 backgroundColor: theme.palette.mode === "dark" ? "rgba(211, 47, 47, 0.16)" : "rgba(211, 47, 47, 0.08)",
               },
             })}
           >
-            <DeleteOutlineIcon fontSize="large" />
+          <DeleteOutlineIcon fontSize="large" sx={{ transform: "translateX(-0.2rem)" }} />
           </Paper>
           {isListMode && (
             <Paper
@@ -276,7 +278,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                 zIndex: 0,
                 boxShadow: "none",
                 borderRadius: 0,
-                borderTopLeftRadius: theme.shape.borderRadius,
+                borderTopLeftRadius:15,
                 cursor: onReorderDragStart ? "grab" : undefined,
                 "&:active": onReorderDragStart ? { cursor: "grabbing" } : undefined,
                 padding: 0,
@@ -296,7 +298,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                 },
               })}
             >
-              <DragIndicatorIcon fontSize="large" sx={{ transform: "rotate(90deg)" }} />
+              <DragIndicatorIcon fontSize="large" sx={{ transform: "translateX(0.2rem) rotate(90deg)" }} />
             </Paper>
           )}
           <CardHeader

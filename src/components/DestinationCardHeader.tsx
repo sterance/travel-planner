@@ -131,12 +131,14 @@ interface DestinationCardHeaderDisplayProps {
 }
 
 export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalDate, departureDate, alwaysExpanded, expanded, isFirst, currentTransport, isTransportSet, calculatedNights, showCustomNights, customNightsValue, calendarOpen, calendarAnchorEl, transportAnchorEl, transportOpen, onTransportClick, onTransportClose, onTransportSelect, onCalendarClick, onCalendarClose, onNightSelect, onExpandClick, onEditClick, isOnwardsTravelBooked, customNightsInputRef, onCustomNightsChange, onCustomNightsKeyDown, onCustomNightsSubmit }: DestinationCardHeaderDisplayProps): ReactElement => {
+  const isExpanded = expanded || alwaysExpanded;
+  const iconOpacitySx = !isExpanded ? { opacity: 0.7 } : { color: "text.primary" };
   return (
     <>
       <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
         <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
           <StatusBadge variant="info" visible={!isTransportSet}>
-            <IconButton aria-label="transport" size="small" onClick={onTransportClick} sx={{ padding: 0.5 }}>
+            <IconButton aria-label="transport" size="small" onClick={onTransportClick} sx={{ padding: 0.5, ...iconOpacitySx }}>
               <TransportIcon mode={currentTransport} />
             </IconButton>
           </StatusBadge>
@@ -178,7 +180,7 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
         </Box>
         <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
           <StatusBadge variant="info" visible={!(typeof destination.nights === "number" || (destination.nights === "dates" && destination.arrivalDate && destination.departureDate))}>
-            <IconButton aria-label="calendar" size="small" onClick={onCalendarClick} sx={{ padding: 0.5 }}>
+            <IconButton aria-label="calendar" size="small" onClick={onCalendarClick} sx={{ padding: 0.5, ...iconOpacitySx }}>
               {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? <CalendarNightsIcon nights={calculatedNights} /> : <CalendarMonthOutlinedIcon sx={{ fontSize: "2rem" }} />}
             </IconButton>
           </StatusBadge>

@@ -49,15 +49,19 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
       onClick={() => {
         window.open(url, "_blank", "noopener,noreferrer");
       }}
-      sx={{
-        bgcolor: "white",
-        color: "black !important",
+      sx={(theme) => ({
         borderColor: "divider",
-        "&:hover": {
-          bgcolor: "grey.50",
-          borderColor: "divider",
-          color: "black !important",
-        },
+        color: "black !important",
+        transition: "background-color 0.2s ease",
+        ...(theme.palette.mode === "dark"
+          ? {
+              bgcolor: "white",
+              "&:hover": { bgcolor: "grey.200", borderColor: "divider", color: "black !important" },
+            }
+          : {
+              bgcolor: "background.paper",
+              "&:hover": { bgcolor: "grey.200", borderColor: "divider", color: "black !important" },
+            }),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -66,7 +70,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
         lineHeight: 1.6,
         height: "1.5lh",
         overflow: "hidden",
-      }}
+      })}
     >
       {renderIcon()}
       <Box

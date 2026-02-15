@@ -11,7 +11,16 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const getTheme = (mode: 'light' | 'dark') =>
   createTheme({
-    palette: { mode },
+    palette: {
+      mode,
+      ...(mode === 'light' && {
+        background: {
+          default: 'rgb(240, 246, 252)',
+          paper: 'rgb(255, 255, 255)',
+        },
+        divider: 'rgba(0, 0, 0, 0.08)',
+      }),
+    },
     components: {
       MuiCssBaseline: {},
     },
