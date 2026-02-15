@@ -29,9 +29,9 @@ export function calculateDestinationDates(
     let departureDate: Dayjs | null = null;
 
     if (destination.nights === "dates") {
-      if (destination.checkInDate && destination.checkOutDate) {
-        const checkIn = dayjs(destination.checkInDate).startOf("day");
-        const checkOut = dayjs(destination.checkOutDate).startOf("day");
+      if (destination.arrivalDate && destination.departureDate) {
+        const checkIn = dayjs(destination.arrivalDate).startOf("day");
+        const checkOut = dayjs(destination.departureDate).startOf("day");
 
         if (checkIn.isValid() && checkOut.isValid()) {
           arrivalDate = checkIn;
@@ -74,12 +74,8 @@ export function calculateDestinationDates(
 
     if (departureDate && i < destinations.length - 1) {
       if (destination.transportDetails) {
-        const depTime = destination.transportDetails.departureDateTime
-          ? dayjs(destination.transportDetails.departureDateTime)
-          : null;
-        const arrTime = destination.transportDetails.arrivalDateTime
-          ? dayjs(destination.transportDetails.arrivalDateTime)
-          : null;
+        const depTime = destination.transportDetails.departureDateTime || null;
+        const arrTime = destination.transportDetails.arrivalDateTime || null;
 
         if (depTime && arrTime && depTime.isValid() && arrTime.isValid()) {
           const depDate = depTime.startOf("day");
@@ -130,4 +126,23 @@ export function hasDateErrors(
 
   const dateInfos = calculateDestinationDates(startDate, destinations);
   return dateInfos.some((info) => Boolean(info.error));
+}
+
+export function computeDestinationTimeline(
+  startDate: Dayjs | null,
+  destinations: Destination[]
+): { infos: DestinationDateInfo[]; destinationsWithTimeline: Destination[] } {
+  const infos = calculateDestinationDates(startDate, destinations);
+
+  const destinationsWithTimeline = destinations.map((destination, index) => {
+    const info = infos[index];
+
+    return {
+      ...destination,
+      arrivalDate: info.arrivalDate,
+      departureDate: info.departureDate,
+    };
+  });
+
+  return { infos, destinationsWithTimeline };
 }

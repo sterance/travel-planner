@@ -1,14 +1,27 @@
+import type { Dayjs } from "dayjs";
+
+export interface WeatherDetails {
+  temperature: number;
+  condition: string;
+  weatherCode: number;
+  latitude: number;
+  longitude: number;
+  dateTime: Dayjs;
+}
+
 export interface Destination {
   id: string;
   name: string;
   displayName: string;
-  placeDetails?: PlaceDetails;
-  transport?: string | null;
   nights?: number | "none" | "dates" | null;
-  checkInDate?: string;
-  checkOutDate?: string;
+  arrivalDate?: Dayjs | null;
+  arrivalTime?: Dayjs | null;
+  departureDate?: Dayjs | null;
+  placeDetails?: PlaceDetails;
   transportDetails?: TransportDetails;
-  customArrivalDateTime?: string;
+  weatherDetails?: WeatherDetails;
+  accommodations?: AccommodationDetails[];
+  activities?: ActivityDetails[];
 }
 
 export interface PlaceDetails {
@@ -24,9 +37,26 @@ export interface PlaceDetails {
 }
 
 export interface TransportDetails {
-  departureDateTime?: string;
-  arrivalDateTime?: string;
+  mode: string;
   departureLocation?: string;
   arrivalLocation?: string;
-  flightNumber?: string;
+  bookingNumber?: string;
+  departureDateTime?: Dayjs | null;
+  arrivalDateTime?: Dayjs | null;
+}
+
+export interface AccommodationDetails {
+  id: string;
+  name?: string;
+  address?: string;
+  checkInDateTime?: Dayjs | null;
+  checkOutDateTime?: Dayjs | null;
+}
+
+export interface ActivityDetails {
+  id: string;
+  name?: string;
+  address?: string;
+  startDateTime?: Dayjs | null;
+  endDateTime?: Dayjs | null;
 }

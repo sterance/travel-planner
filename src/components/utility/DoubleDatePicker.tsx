@@ -27,13 +27,7 @@ interface DoubleDatePickerProps {
   onDateChange: (checkIn: Dayjs | null, checkOut: Dayjs | null) => void;
 }
 
-const validateDates = (
-  checkIn: Dayjs | null,
-  checkOut: Dayjs | null,
-  tripStartDate: Dayjs | null,
-  calculatedArrivalDate: Dayjs | null,
-  isFirst: boolean
-): string[] => {
+const validateDates = (checkIn: Dayjs | null, checkOut: Dayjs | null, tripStartDate: Dayjs | null, calculatedArrivalDate: Dayjs | null, isFirst: boolean): string[] => {
   const errors: string[] = [];
 
   if (!checkIn || !checkOut) {
@@ -63,17 +57,7 @@ const validateDates = (
   return errors;
 };
 
-export const DoubleDatePicker = ({
-  open,
-  anchorEl,
-  onClose,
-  checkInDate,
-  checkOutDate,
-  tripStartDate,
-  calculatedArrivalDate,
-  isFirst,
-  onDateChange,
-}: DoubleDatePickerProps): ReactElement => {
+export const DoubleDatePicker = ({ open, anchorEl, onClose, checkInDate, checkOutDate, tripStartDate, calculatedArrivalDate, isFirst, onDateChange }: DoubleDatePickerProps): ReactElement => {
   const [localCheckIn, setLocalCheckIn] = useState<Dayjs | null>(checkInDate);
   const [localCheckOut, setLocalCheckOut] = useState<Dayjs | null>(checkOutDate);
   const [selectedStart, setSelectedStart] = useState<Dayjs | null>(null);
@@ -92,13 +76,7 @@ export const DoubleDatePicker = ({
     }
   }, [checkInDate, checkOutDate, open]);
 
-  const validationErrors = validateDates(
-    localCheckIn,
-    localCheckOut,
-    tripStartDate,
-    calculatedArrivalDate,
-    isFirst
-  );
+  const validationErrors = validateDates(localCheckIn, localCheckOut, tripStartDate, calculatedArrivalDate, isFirst);
 
   const handleDateSelect = (date: Dayjs): void => {
     if (!selectedStart || (selectedStart && selectedEnd)) {
@@ -217,19 +195,20 @@ export const DoubleDatePicker = ({
               borderRadius: "50%",
             }),
           }),
-          ...(isEnd && !isStart && {
-            backgroundColor: "primary.main",
-            color: "primary.contrastText",
-            borderRadius: "0 50% 50% 0",
-            "&:hover": {
-              backgroundColor: "primary.dark",
-            },
-          }),
+          ...(isEnd &&
+            !isStart && {
+              backgroundColor: "primary.main",
+              color: "primary.contrastText",
+              borderRadius: "0 50% 50% 0",
+              "&:hover": {
+                backgroundColor: "primary.dark",
+              },
+            }),
         }}
       />
     );
   };
-
+  
   return (
     <Popover
       open={open}
@@ -294,8 +273,7 @@ export const DoubleDatePicker = ({
 
             <DateCalendar
               value={selectedStart || selectedEnd || currentMonth}
-              onChange={() => {
-              }}
+              onChange={() => {}}
               onMonthChange={(newValue) => {
                 if (newValue) {
                   setCurrentMonth(newValue);

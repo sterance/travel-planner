@@ -1,0 +1,291 @@
+import { type ReactElement } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Autocomplete from "@mui/material/Autocomplete";
+import AddIcon from "@mui/icons-material/Add";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { type Dayjs } from "dayjs";
+import { getTransportLinks } from "../utils/externalLinks";
+import { SectionCard } from "./utility/SectionCard";
+import { DetailsModal } from "./utility/DetailsModal";
+import { type Destination } from "../types/destination";
+import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
+import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
+import { ListCard } from "./ListCard";
+import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
+import { useOnwardsDetailsModal } from "../hooks/useOnwardsDetailsModal";
+
+interface SectionOnwardsProps {
+  destination: Destination;
+  nextDestination?: Destination;
+  onDestinationChange: (destination: Destination) => void;
+  departureDate?: Dayjs | null;
+}
+
+const getTransportLabel = (transport: string): string => {
+  switch (transport) {
+    case "by plane":
+      return "flight";
+    case "by bus":
+      return "bus";
+    case "by train":
+      return "train";
+    case "by boat":
+      return "voyage";
+    default:
+      return "details";
+  }
+};
+
+const extractIataCode = (location: string | undefined): string => {
+  if (!location) return "";
+  const match = location.match(/^([A-Z]{3})\s*\(/);
+  if (match) {
+    return match[1];
+  }
+  const threeLetterMatch = location.match(/^([A-Z]{3})\b/);
+  if (threeLetterMatch) {
+    return threeLetterMatch[1];
+  }
+  return location;
+};
+
+const formatLocationDisplay = (location: string | undefined, transport?: string | null): string => {
+  if (!location) return "";
+  if (transport === "by plane") {
+    return extractIataCode(location);
+  }
+  return location;
+};
+
+export const SectionOnwards = ({ destination, nextDestination, onDestinationChange }: SectionOnwardsProps): ReactElement => {
+  if (!nextDestination) {
+    return <></>;
+  }
+
+  const nextMode = nextDestination.transportDetails?.mode;
+
+  if (!nextMode) {
+    return (
+      <SectionCard title="Onwards">
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+          Add a travel method for the next destination
+        </Typography>
+      </SectionCard>
+    );
+  }
+
+  const modalState = useOnwardsDetailsModal({
+    destination,
+    transportMode: nextMode,
+    onDestinationChange,
+  });
+
+  const {
+    isOpen: isModalOpen,
+    title: modalTitle,
+    isScheduledTransport,
+    bookingNumberLabel,
+    departureDateTime,
+    arrivalDateTime,
+    referenceDate,
+    departureAutocomplete,
+    arrivalAutocomplete,
+    bookingNumber,
+    close: closeModal,
+    setDepartureDateTime,
+    setArrivalDateTime,
+    setDepartureLocation,
+    setArrivalLocation,
+    setBookingNumber,
+    save: saveModal,
+    clear: clearModal,
+  } = modalState;
+
+  const onwardsModal = (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DetailsModal
+        open={isModalOpen}
+        onClose={closeModal}
+        title={modalTitle}
+        onSave={saveModal}
+        onClear={clearModal}
+        hasDetails={
+          !!bookingNumber ||
+          !!departureDateTime ||
+          !!arrivalDateTime ||
+          !!departureAutocomplete.value ||
+          !!arrivalAutocomplete.value
+        }
+        saveLabel="Save"
+        cancelLabel="Cancel"
+        clearLabel="Clear"
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          {isScheduledTransport && bookingNumberLabel ? (
+            <TextField
+              label={bookingNumberLabel}
+              value={bookingNumber}
+              onChange={(e) => setBookingNumber(e.target.value)}
+              fullWidth
+              variant="outlined"
+            />
+          ) : null}
+          {nextMode === "by plane" ? (
+            <>
+              <Autocomplete
+                freeSolo
+                options={departureAutocomplete.suggestions}
+                getOptionLabel={(option) => (typeof option === "string" ? option : option.name)}
+                inputValue={departureAutocomplete.value}
+                onInputChange={(_event, newValue) => setDepartureLocation(newValue)}
+                onChange={(_event, value) => {
+                  if (value && typeof value !== "string") setDepartureLocation(value.name);
+                  else if (typeof value === "string") setDepartureLocation(value);
+                }}
+                loading={departureAutocomplete.isLoading}
+                renderInput={(params) => <TextField {...params} label="Departure Airport" variant="outlined" fullWidth />}
+              />
+              <DateTimePicker
+                label="Departure Date & Time"
+                value={getSafeDayjsValue(departureDateTime)}
+                onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <Autocomplete
+                freeSolo
+                options={arrivalAutocomplete.suggestions}
+                getOptionLabel={(option) => (typeof option === "string" ? option : option.name)}
+                inputValue={arrivalAutocomplete.value}
+                onInputChange={(_event, newValue) => setArrivalLocation(newValue)}
+                onChange={(_event, value) => {
+                  if (value && typeof value !== "string") setArrivalLocation(value.name);
+                  else if (typeof value === "string") setArrivalLocation(value);
+                }}
+                loading={arrivalAutocomplete.isLoading}
+                renderInput={(params) => <TextField {...params} label="Arrival Airport" variant="outlined" fullWidth />}
+              />
+              <DateTimePicker
+                label="Arrival Date & Time"
+                value={getSafeDayjsValue(arrivalDateTime)}
+                onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <Button variant="outlined" fullWidth disabled>
+                add from confirmation email{" "}
+              </Button>
+            </>
+          ) : (
+            <>
+              <TextField
+                label="Departure Location"
+                value={departureAutocomplete.value}
+                onChange={(e) => setDepartureLocation(e.target.value)}
+                fullWidth
+                variant="outlined"
+              />
+              <DateTimePicker
+                label="Departure Date & Time"
+                value={getSafeDayjsValue(departureDateTime)}
+                onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <TextField
+                label="Arrival Location"
+                value={arrivalAutocomplete.value}
+                onChange={(e) => setArrivalLocation(e.target.value)}
+                fullWidth
+                variant="outlined"
+              />
+              <DateTimePicker
+                label="Arrival Date & Time"
+                value={getSafeDayjsValue(arrivalDateTime)}
+                onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                referenceDate={referenceDate ?? undefined}
+                slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
+              />
+              <Button variant="outlined" fullWidth disabled>
+                add from confirmation email{" "}
+              </Button>
+            </>
+          )}
+        </Box>
+      </DetailsModal>
+    </LocalizationProvider>
+  );
+
+  const hasBookedDetails =
+    !SELF_TRANSPORT_MODES.includes(nextMode as (typeof SELF_TRANSPORT_MODES)[number]) &&
+    !!destination.transportDetails?.departureDateTime &&
+    !!destination.transportDetails?.arrivalDateTime;
+
+  if (hasBookedDetails && destination.transportDetails) {
+    const onwardsButtons = [
+      {
+        label: "Uber",
+        site: "uber",
+        url: nextDestination.placeDetails?.coordinates ? `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation || "")}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&dropoff[latitude]=${nextDestination.placeDetails.coordinates[1]}&dropoff[longitude]=${nextDestination.placeDetails.coordinates[0]}` : `https://m.uber.com/ul/?action=setPickup&pickup[formatted_address]=${encodeURIComponent(destination.transportDetails.departureLocation || "")}&dropoff[formatted_address]=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}`,
+      },
+      {
+        label: "Taxi",
+        site: "taxi",
+        url: nextDestination.placeDetails?.coordinates ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation || "")}&destination=${nextDestination.placeDetails.coordinates[1]},${nextDestination.placeDetails.coordinates[0]}&travelmode=driving` : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destination.transportDetails.departureLocation || "")}&destination=${encodeURIComponent(nextDestination.displayName || nextDestination.name)}&travelmode=driving`,
+      },
+    ];
+
+    return (
+      <>
+        <SectionCard title="Onwards">
+          <ListCard
+            primaryText={destination.transportDetails.bookingNumber ?? ""}
+            secondaryText={`${formatLocationDisplay(destination.transportDetails.departureLocation, nextMode) || "Origin"} \u2192 ${formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}`}
+            tertiaryText={formatDateTimeRange(destination.transportDetails.departureDateTime, destination.transportDetails.arrivalDateTime, "No departure time", "No arrival time")}
+            onEdit={modalState.open}
+            centerPrimary
+          />
+          {destination.transportDetails.departureLocation && (
+            <Box sx={{ mt: 1 }}>
+              <ExternalLinksGrid links={onwardsButtons} />
+            </Box>
+          )}
+        </SectionCard>
+        {modalState.isOpen && onwardsModal}
+      </>
+    );
+  }
+
+  const links = getTransportLinks(destination, nextDestination, nextMode || "", undefined);
+
+  return (
+    <>
+      <SectionCard title="Onwards">
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          {links.length > 0 ? (
+            <ExternalLinksGrid
+              links={links.map((link) => ({
+                label: link.label,
+                url: link.url,
+                site: link.icon ?? "",
+              }))}
+            />
+          ) : (
+            "link to transport booking"
+          )}
+          {!SELF_TRANSPORT_MODES.includes((nextMode || "") as (typeof SELF_TRANSPORT_MODES)[number]) && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={modalState.open} fullWidth>
+              Add {getTransportLabel(nextMode || "")} details
+            </Button>
+          )}
+        </Box>
+      </SectionCard>
+      {modalState.isOpen && onwardsModal}
+      </>
+    );
+  }
