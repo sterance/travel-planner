@@ -49,6 +49,7 @@ export const TripCardDate = ({
                 slotProps={{
                   textField: {
                     fullWidth: true,
+                    error: startDate != null ? hasDateErrors : false,
                   },
                 }}
               />

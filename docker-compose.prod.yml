@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - app-data:/app/data
+    env_file:
+      - server/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_PATH=/app/data/travel.db
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    restart: unless-stopped
+
+volumes:
+  app-data:

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, lazy, Suspense, type ReactElement } from "react";
-import { useOutletContext, useParams } from "react-router-dom";
+import { useOutletContext, useParams, Navigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -64,7 +64,7 @@ const isTextInputElement = (element: HTMLElement | null): boolean => {
 export const TripPage = (): ReactElement => {
   const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton } = useOutletContext<OutletContext>();
   const { tripId } = useParams<{ tripId: string }>();
-  const { currentTrip, updateTrip, setCurrentTrip } = useTripContext();
+  const { trips, currentTrip, updateTrip, setCurrentTrip } = useTripContext();
   const [mapExpanded, setMapExpanded] = useState(false);
   const isNarrowScreen = useMediaQuery(`(max-width: 399px)`);
 
@@ -192,11 +192,10 @@ export const TripPage = (): ReactElement => {
   };
 
   if (!currentTrip) {
-    return (
-      <Box sx={{ p: 3, textAlign: "center" }}>
-        <Typography>No trip selected</Typography>
-      </Box>
-    );
+    if (trips.length > 0) {
+      return <Navigate to={`/trip/${trips[0].id}`} replace />;
+    }
+    return <Navigate to="/trip" replace />;
   }
 
   if (viewMode === "carousel") {

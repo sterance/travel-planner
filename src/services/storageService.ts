@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import { type Trip } from "../types/trip";
-import type { Destination, TransportDetails, AccommodationDetails, ActivityDetails } from "../types/destination";
-import { calculateTripEndDate } from "../utils/dateCalculation";
+import { hydrateTrip } from "./tripSerialization";
 
 const TRIPS_STORAGE_KEY = 'trips';
 
@@ -52,51 +51,9 @@ export const setStringItem = (key: string, value: string): void => {
   }
 };
 
-const hydrateActivity = (activity: any): ActivityDetails => {
-  return {
-    ...activity,
-    startDateTime: activity.startDateTime ? dayjs(activity.startDateTime) : null,
-    endDateTime: activity.endDateTime ? dayjs(activity.endDateTime) : null,
-  };
-};
-
-const hydrateAccommodation = (accommodation: any): AccommodationDetails => {
-  return {
-    ...accommodation,
-    checkInDateTime: accommodation.checkInDateTime ? dayjs(accommodation.checkInDateTime) : null,
-    checkOutDateTime: accommodation.checkOutDateTime ? dayjs(accommodation.checkOutDateTime) : null,
-  };
-};
-
-const hydrateTransport = (transport: any): TransportDetails => {
-  return {
-    ...transport,
-    mode: transport.mode ?? "unsure", // fallback for safety, though user said no back-compat, this effectively inits new field
-    departureDateTime: transport.departureDateTime ? dayjs(transport.departureDateTime) : null,
-    arrivalDateTime: transport.arrivalDateTime ? dayjs(transport.arrivalDateTime) : null,
-  };
-};
-
-const hydrateDestination = (destination: any): Destination => {
-  return {
-    ...destination,
-    arrivalDate: destination.arrivalDate ? dayjs(destination.arrivalDate) : null,
-    arrivalTime: destination.arrivalTime ? dayjs(destination.arrivalTime) : null,
-    departureDate: destination.departureDate ? dayjs(destination.departureDate) : null,
-    transportDetails: destination.transportDetails ? hydrateTransport(destination.transportDetails) : undefined,
-    weatherDetails: destination.weatherDetails
-      ? { ...destination.weatherDetails, dateTime: dayjs(destination.weatherDetails.dateTime) }
-      : undefined,
-    accommodations: destination.accommodations?.map(hydrateAccommodation) ?? [],
-    activities: destination.activities?.map(hydrateActivity) ?? [],
-  };
-};
-
-
-
 export const loadTrips = (): Trip[] => {
   const rawTrips = getItem<any[]>(TRIPS_STORAGE_KEY, []);
-  return rawTrips.map(hydrateTrip);
+  return rawTrips.map((t) => hydrateTrip(t as Record<string, unknown>));
 };
 
 export const saveTrips = (trips: Trip[]): void => {
@@ -147,17 +104,3 @@ const generateId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 };
 
-const hydrateTrip = (trip: any): Trip => {
-  const startDate = trip.startDate ? dayjs(trip.startDate) : null;
-  const destinations = trip.destinations?.map(hydrateDestination) ?? [];
-  const endDate = trip.endDate ? dayjs(trip.endDate) : calculateTripEndDate(startDate, destinations);
-
-  return {
-    ...trip,
-    startDate,
-    endDate,
-    destinations,
-    createdAt: trip.createdAt ? dayjs(trip.createdAt) : null,
-    updatedAt: trip.updatedAt ? dayjs(trip.updatedAt) : null,
-  };
-};

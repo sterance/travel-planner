@@ -2,6 +2,7 @@ import { useState, useEffect, type ReactElement, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
@@ -19,9 +20,12 @@ import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlin
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useThemeMode } from "./theme/ThemeContext";
+import { useAuth } from "./contexts/AuthContext";
 import { useTripContext } from "./hooks/useTripContext";
 import { TripSidebarItem } from "./components/TripSidebarItem";
 import { SettingsPage } from "./pages/SettingsPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { getStringItem, setStringItem } from "./services/storageService";
 import { WeatherTestPage } from "./pages/WeatherTestPage.tsx";
 
@@ -47,6 +51,7 @@ function App(): ReactElement {
   const [showInfoButton, setShowInfoButton] = useState(true);
   const [passports, setPassports] = useState<string[]>([]);
   const { mode, toggleTheme } = useThemeMode();
+  const { user, logout } = useAuth();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
   const navigate = useNavigate();
 
@@ -75,6 +80,17 @@ function App(): ReactElement {
 
   const handleSettingsClick = (): void => {
     navigate("/settings");
+    setDrawerOpen(false);
+  };
+
+  const handleLoginClick = (): void => {
+    navigate("/login");
+    setDrawerOpen(false);
+  };
+
+  const handleLogoutClick = (): void => {
+    logout();
+    navigate("/");
     setDrawerOpen(false);
   };
 
@@ -210,6 +226,9 @@ function App(): ReactElement {
             </List>
           </Box>
           <Box sx={{ borderTop: 1, borderColor: "divider" }}>
+            <Typography variant="caption" sx={{ display: "block", px: 2, py: 1, textAlign: "center", color: "text.secondary" }}>
+              {user ? user.email : "Guest"}
+            </Typography>
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <IconButton
                 onClick={handleSettingsClick}
@@ -226,8 +245,11 @@ function App(): ReactElement {
               >
                 <SettingsIcon />
               </IconButton>
-              <ListItemButton sx={{ flex: 1, borderLeft: 1, borderColor: "divider", backgroundColor: "#cf533a", color: "white", textAlign: "center" }}>
-                <ListItemText primary="Login / Register" />
+              <ListItemButton
+                sx={{ flex: 1, borderLeft: 1, borderColor: "divider", backgroundColor: "#cf533a", color: "white", textAlign: "center" }}
+                onClick={user ? handleLogoutClick : handleLoginClick}
+              >
+                <ListItemText primary={user ? "Logout" : "Login / Register"} />
               </ListItemButton>
             </Box>
           </Box>
@@ -249,6 +271,8 @@ function App(): ReactElement {
       >
         <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route
               element={
                 <Outlet
@@ -270,8 +294,8 @@ function App(): ReactElement {
                 />
               }
             >
-              <Route path="/" element={<TripRedirect />} />
-              <Route path="/trip" element={<TripRedirect />} />
+              <Route path="/" element={<TripRedirect onOpenDrawer={() => setDrawerOpen(true)} />} />
+              <Route path="/trip" element={<TripRedirect onOpenDrawer={() => setDrawerOpen(true)} />} />
               <Route
                 path="/trip/:tripId"
                 element={
@@ -290,7 +314,11 @@ function App(): ReactElement {
   );
 }
 
-const TripRedirect = (): ReactElement => {
+interface TripRedirectProps {
+  onOpenDrawer: () => void;
+}
+
+const TripRedirect = ({ onOpenDrawer }: TripRedirectProps): ReactElement => {
   const { trips, currentTripId, setCurrentTrip } = useTripContext();
 
   if (trips.length > 0) {
@@ -301,7 +329,27 @@ const TripRedirect = (): ReactElement => {
     return <Navigate to={`/trip/${targetId}`} replace />;
   }
 
-  return <Navigate to="/trip" replace />;
+  return <EmptyTripsView onOpenDrawer={onOpenDrawer} />;
+};
+
+const EmptyTripsView = ({ onOpenDrawer }: TripRedirectProps): ReactElement => {
+  const { createTrip, setEditingTripId } = useTripContext();
+  const navigate = useNavigate();
+
+  const handleCreateTrip = (): void => {
+    const newTrip = createTrip();
+    setEditingTripId(newTrip.id);
+    onOpenDrawer();
+    navigate(`/trip/${newTrip.id}`);
+  };
+
+  return (
+    <Box sx={{ p: 3, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 200 }}>
+      <Button variant="contained" onClick={handleCreateTrip}>
+        Create a trip
+      </Button>
+    </Box>
+  );
 };
 
 export default App;

@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server/data:/app/data
+    env_file:
+      - server/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DB_PATH=/app/data/travel.db
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://192.168.1.100:5173,https://travel.${DOMAIN:-yourdomain.com}}
