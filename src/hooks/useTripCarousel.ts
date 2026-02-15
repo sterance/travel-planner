@@ -5,38 +5,15 @@ import { type ViewMode, type LayoutMode } from "../App";
 interface UseTripCarouselParams {
   viewMode: ViewMode;
   layoutMode: LayoutMode;
-  destinationsLength: number;
   isNarrowScreen: boolean;
   onPrevious: () => void;
   onNext: () => void;
   isTextInputElement: (element: HTMLElement | null) => boolean;
 }
 
-export const useTripCarousel = ({ viewMode, layoutMode, destinationsLength, isNarrowScreen, onPrevious, onNext, isTextInputElement }: UseTripCarouselParams) => {
+export const useTripCarousel = ({ viewMode, layoutMode, isNarrowScreen, onPrevious, onNext, isTextInputElement }: UseTripCarouselParams) => {
   const [autoMaxAdjacent, setAutoMaxAdjacent] = useState(2);
   const carouselRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (viewMode !== "carousel" || destinationsLength === 0) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      const target = event.target as HTMLElement | null;
-      if (isTextInputElement(target)) return;
-
-      if (event.key === "ArrowLeft") {
-        onPrevious();
-      } else if (event.key === "ArrowRight") {
-        onNext();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [viewMode, layoutMode, destinationsLength, onPrevious, onNext, isTextInputElement]);
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: (eventData) => {

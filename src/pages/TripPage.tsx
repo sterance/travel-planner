@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, lazy, Suspense, type ReactElement } from "react";
 import { useOutletContext, useParams, Navigate } from "react-router-dom";
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import dayjs, { type Dayjs } from "dayjs";
@@ -11,6 +12,7 @@ import { useTripDestinations } from "../hooks/useTripDestinations";
 import { useTripLayout } from "../hooks/useTripLayout";
 import { useTripExploreMenu } from "../hooks/useTripExploreMenu";
 import { useTripCarousel } from "../hooks/useTripCarousel";
+import { useTripKeyNav } from "../hooks/useTripKeyNav";
 import { type TripHeaderProps } from "../components/TripHeader";
 
 const TripLayoutCarousel = lazy(async () => {
@@ -169,10 +171,16 @@ export const TripPage = (): ReactElement => {
 
   const { exploreAnchorEl, handleExploreClick, handleExploreClose, handleExploreSelect } = useTripExploreMenu();
 
+  useTripKeyNav({
+    active: (viewMode === "carousel" || isDesktopList) && destinations.length > 0,
+    onPrevious: isDesktopList ? handleListPrevious : handlePrevious,
+    onNext: isDesktopList ? handleListNext : handleNext,
+    isTextInputElement,
+  });
+
   const { autoMaxAdjacent, carouselRef, swipeHandlers } = useTripCarousel({
     viewMode,
     layoutMode,
-    destinationsLength: destinations.length,
     isNarrowScreen,
     onPrevious: handlePrevious,
     onNext: handleNext,
@@ -202,8 +210,11 @@ export const TripPage = (): ReactElement => {
     return (
       <Suspense
         fallback={
-          <Box sx={{ p: 3, textAlign: "center" }}>
-            <Typography>Loading trip view...</Typography>
+          <Box sx={{ p: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+            <CircularProgress size={16} />
+            <Typography variant="body2" sx={{ color: (theme) => theme.palette.text.secondary }}>
+              Loading carousel layout
+            </Typography>
           </Box>
         }
       >
@@ -233,8 +244,11 @@ export const TripPage = (): ReactElement => {
     return (
       <Suspense
         fallback={
-          <Box sx={{ p: 3, textAlign: "center" }}>
-            <Typography>Loading trip view...</Typography>
+          <Box sx={{ p: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+            <CircularProgress size={16} />
+            <Typography variant="body2" sx={{ color: (theme) => theme.palette.text.secondary }}>
+              Loading list layout
+            </Typography>
           </Box>
         }
       >
@@ -274,8 +288,11 @@ export const TripPage = (): ReactElement => {
   return (
     <Suspense
       fallback={
-        <Box sx={{ p: 3, textAlign: "center" }}>
-          <Typography>Loading trip view...</Typography>
+        <Box sx={{ p: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+          <CircularProgress size={16} />
+          <Typography variant="body2" sx={{ color: (theme) => theme.palette.text.secondary }}>
+            Loading list layout
+          </Typography>
         </Box>
       }
     >
