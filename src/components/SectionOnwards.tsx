@@ -4,7 +4,6 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Autocomplete from "@mui/material/Autocomplete";
-import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -14,8 +13,9 @@ import { getTransportLinks } from "../utils/externalLinks";
 import { SectionCard } from "./utility/SectionCard";
 import { DetailsModal } from "./utility/DetailsModal";
 import { type Destination } from "../types/destination";
-import { formatDateTime, getSafeDayjsValue } from "../utils/dateUtils";
+import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
+import { ListCard } from "./ListCard";
 import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
 import { useOnwardsDetailsModal } from "../hooks/useOnwardsDetailsModal";
 
@@ -72,37 +72,36 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
   if (!nextMode) {
     return (
       <SectionCard title="Onwards">
-        <Typography variant="body2" color="text.secondary">
-          Add a travel method for the next destination to see booking links.
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+          Add a travel method for the next destination
         </Typography>
       </SectionCard>
     );
   }
 
-  const isFlight = nextMode === "by plane";
-
   const modalState = useOnwardsDetailsModal({
     destination,
     transportMode: nextMode,
-    isFlight,
     onDestinationChange,
   });
 
   const {
     isOpen: isModalOpen,
     title: modalTitle,
+    isScheduledTransport,
+    bookingNumberLabel,
     departureDateTime,
     arrivalDateTime,
     referenceDate,
     departureAutocomplete,
     arrivalAutocomplete,
-    flightNumber,
+    bookingNumber,
     close: closeModal,
     setDepartureDateTime,
     setArrivalDateTime,
     setDepartureLocation,
     setArrivalLocation,
-    setFlightNumber,
+    setBookingNumber,
     save: saveModal,
     clear: clearModal,
   } = modalState;
@@ -116,7 +115,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
         onSave={saveModal}
         onClear={clearModal}
         hasDetails={
-          !!flightNumber ||
+          !!bookingNumber ||
           !!departureDateTime ||
           !!arrivalDateTime ||
           !!departureAutocomplete.value ||
@@ -127,15 +126,17 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
         clearLabel="Clear"
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-          {isFlight ? (
+          {isScheduledTransport && bookingNumberLabel ? (
+            <TextField
+              label={bookingNumberLabel}
+              value={bookingNumber}
+              onChange={(e) => setBookingNumber(e.target.value)}
+              fullWidth
+              variant="outlined"
+            />
+          ) : null}
+          {nextMode === "by plane" ? (
             <>
-              <TextField
-                label="Flight Number"
-                value={flightNumber}
-                onChange={(e) => setFlightNumber(e.target.value)}
-                fullWidth
-                variant="outlined"
-              />
               <Autocomplete
                 freeSolo
                 options={departureAutocomplete.suggestions}
@@ -242,44 +243,13 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     return (
       <>
         <SectionCard title="Onwards">
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 1,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
-              <Typography variant="body1" component="span">
-                {formatLocationDisplay(destination.transportDetails.departureLocation, nextMode) || "Origin"}
-              </Typography>
-              <Typography variant="body1" component="span">
-                →
-              </Typography>
-              <Typography variant="body1" component="span">
-                {formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}
-              </Typography>
-            </Box>
-            <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={modalState.open}>
-              Edit
-            </Button>
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 1,
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              {formatDateTime(destination.transportDetails.departureDateTime) || "No departure time"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {formatDateTime(destination.transportDetails.arrivalDateTime) || "No arrival time"}
-            </Typography>
-          </Box>
+          <ListCard
+            primaryText={destination.transportDetails.bookingNumber ?? ""}
+            secondaryText={`${formatLocationDisplay(destination.transportDetails.departureLocation, nextMode) || "Origin"} \u2192 ${formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}`}
+            tertiaryText={formatDateTimeRange(destination.transportDetails.departureDateTime, destination.transportDetails.arrivalDateTime, "No departure time", "No arrival time")}
+            onEdit={modalState.open}
+            centerPrimary
+          />
           {destination.transportDetails.departureLocation && (
             <Box sx={{ mt: 1 }}>
               <ExternalLinksGrid links={onwardsButtons} />

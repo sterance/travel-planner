@@ -4,17 +4,18 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 import { buildAccommodationLinks } from "../utils/externalLinks";
 import { type Destination, type AccommodationDetails } from "../types/destination";
 import { SectionCard } from "./utility/SectionCard";
+import { CollapsibleList } from "./utility/CollapsibleList";
+import { ListCard } from "./ListCard";
 import { StatusBadge } from "./utility/StatusBadge";
 import { DetailsModal } from "./utility/DetailsModal";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { Dayjs } from "dayjs";
-import { formatDateTime, getSafeDayjsValue } from "../utils/dateUtils";
+import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { useSectionItemList } from "../hooks/useSectionItemList";
 
@@ -92,35 +93,19 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
               </Typography>
             </StatusBadge>
           )}
-          {accommodations.map((accommodation, index) => (
-            <Box
-              key={accommodation.id}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 1,
-                gap: 1,
-              }}
-            >
-              <Box sx={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-                <Typography variant="body1" noWrap>
-                  {accommodation.name || "Accommodation"}
-                </Typography>
-                {accommodation.address && (
-                  <Typography variant="body2" color="text.secondary" noWrap>
-                    {accommodation.address}
-                  </Typography>
-                )}
-                <Typography variant="body2" color="text.secondary">
-                  {formatDateTime(accommodation.checkInDateTime) || "No check in"} – {formatDateTime(accommodation.checkOutDateTime) || "No check out"}
-                </Typography>
-              </Box>
-              <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => openForEdit(index)}>
-                edit
-              </Button>
-            </Box>
-          ))}
+          {accommodations.length > 0 && (
+            <CollapsibleList count={accommodations.length} labelSingular="Accommodation" labelPlural="Accommodations">
+              {accommodations.map((accommodation, index) => (
+                <ListCard
+                  key={accommodation.id}
+                  primaryText={accommodation.name || "Accommodation"}
+                  secondaryText={accommodation.address}
+                  tertiaryText={formatDateTimeRange(accommodation.checkInDateTime, accommodation.checkOutDateTime, "No check in", "No check out")}
+                  onEdit={() => openForEdit(index)}
+                />
+              ))}
+            </CollapsibleList>
+          )}
           {showAddButton && (
             <Button variant="contained" startIcon={<AddIcon />} onClick={openForNew} fullWidth>
               add accommodation
@@ -176,3 +161,5 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
     </>
   );
 };
+
+export default SectionAccommodation;

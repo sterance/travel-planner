@@ -14,6 +14,7 @@ import TextField from "@mui/material/TextField";
 import Chip from "@mui/material/Chip";
 import { type ArrivalWeatherBackgroundMode } from "../App";
 import { searchCountries, type Country } from "../services/passportService";
+import { Footer } from "../components/Footer";
 
 interface OutletContext {
   arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
@@ -73,7 +74,7 @@ export const SettingsPage = (): ReactElement => {
   }, [countryInputValue]);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, pb: 10 }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Settings
       </Typography>
@@ -145,13 +146,14 @@ export const SettingsPage = (): ReactElement => {
             }
           />
           <CardContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
               <FormControlLabel control={<Checkbox checked={showExploreButton} onChange={(e) => setShowExploreButton(e.target.checked)} />} label="Show explore button" />
               <FormControlLabel control={<Checkbox checked={showInfoButton} onChange={(e) => setShowInfoButton(e.target.checked)} />} label="Show info button" />
             </Box>
           </CardContent>
         </Card>
       </Box>
+      <Footer />
     </Box>
   );
 };

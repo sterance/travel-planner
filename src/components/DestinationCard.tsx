@@ -14,6 +14,7 @@ import { type Destination as DestinationType } from "../types/destination";
 import { type LayoutMode } from "../App";
 import { StatusBadge } from "./utility/StatusBadge";
 import { ConfirmDialog } from "./utility/ConfirmDialog";
+
 const DestinationCardHeaderLazy = lazy(async () => {
   const module = await import("./DestinationCardHeader");
   return { default: module.DestinationCardHeaderLazy };
@@ -26,14 +27,8 @@ const SectionArrival = lazy(async () => {
   const module = await import("./SectionArrival");
   return { default: module.SectionArrival };
 });
-const SectionAccommodation = lazy(async () => {
-  const module = await import("./SectionAccommodation");
-  return { default: module.SectionAccommodation };
-});
-const SectionActivities = lazy(async () => {
-  const module = await import("./SectionActivities");
-  return { default: module.SectionActivities };
-});
+const SectionAccommodation = lazy(() => import("./SectionAccommodation"));
+const SectionActivities = lazy(() => import("./SectionActivities"));
 const DoubleDatePicker = lazy(async () => {
   const module = await import("./utility/DoubleDatePicker");
   return { default: module.DoubleDatePicker };
@@ -83,7 +78,15 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
     }
   };
 
-  const { showCustomNights, customNightsValue, setCustomNightsValue, handleNightSelect, handleDateRangeChange: handleNightDateRangeChange, handleCustomNightsSubmit, handleCustomNightsKeyDown } = useNightSelection({
+  const {
+    showCustomNights,
+    customNightsValue,
+    setCustomNightsValue,
+    handleNightSelect,
+    handleDateRangeChange: handleNightDateRangeChange,
+    handleCustomNightsSubmit,
+    handleCustomNightsKeyDown,
+  } = useNightSelection({
     destination,
     onDestinationChange,
     customNightsInputRef,
@@ -166,7 +169,6 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
 
   const calculatedNights = getCalculatedNights();
 
-  
   return (
     <>
       <Box
@@ -300,38 +302,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
           <CardHeader
             title={
               <Suspense fallback={<Box sx={{ width: "100%" }} />}>
-                <DestinationCardHeaderLazy
-                  destination={destination}
-                  layoutMode={layoutMode}
-                  arrivalDate={arrivalDate}
-                  departureDate={departureDate}
-                  alwaysExpanded={alwaysExpanded}
-                  expanded={expanded}
-                  isFirst={isFirst}
-                  currentTransport={currentTransport}
-                  isTransportSet={Boolean(isTransportSet)}
-                  calculatedNights={calculatedNights}
-                  showCustomNights={showCustomNights}
-                  customNightsValue={customNightsValue}
-                  calendarOpen={calendar.isOpen}
-                  calendarAnchorEl={calendar.anchorEl}
-                  transportAnchorEl={transport.anchorEl}
-                  transportOpen={transport.isOpen}
-                  onTransportClick={handleTransportClick}
-                  onTransportClose={handleTransportClose}
-                  onTransportSelect={handleTransportSelect}
-                  onCalendarClick={handleCalendarClick}
-                  onCalendarClose={handleCalendarClose}
-                  onNightSelect={handleNightSelect}
-                  onExpandClick={handleExpandClick}
-                  isOnwardsTravelBooked={isOnwardsTravelBooked}
-                  customNightsInputRef={customNightsInputRef as React.RefObject<HTMLInputElement | null>}
-                  onCustomNightsChange={setCustomNightsValue}
-                  onCustomNightsKeyDown={handleCustomNightsKeyDown}
-                  onCustomNightsSubmit={handleCustomNightsSubmit}
-                  onDestinationChange={onDestinationChange}
-                  shouldFocus={shouldFocus}
-                  isCarousel={isCarousel}
+                <DestinationCardHeaderLazy destination={destination} layoutMode={layoutMode} arrivalDate={arrivalDate} departureDate={departureDate} alwaysExpanded={alwaysExpanded} expanded={expanded} isFirst={isFirst} currentTransport={currentTransport} isTransportSet={Boolean(isTransportSet)} calculatedNights={calculatedNights} showCustomNights={showCustomNights} customNightsValue={customNightsValue} calendarOpen={calendar.isOpen} calendarAnchorEl={calendar.anchorEl} transportAnchorEl={transport.anchorEl} transportOpen={transport.isOpen} onTransportClick={handleTransportClick} onTransportClose={handleTransportClose} onTransportSelect={handleTransportSelect} onCalendarClick={handleCalendarClick} onCalendarClose={handleCalendarClose} onNightSelect={handleNightSelect} onExpandClick={handleExpandClick} isOnwardsTravelBooked={isOnwardsTravelBooked} customNightsInputRef={customNightsInputRef as React.RefObject<HTMLInputElement | null>} onCustomNightsChange={setCustomNightsValue} onCustomNightsKeyDown={handleCustomNightsKeyDown} onCustomNightsSubmit={handleCustomNightsSubmit} onDestinationChange={onDestinationChange} shouldFocus={shouldFocus}
                 />
               </Suspense>
             }
@@ -390,6 +361,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                           arrivalTime: dateTime,
                         });
                       }}
+                      onDestinationChange={onDestinationChange}
                       arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
                     />
                   </Suspense>
@@ -406,17 +378,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
           </Collapse>
           {datePicker.isOpen && (
             <Suspense fallback={null}>
-              <DoubleDatePicker
-                open={datePicker.isOpen}
-                anchorEl={datePicker.anchorEl}
-                onClose={datePicker.close}
-                checkInDate={destination.arrivalDate ?? arrivalDate}
-                checkOutDate={destination.departureDate ?? departureDate}
-                tripStartDate={tripStartDate}
-                calculatedArrivalDate={arrivalDate}
-                isFirst={isFirst}
-                onDateChange={handleDateRangeChange}
-              />
+              <DoubleDatePicker open={datePicker.isOpen} anchorEl={datePicker.anchorEl} onClose={datePicker.close} checkInDate={destination.arrivalDate ?? arrivalDate} checkOutDate={destination.departureDate ?? departureDate} tripStartDate={tripStartDate} calculatedArrivalDate={arrivalDate} isFirst={isFirst} onDateChange={handleDateRangeChange} />
             </Suspense>
           )}
         </Card>

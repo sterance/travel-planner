@@ -6,7 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import type { Dayjs } from "dayjs";
-import { type Destination } from "../types/destination";
+import { type Destination, type WeatherDetails } from "../types/destination";
 import { getWeatherBackgroundGradient, getWeatherIcon } from "../utils/getWeatherIcon";
 import { useArrivalWeather } from "../hooks/useArrivalWeather";
 import { ArrivalTimeEditor } from "./ArrivalTimeEditor";
@@ -16,10 +16,11 @@ interface ArrivalWeatherProps {
   previousDestination?: Destination;
   arrivalDate: Dayjs | null;
   onArrivalTimeChange: (dateTime: Dayjs | null) => void;
+  onWeatherDetailsUpdate?: (details: WeatherDetails) => void;
   backgroundMode?: "default" | "light" | "dark";
 }
 
-export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, onArrivalTimeChange, backgroundMode = "default" }: ArrivalWeatherProps): ReactElement => {
+export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, onArrivalTimeChange, onWeatherDetailsUpdate, backgroundMode = "default" }: ArrivalWeatherProps): ReactElement => {
   const theme = useTheme();
   const {
     isEditing,
@@ -42,6 +43,7 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
     previousDestination,
     arrivalDate,
     onArrivalTimeChange,
+    onWeatherDetailsUpdate,
   });
 
   const paletteModeForGradient = backgroundMode === "default" ? theme.palette.mode : backgroundMode;
@@ -95,7 +97,6 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
               hasDefault={hasDefault}
               hasEffectiveArrivalTime={hasEffectiveArrivalTime}
               backgroundMode={backgroundMode}
-              paletteModeForGradient={paletteModeForGradient}
               mainTextColor={mainTextColor}
               secondaryTextColor={secondaryTextColor}
               themeTextSecondaryColor={theme.palette.text.secondary}

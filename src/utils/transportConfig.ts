@@ -22,3 +22,5 @@ export const TRANSPORT_MODES = [
 
 export const SELF_TRANSPORT_MODES = ["by car", "by motorbike", "by bicycle", "on foot", "starting point"] as const;
 
+export const SCHEDULED_TRANSPORT_MODES = ["by plane", "by bus", "by train", "by boat"] as const;
+

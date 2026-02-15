@@ -1,5 +1,14 @@
 import type { Dayjs } from "dayjs";
 
+export interface WeatherDetails {
+  temperature: number;
+  condition: string;
+  weatherCode: number;
+  latitude: number;
+  longitude: number;
+  dateTime: Dayjs;
+}
+
 export interface Destination {
   id: string;
   name: string;
@@ -10,6 +19,7 @@ export interface Destination {
   departureDate?: Dayjs | null;
   placeDetails?: PlaceDetails;
   transportDetails?: TransportDetails;
+  weatherDetails?: WeatherDetails;
   accommodations?: AccommodationDetails[];
   activities?: ActivityDetails[];
 }
@@ -30,7 +40,7 @@ export interface TransportDetails {
   mode: string;
   departureLocation?: string;
   arrivalLocation?: string;
-  flightNumber?: string;
+  bookingNumber?: string;
   departureDateTime?: Dayjs | null;
   arrivalDateTime?: Dayjs | null;
 }

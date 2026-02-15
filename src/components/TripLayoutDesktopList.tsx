@@ -60,36 +60,7 @@ interface TripLayoutDesktopListProps extends TripHeaderProps {
   handleExploreSelect: (index: number, option: string) => void;
 }
 
-export const TripLayoutDesktopList = ({
-  viewMode,
-  layoutMode,
-  destinations,
-  destinationsWithTimeline,
-  destinationDates,
-  currentIndex,
-  desktopListColumns,
-  columns,
-  reorderDragOverIndex,
-  newlyCreatedId,
-  showExploreButton,
-  showInfoButton,
-  arrivalWeatherBackgroundMode,
-  exploreAnchorEl,
-  handleAddDestination,
-  handleIncreaseColumns,
-  handleDecreaseColumns,
-  handleListPrevious,
-  handleListNext,
-  handleDestinationChange,
-  handleRemoveDestination,
-  handleReorderDragStart,
-  handleReorderDragOver,
-  handleReorderDrop,
-  handleReorderDragEnd,
-  handleExploreClick,
-  handleExploreClose,
-  handleExploreSelect,
-  ...settingsProps
+export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, destinationsWithTimeline, destinationDates, currentIndex, desktopListColumns, columns, reorderDragOverIndex, newlyCreatedId, showExploreButton, showInfoButton, arrivalWeatherBackgroundMode, exploreAnchorEl, handleAddDestination, handleIncreaseColumns, handleDecreaseColumns, handleListPrevious, handleListNext, handleDestinationChange, handleRemoveDestination, handleReorderDragStart, handleReorderDragOver, handleReorderDrop, handleReorderDragEnd, handleExploreClick, handleExploreClose, handleExploreSelect, ...settingsProps
 }: TripLayoutDesktopListProps): ReactElement => {
   if (destinations.length === 0) {
     return (

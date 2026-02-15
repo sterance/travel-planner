@@ -84,6 +84,9 @@ const hydrateDestination = (destination: any): Destination => {
     arrivalTime: destination.arrivalTime ? dayjs(destination.arrivalTime) : null,
     departureDate: destination.departureDate ? dayjs(destination.departureDate) : null,
     transportDetails: destination.transportDetails ? hydrateTransport(destination.transportDetails) : undefined,
+    weatherDetails: destination.weatherDetails
+      ? { ...destination.weatherDetails, dateTime: dayjs(destination.weatherDetails.dateTime) }
+      : undefined,
     accommodations: destination.accommodations?.map(hydrateAccommodation) ?? [],
     activities: destination.activities?.map(hydrateActivity) ?? [],
   };

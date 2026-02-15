@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 interface ArrivalTimeEditorProps {
@@ -11,7 +12,6 @@ interface ArrivalTimeEditorProps {
   hasDefault: boolean;
   hasEffectiveArrivalTime: boolean;
   backgroundMode: "default" | "light" | "dark";
-  paletteModeForGradient: "light" | "dark";
   mainTextColor: string;
   secondaryTextColor: string;
   themeTextSecondaryColor: string;
@@ -29,7 +29,6 @@ export const ArrivalTimeEditor = ({
   hasDefault,
   hasEffectiveArrivalTime,
   backgroundMode,
-  paletteModeForGradient,
   mainTextColor,
   secondaryTextColor,
   themeTextSecondaryColor,
@@ -39,6 +38,7 @@ export const ArrivalTimeEditor = ({
   onReset,
   onStartEditing,
 }: ArrivalTimeEditorProps): ReactElement => {
+  const theme = useTheme();
   const useOverrideEditStyling = backgroundMode !== "default" && hasEffectiveArrivalTime;
 
   if (isEditing) {
@@ -55,7 +55,7 @@ export const ArrivalTimeEditor = ({
               color: useOverrideEditStyling ? mainTextColor : undefined,
             },
             "& input[type='time']::-webkit-calendar-picker-indicator": {
-              filter: (useOverrideEditStyling ? paletteModeForGradient : "light") === "dark" ? "invert(1)" : "invert(0)",
+              ...(theme.palette.mode === "dark" && { filter: "invert(1)" }),
               cursor: "pointer",
             },
             "& input[type='time']::-webkit-calendar-picker-indicator:hover": {

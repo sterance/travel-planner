@@ -11,6 +11,7 @@ interface SectionArrivalProps {
   previousDestination?: Destination;
   arrivalDate: Dayjs | null;
   onArrivalTimeChange: (dateTime: Dayjs | null) => void;
+  onDestinationChange: (destination: Destination) => void;
   arrivalWeatherBackgroundMode?: "default" | "light" | "dark";
 }
 
@@ -19,6 +20,7 @@ export const SectionArrival = ({
   previousDestination,
   arrivalDate,
   onArrivalTimeChange,
+  onDestinationChange,
   arrivalWeatherBackgroundMode = "default",
 }: SectionArrivalProps): ReactElement => {
   const arrivalButtons = [
@@ -45,6 +47,7 @@ export const SectionArrival = ({
         previousDestination={previousDestination}
         arrivalDate={arrivalDate}
         onArrivalTimeChange={onArrivalTimeChange}
+        onWeatherDetailsUpdate={(details) => onDestinationChange({ ...destination, weatherDetails: details })}
         backgroundMode={arrivalWeatherBackgroundMode}
       />
       <Box sx={{ mt: 1 }}>

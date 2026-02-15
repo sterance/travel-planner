@@ -31,15 +31,7 @@ interface DestinationCardHeaderEditProps {
   onBlur: () => void;
 }
 
-export const DestinationCardHeaderEdit = ({
-  inputValue,
-  suggestions,
-  isLoading,
-  autocompleteRef,
-  onInputChange,
-  onChange,
-  onBlur,
-}: DestinationCardHeaderEditProps): ReactElement => {
+export const DestinationCardHeaderEdit = ({ inputValue, suggestions, isLoading, autocompleteRef, onInputChange, onChange, onBlur }: DestinationCardHeaderEditProps): ReactElement => {
   return (
     <Box sx={{ position: "relative", width: "100%" }}>
       <Autocomplete
@@ -91,7 +83,7 @@ export const DestinationCardHeaderEdit = ({
           width: "100%",
           "& .MuiAutocomplete-endAdornment": {
             position: "absolute",
-          right: "8px",
+            right: "8px",
           },
           "& .MuiInputBase-root": {
             paddingRight: "0 !important",
@@ -136,41 +128,9 @@ interface DestinationCardHeaderDisplayProps {
   onCustomNightsChange: (value: string) => void;
   onCustomNightsKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onCustomNightsSubmit: () => void;
-  isCarousel?: boolean;
 }
 
-export const DestinationCardHeaderDisplay = ({
-  destination,
-  layoutMode,
-  arrivalDate,
-  departureDate,
-  alwaysExpanded,
-  expanded,
-  isFirst,
-  currentTransport,
-  isTransportSet,
-  calculatedNights,
-  showCustomNights,
-  customNightsValue,
-  calendarOpen,
-  calendarAnchorEl,
-  transportAnchorEl,
-  transportOpen,
-  onTransportClick,
-  onTransportClose,
-  onTransportSelect,
-  onCalendarClick,
-  onCalendarClose,
-  onNightSelect,
-  onExpandClick,
-  onEditClick,
-  isOnwardsTravelBooked,
-  customNightsInputRef,
-  onCustomNightsChange,
-  onCustomNightsKeyDown,
-  onCustomNightsSubmit,
-  isCarousel = false,
-}: DestinationCardHeaderDisplayProps): ReactElement => {
+export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalDate, departureDate, alwaysExpanded, expanded, isFirst, currentTransport, isTransportSet, calculatedNights, showCustomNights, customNightsValue, calendarOpen, calendarAnchorEl, transportAnchorEl, transportOpen, onTransportClick, onTransportClose, onTransportSelect, onCalendarClick, onCalendarClose, onNightSelect, onExpandClick, onEditClick, isOnwardsTravelBooked, customNightsInputRef, onCustomNightsChange, onCustomNightsKeyDown, onCustomNightsSubmit }: DestinationCardHeaderDisplayProps): ReactElement => {
   return (
     <>
       <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
@@ -210,7 +170,7 @@ export const DestinationCardHeaderDisplay = ({
             sx={{
               textAlign: "center",
               cursor: "text",
-              ...(isCarousel && { transform: "translateY(1rem)" }),
+              ...(alwaysExpanded && { transform: "translateY(1rem)" }),
             }}
           >
             {destination.displayName || destination.name || "Destination name"}
@@ -323,11 +283,7 @@ export const DestinationCardHeaderDisplay = ({
           <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
             {expanded && (
               <Typography variant="body2" sx={{ flexShrink: 0 }}>
-                {destination.nights === "none"
-                  ? "None"
-                  : calculatedNights !== null
-                  ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}`
-                  : "\u00A0"}
+                {destination.nights === "none" ? "None" : calculatedNights !== null ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}` : "\u00A0"}
               </Typography>
             )}
             {!expanded && layoutMode === "portrait" && departureDate && (
@@ -356,9 +312,7 @@ export const DestinationCardHeaderDisplay = ({
             </Typography>
           </Box>
           <Box sx={{ justifySelf: "end" }}>
-            <Typography variant="body2">
-              {destination.nights === "none" ? "None" : calculatedNights !== null ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}` : "\u00A0"}
-            </Typography>
+            <Typography variant="body2">{destination.nights === "none" ? "None" : calculatedNights !== null ? `${calculatedNights} ${calculatedNights === 1 ? "Night" : "Nights"}` : "\u00A0"}</Typography>
           </Box>
         </Box>
       )}
@@ -397,42 +351,9 @@ interface DestinationCardHeaderLazyProps {
   onCustomNightsSubmit: () => void;
   onDestinationChange: (destination: DestinationType) => void;
   shouldFocus: boolean;
-  isCarousel?: boolean;
 }
 
-export const DestinationCardHeaderLazy = ({
-  destination,
-  layoutMode,
-  arrivalDate,
-  departureDate,
-  alwaysExpanded,
-  expanded,
-  isFirst,
-  currentTransport,
-  isTransportSet,
-  calculatedNights,
-  showCustomNights,
-  customNightsValue,
-  calendarOpen,
-  calendarAnchorEl,
-  transportAnchorEl,
-  transportOpen,
-  onTransportClick,
-  onTransportClose,
-  onTransportSelect,
-  onCalendarClick,
-  onCalendarClose,
-  onNightSelect,
-  onExpandClick,
-  isOnwardsTravelBooked,
-  customNightsInputRef,
-  onCustomNightsChange,
-  onCustomNightsKeyDown,
-  onCustomNightsSubmit,
-  onDestinationChange,
-  shouldFocus,
-  isCarousel = false,
-}: DestinationCardHeaderLazyProps): ReactElement => {
+export const DestinationCardHeaderLazy = ({ destination, layoutMode, arrivalDate, departureDate, alwaysExpanded, expanded, isFirst, currentTransport, isTransportSet, calculatedNights, showCustomNights, customNightsValue, calendarOpen, calendarAnchorEl, transportAnchorEl, transportOpen, onTransportClick, onTransportClose, onTransportSelect, onCalendarClick, onCalendarClose, onNightSelect, onExpandClick, isOnwardsTravelBooked, customNightsInputRef, onCustomNightsChange, onCustomNightsKeyDown, onCustomNightsSubmit, onDestinationChange, shouldFocus }: DestinationCardHeaderLazyProps): ReactElement => {
   const { inputValue, suggestions, isLoading, isEditing, autocompleteRef, handleInputChange, handleChange, handleBlur, handleEditClick } = useDestinationSearch({
     destination,
     onDestinationChange,
@@ -443,47 +364,9 @@ export const DestinationCardHeaderLazy = ({
     <>
       <Box sx={{ width: "100%" }}>
         {isEditing ? (
-          <DestinationCardHeaderEdit
-            inputValue={inputValue}
-            suggestions={suggestions}
-            isLoading={isLoading}
-            autocompleteRef={autocompleteRef}
-            onInputChange={handleInputChange}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
+          <DestinationCardHeaderEdit inputValue={inputValue} suggestions={suggestions} isLoading={isLoading} autocompleteRef={autocompleteRef} onInputChange={handleInputChange} onChange={handleChange} onBlur={handleBlur} />
         ) : (
-          <DestinationCardHeaderDisplay
-            destination={destination}
-            layoutMode={layoutMode}
-            arrivalDate={arrivalDate}
-            departureDate={departureDate}
-            alwaysExpanded={alwaysExpanded}
-            expanded={expanded}
-            isFirst={isFirst}
-            currentTransport={currentTransport}
-            isTransportSet={isTransportSet}
-            calculatedNights={calculatedNights}
-            showCustomNights={showCustomNights}
-            customNightsValue={customNightsValue}
-            calendarOpen={calendarOpen}
-            calendarAnchorEl={calendarAnchorEl}
-            transportAnchorEl={transportAnchorEl}
-            transportOpen={transportOpen}
-            onTransportClick={onTransportClick}
-            onTransportClose={onTransportClose}
-            onTransportSelect={onTransportSelect}
-            onCalendarClick={onCalendarClick}
-            onCalendarClose={onCalendarClose}
-            onNightSelect={onNightSelect}
-            onExpandClick={onExpandClick}
-            onEditClick={handleEditClick}
-            isOnwardsTravelBooked={isOnwardsTravelBooked}
-            customNightsInputRef={customNightsInputRef}
-            onCustomNightsChange={onCustomNightsChange}
-            onCustomNightsKeyDown={onCustomNightsKeyDown}
-            onCustomNightsSubmit={onCustomNightsSubmit}
-            isCarousel={isCarousel}
+          <DestinationCardHeaderDisplay destination={destination} layoutMode={layoutMode} arrivalDate={arrivalDate} departureDate={departureDate} alwaysExpanded={alwaysExpanded} expanded={expanded} isFirst={isFirst} currentTransport={currentTransport} isTransportSet={isTransportSet} calculatedNights={calculatedNights} showCustomNights={showCustomNights} customNightsValue={customNightsValue} calendarOpen={calendarOpen} calendarAnchorEl={calendarAnchorEl} transportAnchorEl={transportAnchorEl} transportOpen={transportOpen} onTransportClick={onTransportClick} onTransportClose={onTransportClose} onTransportSelect={onTransportSelect} onCalendarClick={onCalendarClick} onCalendarClose={onCalendarClose} onNightSelect={onNightSelect} onExpandClick={onExpandClick} onEditClick={handleEditClick} isOnwardsTravelBooked={isOnwardsTravelBooked} customNightsInputRef={customNightsInputRef} onCustomNightsChange={onCustomNightsChange} onCustomNightsKeyDown={onCustomNightsKeyDown} onCustomNightsSubmit={onCustomNightsSubmit}
           />
         )}
       </Box>
@@ -492,4 +375,3 @@ export const DestinationCardHeaderLazy = ({
 };
 
 export default DestinationCardHeaderLazy;
-

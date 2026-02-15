@@ -49,28 +49,7 @@ interface TripLayoutPortraitListProps extends TripHeaderProps {
   handleExploreSelect: (index: number, option: string) => void;
 }
 
-export const TripLayoutPortraitList = ({
-  viewMode,
-  layoutMode,
-  destinationsWithTimeline,
-  destinationDates,
-  reorderDragOverIndex,
-  newlyCreatedId,
-  showExploreButton,
-  showInfoButton,
-  arrivalWeatherBackgroundMode,
-  exploreAnchorEl,
-  handleAddDestination,
-  handleDestinationChange,
-  handleRemoveDestination,
-  handleReorderDragStart,
-  handleReorderDragOver,
-  handleReorderDrop,
-  handleReorderDragEnd,
-  handleExploreClick,
-  handleExploreClose,
-  handleExploreSelect,
-  ...settingsProps
+export const TripLayoutPortraitList = ({ viewMode, layoutMode, destinationsWithTimeline, destinationDates, reorderDragOverIndex, newlyCreatedId, showExploreButton, showInfoButton, arrivalWeatherBackgroundMode, exploreAnchorEl, handleAddDestination, handleDestinationChange, handleRemoveDestination, handleReorderDragStart, handleReorderDragOver, handleReorderDrop, handleReorderDragEnd, handleExploreClick, handleExploreClose, handleExploreSelect, ...settingsProps
 }: TripLayoutPortraitListProps): ReactElement => {
   return (
     <Box

@@ -2,24 +2,25 @@ import { useState } from "react";
 import type { Dayjs } from "dayjs";
 import type { Destination } from "../types/destination";
 import { getSafeDayjsValue } from "../utils/dateUtils";
+import { SCHEDULED_TRANSPORT_MODES } from "../utils/transportConfig";
 import { useAirportAutocomplete } from "./useAirportAutocomplete";
 
 interface UseOnwardsDetailsModalConfig {
   destination: Destination;
   transportMode?: string | null;
-  isFlight: boolean;
   onDestinationChange: (destination: Destination) => void;
 }
 
 export interface OnwardsDetailsModalState {
   isOpen: boolean;
   title: string;
-  isFlight: boolean;
+  isScheduledTransport: boolean;
+  bookingNumberLabel: string;
   departureDateTime: Dayjs | null;
   arrivalDateTime: Dayjs | null;
   departureLocation: string;
   arrivalLocation: string;
-  flightNumber: string;
+  bookingNumber: string;
   referenceDate: Dayjs | null;
   departureAutocomplete: ReturnType<typeof useAirportAutocomplete>;
   arrivalAutocomplete: ReturnType<typeof useAirportAutocomplete>;
@@ -29,7 +30,7 @@ export interface OnwardsDetailsModalState {
   setArrivalDateTime: (value: Dayjs | null) => void;
   setDepartureLocation: (value: string) => void;
   setArrivalLocation: (value: string) => void;
-  setFlightNumber: (value: string) => void;
+  setBookingNumber: (value: string) => void;
   save: () => void;
   clear: () => void;
 }
@@ -43,12 +44,24 @@ const getTransportDetailsModalTitle = (transport?: string | null): string => {
   return "Transport Details";
 };
 
+const getBookingNumberLabel = (transport?: string | null): string => {
+  if (!transport) return "";
+  if (transport === "by plane") return "Flight Number";
+  if (transport === "by bus") return "Bus Number";
+  if (transport === "by train") return "Train Number";
+  if (transport === "by boat") return "Voyage Number";
+  return "";
+};
+
 export const useOnwardsDetailsModal = ({
   destination,
   transportMode,
-  isFlight,
   onDestinationChange,
 }: UseOnwardsDetailsModalConfig): OnwardsDetailsModalState => {
+  const isFlight = transportMode === "by plane";
+  const isScheduledTransport =
+    !!transportMode && (SCHEDULED_TRANSPORT_MODES as readonly string[]).includes(transportMode);
+
   const [isOpen, setIsOpen] = useState(false);
   const [departureDateTime, setDepartureDateTime] = useState<Dayjs | null>(null);
   const [arrivalDateTime, setArrivalDateTime] = useState<Dayjs | null>(null);
@@ -56,7 +69,7 @@ export const useOnwardsDetailsModal = ({
   const departureAutocomplete = useAirportAutocomplete(isFlight);
   const arrivalAutocomplete = useAirportAutocomplete(isFlight);
 
-  const [flightNumber, setFlightNumber] = useState("");
+  const [bookingNumber, setBookingNumber] = useState("");
 
   const referenceDate = destination.departureDate ?? destination.arrivalDate ?? null;
 
@@ -96,7 +109,7 @@ export const useOnwardsDetailsModal = ({
 
     departureAutocomplete.setValue(details?.departureLocation || "");
     arrivalAutocomplete.setValue(details?.arrivalLocation || "");
-    setFlightNumber(details?.flightNumber || "");
+    setBookingNumber(details?.bookingNumber || "");
     setIsOpen(true);
   };
 
@@ -106,7 +119,7 @@ export const useOnwardsDetailsModal = ({
     setArrivalDateTime(null);
     departureAutocomplete.setValue("");
     arrivalAutocomplete.setValue("");
-    setFlightNumber("");
+    setBookingNumber("");
   };
 
   const save = (): void => {
@@ -118,7 +131,7 @@ export const useOnwardsDetailsModal = ({
         arrivalDateTime,
         departureLocation: departureAutocomplete.value || undefined,
         arrivalLocation: arrivalAutocomplete.value || undefined,
-        flightNumber: flightNumber || undefined,
+        bookingNumber: bookingNumber || undefined,
       },
     });
     setIsOpen(false);
@@ -135,12 +148,13 @@ export const useOnwardsDetailsModal = ({
   return {
     isOpen,
     title: getTransportDetailsModalTitle(transportMode),
-    isFlight,
+    isScheduledTransport,
+    bookingNumberLabel: getBookingNumberLabel(transportMode),
     departureDateTime,
     arrivalDateTime,
     departureLocation: departureAutocomplete.value,
     arrivalLocation: arrivalAutocomplete.value,
-    flightNumber,
+    bookingNumber,
     referenceDate,
     departureAutocomplete,
     arrivalAutocomplete,
@@ -150,7 +164,7 @@ export const useOnwardsDetailsModal = ({
     setArrivalDateTime,
     setDepartureLocation: departureAutocomplete.setValue,
     setArrivalLocation: arrivalAutocomplete.setValue,
-    setFlightNumber,
+    setBookingNumber,
     save,
     clear,
   };

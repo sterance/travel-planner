@@ -4,8 +4,9 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 import { SectionCard } from "./utility/SectionCard";
+import { CollapsibleList } from "./utility/CollapsibleList";
+import { ListCard } from "./ListCard";
 import { StatusBadge } from "./utility/StatusBadge";
 import { DetailsModal } from "./utility/DetailsModal";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
@@ -13,7 +14,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { Dayjs } from "dayjs";
 import { type Destination, type ActivityDetails } from "../types/destination";
-import { formatDateTime, getSafeDayjsValue } from "../utils/dateUtils";
+import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { useSectionItemList } from "../hooks/useSectionItemList";
 
@@ -94,35 +95,19 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
               </Typography>
             </StatusBadge>
           )}
-          {activities.map((activity: ActivityDetails, index: number) => (
-            <Box
-              key={activity.id}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 1,
-                gap: 1,
-              }}
-            >
-              <Box sx={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-                <Typography variant="body1" noWrap>
-                  {activity.name || "Activity"}
-                </Typography>
-                {activity.address && (
-                  <Typography variant="body2" color="text.secondary" noWrap>
-                    {activity.address}
-                  </Typography>
-                )}
-                <Typography variant="body2" color="text.secondary">
-                  {formatDateTime(activity.startDateTime) || "No start"} – {formatDateTime(activity.endDateTime) || "No end"}
-                </Typography>
-              </Box>
-              <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => openForEdit(index)}>
-                edit
-              </Button>
-            </Box>
-          ))}
+          {activities.length > 0 && (
+            <CollapsibleList count={activities.length} labelSingular="Activity" labelPlural="Activities">
+              {activities.map((activity: ActivityDetails, index: number) => (
+                <ListCard
+                  key={activity.id}
+                  primaryText={activity.name || "Activity"}
+                  secondaryText={activity.address}
+                  tertiaryText={formatDateTimeRange(activity.startDateTime, activity.endDateTime, "No start", "No end")}
+                  onEdit={() => openForEdit(index)}
+                />
+              ))}
+            </CollapsibleList>
+          )}
           {showAddButton && (
             <Button variant="contained" startIcon={<AddIcon />} onClick={openForNew} fullWidth>
               add activities
@@ -178,3 +163,5 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
     </>
   );
 };
+
+export default SectionActivities;

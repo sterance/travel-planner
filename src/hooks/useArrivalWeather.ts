@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import dayjs, { type Dayjs } from "dayjs";
-import type { Destination } from "../types/destination";
+import type { Destination, WeatherDetails } from "../types/destination";
 import { getWeatherForecast, peekWeatherForecast, type WeatherForecast } from "../services/weatherService";
 
 interface UseArrivalWeatherConfig {
@@ -8,6 +8,7 @@ interface UseArrivalWeatherConfig {
   previousDestination?: Destination;
   arrivalDate: Dayjs | null;
   onArrivalTimeChange: (dateTime: Dayjs | null) => void;
+  onWeatherDetailsUpdate?: (details: WeatherDetails) => void;
 }
 
 interface UseArrivalWeatherResult {
@@ -33,6 +34,7 @@ export const useArrivalWeather = ({
   previousDestination,
   arrivalDate,
   onArrivalTimeChange,
+  onWeatherDetailsUpdate,
 }: UseArrivalWeatherConfig): UseArrivalWeatherResult => {
   const [isEditing, setIsEditing] = useState(false);
   const [timeValue, setTimeValue] = useState("");
@@ -99,12 +101,35 @@ export const useArrivalWeather = ({
       return;
     }
 
+    const stored = destination.weatherDetails;
+    if (
+      stored &&
+      stored.latitude === latitude &&
+      stored.longitude === longitude &&
+      stored.dateTime.isValid() &&
+      stored.dateTime.format("YYYY-MM-DD-HH") === dateTimeToFetch.format("YYYY-MM-DD-HH")
+    ) {
+      setWeather(stored);
+      setIsLoadingWeather(false);
+      setWeatherError(false);
+      setWeatherErrorDateTime(null);
+      return;
+    }
+
     const cached = peekWeatherForecast(latitude, longitude, dateTimeToFetch);
     if (cached !== undefined) {
       setWeather(cached);
       setIsLoadingWeather(false);
       setWeatherError(cached === null);
       setWeatherErrorDateTime(cached === null ? dateTimeToFetch : null);
+      if (cached && onWeatherDetailsUpdate) {
+        onWeatherDetailsUpdate({
+          ...cached,
+          latitude,
+          longitude,
+          dateTime: dateTimeToFetch,
+        });
+      }
       return;
     }
 
@@ -122,6 +147,15 @@ export const useArrivalWeather = ({
         if (!forecast) {
           setWeatherError(true);
           setWeatherErrorDateTime(dateTimeToFetch);
+          return;
+        }
+        if (onWeatherDetailsUpdate) {
+          onWeatherDetailsUpdate({
+            ...forecast,
+            latitude,
+            longitude,
+            dateTime: dateTimeToFetch,
+          });
         }
       })
       .catch(() => {
@@ -132,7 +166,7 @@ export const useArrivalWeather = ({
         setWeatherErrorDateTime(dateTimeToFetch);
       });
 
-  return () => {
+    return () => {
       cancelled = true;
     };
   }, [dateTimeToFetch?.valueOf() ?? null, latitude, longitude]);
