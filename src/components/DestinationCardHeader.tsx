@@ -166,7 +166,7 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
         />
         <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <Typography
-            variant="h6"
+            variant="h5"
             component="div"
             onClick={onEditClick}
             sx={{
@@ -305,7 +305,7 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
             gridTemplateColumns: "1fr 1fr",
             alignItems: "center",
             width: "100%",
-            mt: 1,
+            mt: 2,
           }}
         >
           <Box sx={{ justifySelf: "start" }}>

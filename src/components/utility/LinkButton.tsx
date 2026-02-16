@@ -70,6 +70,7 @@ export const LinkButton = ({ site, url, children }: LinkButtonProps): ReactEleme
         lineHeight: 1.6,
         height: "1.5lh",
         overflow: "hidden",
+        boxShadow: 1
       })}
     >
       {renderIcon()}

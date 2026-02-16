@@ -50,7 +50,7 @@ export const SectionArrival = ({
         onWeatherDetailsUpdate={(details) => onDestinationChange({ ...destination, weatherDetails: details })}
         backgroundMode={arrivalWeatherBackgroundMode}
       />
-      <Box sx={{ mt: 1 }}>
+      <Box sx={{ mt: 2 }}>
         <ExternalLinksGrid links={arrivalButtons} />
       </Box>
     </SectionCard>

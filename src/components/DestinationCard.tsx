@@ -197,7 +197,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
             onMouseLeave={() => setButtonHover(null)}
             sx={(theme) => ({
               position: "absolute",
-              top: -34,
+              top: -35,
               ...(isCarousel
                 ? {
                     left: "50%",
@@ -210,7 +210,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       right: "100%",
                       top: 0,
                       width: "100%",
-                      height: "100%",
+                      height: "101%",
                       backgroundColor: "inherit",
                       backgroundImage: "inherit",
                       clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
@@ -221,7 +221,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       left: "100%",
                       top: 0,
                       width: "100%",
-                      height: "100%",
+                      height: "101%",
                       backgroundColor: "inherit",
                       backgroundImage: "inherit",
                       clipPath: "polygon(0% 0, 0% 100%, 100% 100%)",
@@ -240,7 +240,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       right: "100%",
                       top: 0,
                       width: "100%",
-                      height: "100%",
+                      height: "101%",
                       backgroundColor: "inherit",
                       backgroundImage: "inherit",
                       clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
@@ -273,7 +273,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
               onMouseLeave={() => setButtonHover(null)}
               sx={(theme) => ({
                 position: "absolute",
-                top: -34,
+                top: -35,
                 left: 0,
                 zIndex: 0,
                 boxShadow: "none",
@@ -291,10 +291,11 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   left: "100%",
                   top: 0,
                   width: "100%",
-                  height: "100%",
+                  height: "101%",
                   backgroundColor: "inherit",
                   backgroundImage: "inherit",
                   clipPath: "polygon(0 0, 0% 100%, 100% 100%)",
+                  
                 },
               })}
             >

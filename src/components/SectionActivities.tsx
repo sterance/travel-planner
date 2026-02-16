@@ -85,7 +85,7 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
     <>
       <SectionCard title="Activities">
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <Box sx={{ mt: 1 }}>
+          <Box sx={{ mt: 2 }}>
             <ExternalLinksGrid links={activityButtons} />
           </Box>
           {hasCoveragePastDestinationEnd && destinationCheckOut && latestEndDate && (

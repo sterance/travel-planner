@@ -26,7 +26,7 @@ export const TripCardDate = ({
   referenceDateForStart,
 }: TripCardDateProps): ReactElement => {
   return (
-    <Card>
+    <Card sx={{ mt: 2 }}>
       <CardContent
         sx={{
           p: 2,

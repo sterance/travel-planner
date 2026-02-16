@@ -8,11 +8,12 @@ import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
-import { QuestionMark } from "@mui/icons-material";
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
+import { getPulsingDropShadowSx } from "./utility/pulsingShadow";
 
 const DestinationCard = lazy(async () => {
   const module = await import("./DestinationCard");
@@ -98,8 +99,9 @@ export const TripLayoutPortraitList = ({ viewMode, layoutMode, destinationsWithT
                 <>
                   {showExploreButton && (
                     <IconButton size="small" onClick={(e) => handleExploreClick(e, index)} sx={{ opacity: 0.7 }}>
-                      <QuestionMark />
+                      <TravelExploreIcon />
                     </IconButton>
+                    // import TravelExploreIcon from '@mui/icons-material/TravelExplore';
                   )}
                   <Menu anchorEl={exploreAnchorEl[index]} open={Boolean(exploreAnchorEl[index])} onClose={() => handleExploreClose(index)}>
                     <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
@@ -114,8 +116,20 @@ export const TripLayoutPortraitList = ({ viewMode, layoutMode, destinationsWithT
                     )}
                   </Menu>
                 </>
-                <IconButton onClick={() => handleAddDestination(index)} color="primary" size="small">
-                  <AddIcon />
+                <IconButton
+                  onClick={() => handleAddDestination(index)}
+                  color="primary"
+                  size="small"
+                >
+                  <AddIcon
+                    sx={(theme) => ({
+                      transform: "scale(1.4)",
+                      ...getPulsingDropShadowSx({
+                        minShadow: `0 1px 4px ${theme.palette.primary.main}80`,
+                        maxShadow: `0 2px 8px ${theme.palette.primary.main}CC`,
+                      }),
+                    })}
+                  />
                 </IconButton>
                 {showInfoButton && (
                   <IconButton size="small" sx={{ opacity: 0.7 }}>

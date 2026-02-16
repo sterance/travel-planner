@@ -1,13 +1,8 @@
 import { type ReactElement, type ReactNode } from "react";
-import { keyframes } from "@emotion/react";
 import Box from "@mui/material/Box";
 import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-
-const statusBadgeShadowPulse = keyframes`
-  0%, 100% { box-shadow: var(--status-badge-shadow-min); }
-  50% { box-shadow: var(--status-badge-shadow-max); }
-`;
+import { getPulsingDropShadowSx } from "./pulsingShadow";
 
 interface StatusBadgeProps {
   variant: "info" | "start" | "end" | "warning";
@@ -31,16 +26,21 @@ export const StatusBadge = ({ variant, visible = true, children, attachToText = 
       <Box
         sx={(theme) => {
           const shadowColor = variant === "end" ? shadowColorMap.success(theme) : shadowColorMap[variant === "warning" ? "warning" : "info"](theme);
+          const pulseSx = getPulsingDropShadowSx({
+            minShadow: `0 1px 4px ${shadowColor}80`,
+            maxShadow: `0 2px 8px ${shadowColor}CC`,
+            minVarName: "--status-badge-shadow-min",
+            maxVarName: "--status-badge-shadow-max",
+            duration: "2.5s",
+            easing: "ease-in-out",
+          });
           const baseStyles = {
             position: "absolute" as const,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             opacity: 0.7,
-            "--status-badge-shadow-min": `0 1px 4px ${shadowColor}80`,
-            "--status-badge-shadow-max": `0 2px 8px ${shadowColor}CC`,
-            boxShadow: "var(--status-badge-shadow-min)",
-            animation: `${statusBadgeShadowPulse} 2.5s ease-in-out infinite`,
+            ...pulseSx,
             top: attachToText ? -4 : 2,
             right: attachToText ? -6 : 2,
           };

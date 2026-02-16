@@ -1,4 +1,4 @@
-import { type ReactElement, lazy, Suspense } from "react";
+import { type ReactElement, lazy, Suspense, useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -12,11 +12,12 @@ import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
-import { QuestionMark } from "@mui/icons-material";
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
+import { getPulsingDropShadowSx } from "./utility/pulsingShadow";
 
 const DestinationCard = lazy(async () => {
   const module = await import("./DestinationCard");
@@ -126,6 +127,48 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
     </Button>
   );
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+  const controlRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [controlPositions, setControlPositions] = useState<Array<{ left: number; width: number }>>([]);
+
+  useEffect(() => {
+    const gridContainer = gridContainerRef.current;
+    if (!gridContainer) return;
+
+    const updatePositions = () => {
+      requestAnimationFrame(() => {
+        const positions = controlRefs.current
+          .filter((ref) => ref !== null)
+          .map((ref) => {
+            if (!ref) return { left: 0, width: 0 };
+            const rect = ref.getBoundingClientRect();
+            return {
+              left: rect.left,
+              width: rect.width,
+            };
+          });
+        setControlPositions(positions);
+      });
+    };
+
+    updatePositions();
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", updatePositions, { passive: true });
+    }
+    window.addEventListener("resize", updatePositions);
+    window.addEventListener("scroll", updatePositions, { passive: true, capture: true });
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener("scroll", updatePositions);
+      }
+      window.removeEventListener("resize", updatePositions);
+      window.removeEventListener("scroll", updatePositions, { capture: true });
+    };
+  }, [desktopListColumns, currentIndex]);
+
   return (
     <Box
       sx={{
@@ -135,6 +178,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
       }}
     >
       <Stack
+        ref={scrollContainerRef}
         sx={{
           flex: 1,
           overflow: "auto",
@@ -228,6 +272,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
           </Box>
         </Box>
         <Box
+          ref={gridContainerRef}
           sx={{
             display: "grid",
             gridTemplateColumns,
@@ -242,6 +287,9 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
             return (
               <Box
                 key={`before-${boundaryIndex}`}
+                ref={(el: HTMLDivElement | null) => {
+                  controlRefs.current[boundaryIndex] = el;
+                }}
                 sx={{
                   gridColumn: boundaryIndex * 2 + 1,
                   gridRow: 1,
@@ -250,24 +298,76 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                   alignItems: "center",
                   justifyContent: "center",
                   height: "100%",
+                  position: "relative",
                 }}
               >
-                {isAddButtonWithText ? (
-                  verticalAddButton
-                ) : hasDestination ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    visibility: "hidden",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {isAddButtonWithText ? (
+                    verticalAddButton
+                  ) : hasDestination ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      {showExploreButton && (
+                        <IconButton size="small" sx={{ opacity: 0.7 }}>
+                          <TravelExploreIcon />
+                        </IconButton>
+                      )}
+                      <IconButton color="primary" size="small" aria-label="add destination">
+                      <AddIcon sx={{ transform: "scale(1.4)"}}/>
+                      </IconButton>
+                      {showInfoButton && (
+                        <IconButton size="small" sx={{ opacity: 0.7 }}>
+                          <InfoOutline />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ) : null}
+                </Box>
+                <Box
+                  sx={{
+                    position: "fixed",
+                    top: "50vh",
+                    left: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].left}px` : "auto",
+                    width: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].width}px` : "auto",
+                    transform: "translateY(-50%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1,
+                    pointerEvents: "auto",
+                  }}
+                >
+                  {isAddButtonWithText ? (
+                    verticalAddButton
+                  ) : hasDestination ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
                     <>
                       {showExploreButton && (
                         <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)} sx={{ opacity: 0.7 }}>
-                          <QuestionMark />
+                          <TravelExploreIcon />
                         </IconButton>
                       )}
                       <Menu anchorEl={exploreAnchorEl[insertIndex]} open={Boolean(exploreAnchorEl[insertIndex])} onClose={() => handleExploreClose(insertIndex)}>
@@ -283,8 +383,19 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                         )}
                       </Menu>
                     </>
-                    <IconButton onClick={() => handleAddDestination(insertIndex)} color="primary" size="small" aria-label="add destination">
-                      <AddIcon />
+                    <IconButton
+                      onClick={() => handleAddDestination(insertIndex)}
+                      color="primary"
+                      size="small"
+                      aria-label="add destination"
+                      sx={(theme) => ({
+                        ...getPulsingDropShadowSx({
+                          minShadow: `0 1px 4px ${theme.palette.primary.main}80`,
+                          maxShadow: `0 2px 8px ${theme.palette.primary.main}CC`,
+                        }),
+                      })}
+                    >
+                      <AddIcon sx={{ transform: "scale(1.4)"}}/>
                     </IconButton>
                     {showInfoButton && (
                       <IconButton size="small" sx={{ opacity: 0.7 }}>
@@ -292,7 +403,8 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                       </IconButton>
                     )}
                   </Box>
-                ) : null}
+                  ) : null}
+                </Box>
               </Box>
             );
           })}
@@ -354,6 +466,9 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
             );
           })}
           <Box
+            ref={(el: HTMLDivElement | null) => {
+              controlRefs.current[desktopListColumns] = el;
+            }}
             sx={{
               gridColumn: desktopListColumns * 2 + 1,
               gridRow: 1,
@@ -362,15 +477,48 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
               alignItems: "center",
               justifyContent: "center",
               height: "100%",
+              position: "relative",
             }}
           >
-            {addButtonWithTextPosition === desktopListColumns ? (
-              verticalAddButton
-            ) : !showTrailingAsAddCard ? (
-              <IconButton onClick={() => handleAddDestination(trailingInsertIndex)} color="primary" size="small" aria-label="add destination">
-                <AddIcon />
-              </IconButton>
-            ) : null}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                visibility: "hidden",
+                pointerEvents: "none",
+              }}
+            >
+              {addButtonWithTextPosition === desktopListColumns ? (
+                verticalAddButton
+              ) : !showTrailingAsAddCard ? (
+                <IconButton color="primary" size="small" aria-label="add destination">
+                  <AddIcon sx={{ transform: "scale(1.4)"}}/>
+                </IconButton>
+              ) : null}
+            </Box>
+            <Box
+              sx={{
+                position: "fixed",
+                top: "50vh",
+                left: controlPositions[desktopListColumns] ? `${controlPositions[desktopListColumns].left}px` : "auto",
+                width: controlPositions[desktopListColumns] ? `${controlPositions[desktopListColumns].width}px` : "auto",
+                transform: "translateY(-50%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1,
+                pointerEvents: "auto",
+              }}
+            >
+              {addButtonWithTextPosition === desktopListColumns ? (
+                verticalAddButton
+              ) : !showTrailingAsAddCard ? (
+                <IconButton onClick={() => handleAddDestination(trailingInsertIndex)} color="primary" size="small" aria-label="add destination">
+                  <AddIcon sx={{ transform: "scale(1.4)"}}/>
+                </IconButton>
+              ) : null}
+            </Box>
           </Box>
         </Box>
       </Stack>
