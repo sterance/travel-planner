@@ -8,13 +8,12 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
+import { MagnificationControls } from "./MagnificationControls";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 import { getPulsingDropShadowSx } from "./utility/pulsingShadow";
@@ -39,6 +38,7 @@ interface TripLayoutDesktopListProps extends TripHeaderProps {
   currentIndex: number;
   desktopListColumns: number;
   columns: number;
+  setColumns: (value: number) => void;
   reorderDragOverIndex: number | null;
   newlyCreatedId: string | null;
   showExploreButton: boolean;
@@ -46,8 +46,6 @@ interface TripLayoutDesktopListProps extends TripHeaderProps {
   arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
   exploreAnchorEl: { [key: string]: HTMLElement | null };
   handleAddDestination: (index?: number) => void;
-  handleIncreaseColumns: () => void;
-  handleDecreaseColumns: () => void;
   handleListPrevious: () => void;
   handleListNext: () => void;
   handleDestinationChange: (destination: DestinationType) => void;
@@ -61,7 +59,7 @@ interface TripLayoutDesktopListProps extends TripHeaderProps {
   handleExploreSelect: (index: number, option: string) => void;
 }
 
-export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, destinationsWithTimeline, destinationDates, currentIndex, desktopListColumns, columns, reorderDragOverIndex, newlyCreatedId, showExploreButton, showInfoButton, arrivalWeatherBackgroundMode, exploreAnchorEl, handleAddDestination, handleIncreaseColumns, handleDecreaseColumns, handleListPrevious, handleListNext, handleDestinationChange, handleRemoveDestination, handleReorderDragStart, handleReorderDragOver, handleReorderDrop, handleReorderDragEnd, handleExploreClick, handleExploreClose, handleExploreSelect, ...settingsProps
+export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, destinationsWithTimeline, destinationDates, currentIndex, desktopListColumns, columns, setColumns, reorderDragOverIndex, newlyCreatedId, showExploreButton, showInfoButton, arrivalWeatherBackgroundMode, exploreAnchorEl, handleAddDestination, handleListPrevious, handleListNext, handleDestinationChange, handleRemoveDestination, handleReorderDragStart, handleReorderDragOver, handleReorderDrop, handleReorderDragEnd, handleExploreClick, handleExploreClose, handleExploreSelect, ...settingsProps
 }: TripLayoutDesktopListProps): ReactElement => {
   if (destinations.length === 0) {
     return (
@@ -104,6 +102,28 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
   const trailingInsertIndex = lastVisibleIndex !== null ? lastVisibleIndex + 1 : destinations.length;
   const rangeStart = currentIndex + 1;
   const rangeEnd = Math.min(currentIndex + desktopListColumns, destinations.length);
+
+  const clampColumnsForSet = (nextRaw: number | null): void => {
+    if (nextRaw === null) return;
+    if (!Number.isFinite(nextRaw)) return;
+
+    const nextRounded = Math.round(nextRaw);
+    const nextClampedToHardBounds = Math.min(7, Math.max(3, nextRounded));
+
+    if (nextClampedToHardBounds <= columns) {
+      setColumns(nextClampedToHardBounds);
+      return;
+    }
+
+    const destinationCap = destinations.length;
+    const nextClamped = Math.min(nextClampedToHardBounds, destinationCap);
+
+    if (nextClamped <= columns) {
+      return;
+    }
+
+    setColumns(nextClamped);
+  };
 
   const verticalAddButton = (
     <Button
@@ -208,31 +228,13 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
             sx={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
+              justifyContent: "center",
               gap: 2,
               flex: 1,
               mx: 5,
               mb: 2,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 0.5,
-              }}
-            >
-              <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7 || columns >= destinations.length} color="primary" size="small" aria-label="increase columns">
-                <ZoomOutIcon fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" component="span">
-                /
-              </Typography>
-              <IconButton onClick={handleDecreaseColumns} disabled={columns <= 3} color="primary" size="small" aria-label="decrease columns">
-                <ZoomInIcon fontSize="small" />
-              </IconButton>
-            </Box>
             <Box
               sx={{
                 display: "flex",
@@ -249,24 +251,6 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
               </Typography>
               <IconButton onClick={handleListNext} disabled={currentIndex + desktopListColumns >= destinations.length} color="primary">
                 <ChevronRightIcon />
-              </IconButton>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 0.5,
-              }}
-            >
-              <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7 || columns >= destinations.length} color="primary" size="small" aria-label="increase columns">
-                <ZoomOutIcon fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" component="span">
-                /
-              </Typography>
-              <IconButton onClick={handleDecreaseColumns} disabled={columns <= 3} color="primary" size="small" aria-label="decrease columns">
-                <ZoomInIcon fontSize="small" />
               </IconButton>
             </Box>
           </Box>
@@ -328,7 +312,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                         </IconButton>
                       )}
                       <IconButton color="primary" size="small" aria-label="add destination">
-                      <AddIcon sx={{ transform: "scale(1.4)"}}/>
+                        <AddIcon sx={{ transform: "scale(1.4)" }} />
                       </IconButton>
                       {showInfoButton && (
                         <IconButton size="small" sx={{ opacity: 0.7 }}>
@@ -364,47 +348,65 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                         gap: 4,
                       }}
                     >
-                    <>
-                      {showExploreButton && (
-                        <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)} sx={{ opacity: 0.7 }}>
-                          <TravelExploreIcon />
+                      <>
+                        {showExploreButton && (
+                          <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)} sx={{ opacity: 0.7 }}>
+                            <TravelExploreIcon />
+                          </IconButton>
+                        )}
+                        <Menu anchorEl={exploreAnchorEl[insertIndex]} open={Boolean(exploreAnchorEl[insertIndex])} onClose={() => handleExploreClose(insertIndex)}>
+                          <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
+                            Explore...
+                          </MenuItem>
+                          {insertIndex > 0 && <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-prev`)}>Near {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"}</MenuItem>}
+                          <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-next`)}>Near {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}</MenuItem>
+                          {insertIndex > 0 && (
+                            <MenuItem onClick={() => handleExploreSelect(insertIndex, `between`)}>
+                              Between {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"} and {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}
+                            </MenuItem>
+                          )}
+                        </Menu>
+                      </>
+                      <IconButton
+                        onClick={() => handleAddDestination(insertIndex)}
+                        color="primary"
+                        size="small"
+                        aria-label="add destination"
+                        sx={(theme) => ({
+                          ...getPulsingDropShadowSx({
+                            minShadow: `0 1px 4px ${theme.palette.primary.main}80`,
+                            maxShadow: `0 2px 8px ${theme.palette.primary.main}CC`,
+                          }),
+                        })}
+                      >
+                        <AddIcon sx={{ transform: "scale(1.4)" }} />
+                      </IconButton>
+                      {showInfoButton && (
+                        <IconButton size="small" sx={{ opacity: 0.7 }}>
+                          <InfoOutline />
                         </IconButton>
                       )}
-                      <Menu anchorEl={exploreAnchorEl[insertIndex]} open={Boolean(exploreAnchorEl[insertIndex])} onClose={() => handleExploreClose(insertIndex)}>
-                        <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
-                          Explore...
-                        </MenuItem>
-                        {insertIndex > 0 && <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-prev`)}>Near {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"}</MenuItem>}
-                        <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-next`)}>Near {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}</MenuItem>
-                        {insertIndex > 0 && (
-                          <MenuItem onClick={() => handleExploreSelect(insertIndex, `between`)}>
-                            Between {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"} and {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}
-                          </MenuItem>
-                        )}
-                      </Menu>
-                    </>
-                    <IconButton
-                      onClick={() => handleAddDestination(insertIndex)}
-                      color="primary"
-                      size="small"
-                      aria-label="add destination"
-                      sx={(theme) => ({
-                        ...getPulsingDropShadowSx({
-                          minShadow: `0 1px 4px ${theme.palette.primary.main}80`,
-                          maxShadow: `0 2px 8px ${theme.palette.primary.main}CC`,
-                        }),
-                      })}
-                    >
-                      <AddIcon sx={{ transform: "scale(1.4)"}}/>
-                    </IconButton>
-                    {showInfoButton && (
-                      <IconButton size="small" sx={{ opacity: 0.7 }}>
-                        <InfoOutline />
-                      </IconButton>
-                    )}
-                  </Box>
+                    </Box>
                   ) : null}
                 </Box>
+
+                {boundaryIndex === 0 && !isAddButtonWithText && (
+                  <Box
+                    sx={{
+                      position: "fixed",
+                      bottom: 16,
+                      left: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].left}px` : "auto",
+                      width: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].width}px` : "auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 1,
+                      pointerEvents: "auto",
+                    }}
+                  >
+                    <MagnificationControls columns={columns} destinationCount={destinations.length} onColumnsChange={clampColumnsForSet} />
+                  </Box>
+                )}
               </Box>
             );
           })}
@@ -493,7 +495,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                 verticalAddButton
               ) : !showTrailingAsAddCard ? (
                 <IconButton color="primary" size="small" aria-label="add destination">
-                  <AddIcon sx={{ transform: "scale(1.4)"}}/>
+                  <AddIcon sx={{ transform: "scale(1.4)" }} />
                 </IconButton>
               ) : null}
             </Box>
@@ -515,7 +517,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                 verticalAddButton
               ) : !showTrailingAsAddCard ? (
                 <IconButton onClick={() => handleAddDestination(trailingInsertIndex)} color="primary" size="small" aria-label="add destination">
-                  <AddIcon sx={{ transform: "scale(1.4)"}}/>
+                  <AddIcon sx={{ transform: "scale(1.4)" }} />
                 </IconButton>
               ) : null}
             </Box>

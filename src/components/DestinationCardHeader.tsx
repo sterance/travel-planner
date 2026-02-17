@@ -164,7 +164,7 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
           ]}
           onSelect={(value) => onTransportSelect(String(value) as string)}
         />
-        <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "center", }}>
           <Typography
             variant="h5"
             component="div"
@@ -172,7 +172,12 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
             sx={{
               textAlign: "center",
               cursor: "text",
-              ...(alwaysExpanded && { transform: "translateY(1rem)" }),
+              // outline: "1px solid black",
+              // bgcolor: "background.paper",
+              // paddingX: 1,
+              // paddingY: 0.25,
+              borderRadius: "0.5rem",
+              ...(alwaysExpanded && { transform: "translateY(0.5rem)" }),
             }}
           >
             {destination.displayName || destination.name || "Destination name"}
@@ -302,7 +307,7 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
             width: "100%",
             mt: 2,
@@ -311,6 +316,11 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
           <Box sx={{ justifySelf: "start" }}>
             <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
               {currentTransport || "\u00A0"}
+            </Typography>
+          </Box>
+          <Box sx={{ justifySelf: "start" }}>
+            <Typography variant="body2" color="text.secondary" sx={{ textTransform: "capitalize" }}>
+            {destination.name || destination.displayName || destination.placeDetails?.city || destination.placeDetails?.country || "Unknown Destination"}
             </Typography>
           </Box>
           <Box sx={{ justifySelf: "end" }}>

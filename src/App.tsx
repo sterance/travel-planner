@@ -30,8 +30,13 @@ import { getStringItem, setStringItem } from "./services/storageService";
 import { WeatherTestPage } from "./pages/WeatherTestPage.tsx";
 
 const TripPage = lazy(async () => {
-  const module = await import("./pages/TripPage");
+  const module = await import("./pages/TripPage.tsx");
   return { default: module.TripPage };
+});
+
+const DemoPage = lazy(async () => {
+  const module = await import("./pages/DemoPage.tsx");
+  return { default: module.DemoPage };
 });
 
 const DRAWER_WIDTH = 240;
@@ -296,6 +301,14 @@ function App(): ReactElement {
             >
               <Route path="/" element={<TripRedirect onOpenDrawer={() => setDrawerOpen(true)} />} />
               <Route path="/trip" element={<TripRedirect onOpenDrawer={() => setDrawerOpen(true)} />} />
+              <Route
+                path="/demo"
+                element={
+                  <Suspense fallback={<Box sx={{ p: 3 }}>Loading demo...</Box>}>
+                    <DemoPage />
+                  </Suspense>
+                }
+              />
               <Route
                 path="/trip/:tripId"
                 element={

@@ -157,18 +157,6 @@ export const TripPage = (): ReactElement => {
     setCurrentIndex((prev) => Math.min(Math.max(0, destinations.length - desktopListColumns), prev + 1));
   };
 
-  const handleIncreaseColumns = (): void => {
-    if (!isDesktopList) return;
-    if (columns >= 7) return;
-    setColumns(columns + 1);
-  };
-
-  const handleDecreaseColumns = (): void => {
-    if (!isDesktopList) return;
-    if (columns <= 3) return;
-    setColumns(columns - 1);
-  };
-
   const { exploreAnchorEl, handleExploreClick, handleExploreClose, handleExploreSelect } = useTripExploreMenu();
 
   useTripKeyNav({
@@ -259,6 +247,7 @@ export const TripPage = (): ReactElement => {
           currentIndex={currentIndex}
           desktopListColumns={desktopListColumns}
           columns={columns}
+          setColumns={setColumns}
           reorderDragOverIndex={reorderDragOverIndex}
           newlyCreatedId={newlyCreatedId}
           showExploreButton={showExploreButton}
@@ -266,8 +255,6 @@ export const TripPage = (): ReactElement => {
           arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
           exploreAnchorEl={exploreAnchorEl}
           handleAddDestination={handleAddDestination}
-          handleIncreaseColumns={handleIncreaseColumns}
-          handleDecreaseColumns={handleDecreaseColumns}
           handleListPrevious={handleListPrevious}
           handleListNext={handleListNext}
           handleDestinationChange={handleDestinationChange}

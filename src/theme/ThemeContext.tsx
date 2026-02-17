@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode, type ReactElement } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import GlobalStyles from '@mui/material/GlobalStyles';
 
 interface ThemeContextType {
   mode: 'light' | 'dark';
@@ -51,6 +52,17 @@ export const ThemeContextProvider = ({ children }: ThemeContextProviderProps): R
     <ThemeContext.Provider value={{ mode, toggleTheme }}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        <GlobalStyles
+          styles={(muiTheme) => ({
+            ':root': {
+              '--number-field-text-color': muiTheme.palette.text.primary,
+              '--number-field-border-color': muiTheme.palette.divider,
+              '--number-field-button-bg': muiTheme.palette.action.hover,
+              '--number-field-button-bg-hover': muiTheme.palette.action.selected,
+              '--number-field-focus-outline': muiTheme.palette.primary.main,
+            },
+          })}
+        />
         {children}
       </ThemeProvider>
     </ThemeContext.Provider>

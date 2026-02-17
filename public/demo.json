@@ -1,0 +1,203 @@
+{
+  "trip": {
+    "id": "demo-japan-7-days",
+    "name": "7 days in Japan: Tokyo, Kyoto & Osaka",
+    "startDate": "2025-04-10T09:00:00.000Z",
+    "endDate": "2025-04-17T10:00:00.000Z",
+    "createdAt": "2025-03-01T12:00:00.000Z",
+    "updatedAt": "2025-03-15T18:30:00.000Z",
+    "destinations": [
+      {
+        "id": "tokyo-1",
+        "name": "Tokyo",
+        "displayName": "Tokyo",
+        "nights": 3,
+        "arrivalDate": "2025-04-10T15:30:00.000Z",
+        "arrivalTime": "2025-04-10T15:30:00.000Z",
+        "departureDate": "2025-04-13T08:00:00.000Z",
+        "placeDetails": {
+          "osmId": 109742,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [35.6762, 139.6503],
+          "city": "Tokyo",
+          "state": "Tokyo Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [35.40, 139.50, 35.80, 139.90]
+        },
+        "transportDetails": {
+          "mode": "flight",
+          "departureLocation": "San Francisco International Airport (SFO)",
+          "arrivalLocation": "Tokyo Haneda Airport (HND)",
+          "bookingNumber": "JL001-ABC123",
+          "departureDateTime": "2025-04-09T17:00:00.000-07:00",
+          "arrivalDateTime": "2025-04-10T15:30:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 18,
+          "condition": "Partly cloudy",
+          "weatherCode": 2,
+          "latitude": 35.6762,
+          "longitude": 139.6503,
+          "dateTime": "2025-04-10T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "tokyo-hotel-1",
+            "name": "Shinjuku Park Hotel",
+            "address": "3-1-3 Shinjuku, Shinjuku-ku, Tokyo, Japan",
+            "checkInDateTime": "2025-04-10T16:30:00.000+09:00",
+            "checkOutDateTime": "2025-04-13T07:30:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "tokyo-activity-1",
+            "name": "Shibuya Crossing & Hachiko Statue",
+            "address": "Shibuya City, Tokyo, Japan",
+            "startDateTime": "2025-04-10T19:00:00.000+09:00",
+            "endDateTime": "2025-04-10T21:00:00.000+09:00"
+          },
+          {
+            "id": "tokyo-activity-2",
+            "name": "Tsukiji Outer Market food walk",
+            "address": "Tsukiji, Chuo City, Tokyo, Japan",
+            "startDateTime": "2025-04-11T09:30:00.000+09:00",
+            "endDateTime": "2025-04-11T12:00:00.000+09:00"
+          },
+          {
+            "id": "tokyo-activity-3",
+            "name": "Tokyo Skytree observation deck",
+            "address": "1-1-2 Oshiage, Sumida City, Tokyo, Japan",
+            "startDateTime": "2025-04-12T16:00:00.000+09:00",
+            "endDateTime": "2025-04-12T18:00:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "kyoto-1",
+        "name": "Kyoto",
+        "displayName": "Kyoto",
+        "nights": 2,
+        "arrivalDate": "2025-04-13T11:00:00.000+09:00",
+        "arrivalTime": "2025-04-13T11:00:00.000+09:00",
+        "departureDate": "2025-04-15T10:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 61320,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [35.0116, 135.7681],
+          "city": "Kyoto",
+          "state": "Kyoto Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [34.90, 135.60, 35.10, 135.90]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Tokyo Station",
+          "arrivalLocation": "Kyoto Station",
+          "bookingNumber": "JR-SHINKANSEN-456",
+          "departureDateTime": "2025-04-13T09:00:00.000+09:00",
+          "arrivalDateTime": "2025-04-13T11:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 20,
+          "condition": "Sunny",
+          "weatherCode": 1,
+          "latitude": 35.0116,
+          "longitude": 135.7681,
+          "dateTime": "2025-04-13T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "kyoto-ryokan-1",
+            "name": "Gion Riverside Ryokan",
+            "address": "Higashiyama Ward, Kyoto, Japan",
+            "checkInDateTime": "2025-04-13T15:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-15T10:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "kyoto-activity-1",
+            "name": "Fushimi Inari Taisha",
+            "address": "68 Fukakusa Yabunouchicho, Fushimi Ward, Kyoto, Japan",
+            "startDateTime": "2025-04-14T08:00:00.000+09:00",
+            "endDateTime": "2025-04-14T11:00:00.000+09:00"
+          },
+          {
+            "id": "kyoto-activity-2",
+            "name": "Arashiyama Bamboo Grove & river walk",
+            "address": "Ukyo Ward, Kyoto, Japan",
+            "startDateTime": "2025-04-14T14:00:00.000+09:00",
+            "endDateTime": "2025-04-14T17:00:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "osaka-1",
+        "name": "Osaka",
+        "displayName": "Osaka",
+        "nights": 2,
+        "arrivalDate": "2025-04-15T12:00:00.000+09:00",
+        "arrivalTime": "2025-04-15T12:00:00.000+09:00",
+        "departureDate": "2025-04-17T10:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 270384,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [34.6937, 135.5023],
+          "city": "Osaka",
+          "state": "Osaka Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [34.55, 135.40, 34.80, 135.60]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Kyoto Station",
+          "arrivalLocation": "Osaka Station",
+          "bookingNumber": "JR-LOCAL-789",
+          "departureDateTime": "2025-04-15T11:00:00.000+09:00",
+          "arrivalDateTime": "2025-04-15T12:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 21,
+          "condition": "Clear",
+          "weatherCode": 1,
+          "latitude": 34.6937,
+          "longitude": 135.5023,
+          "dateTime": "2025-04-15T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "osaka-hotel-1",
+            "name": "Namba Station Hotel",
+            "address": "Namba, Chuo Ward, Osaka, Japan",
+            "checkInDateTime": "2025-04-15T15:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-17T08:30:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "osaka-activity-1",
+            "name": "Dotonbori street food night",
+            "address": "Dotonbori, Chuo Ward, Osaka, Japan",
+            "startDateTime": "2025-04-15T19:00:00.000+09:00",
+            "endDateTime": "2025-04-15T22:30:00.000+09:00"
+          },
+          {
+            "id": "osaka-activity-2",
+            "name": "Osaka Castle & park",
+            "address": "1-1 Osakajo, Chuo Ward, Osaka, Japan",
+            "startDateTime": "2025-04-16T10:00:00.000+09:00",
+            "endDateTime": "2025-04-16T13:00:00.000+09:00"
+          }
+        ]
+      }
+    ]
+  }
+}
+
