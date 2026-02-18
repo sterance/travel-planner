@@ -1,9 +1,9 @@
 {
   "trip": {
     "id": "demo-japan-7-days",
-    "name": "7 days in Japan: Tokyo, Kyoto & Osaka",
+    "name": "14 days in Japan: Tokyo, Kyoto, Osaka & more",
     "startDate": "2025-04-10T09:00:00.000Z",
-    "endDate": "2025-04-17T10:00:00.000Z",
+    "endDate": "2025-04-26T10:00:00.000Z",
     "createdAt": "2025-03-01T12:00:00.000Z",
     "updatedAt": "2025-03-15T18:30:00.000Z",
     "destinations": [
@@ -194,6 +194,440 @@
             "address": "1-1 Osakajo, Chuo Ward, Osaka, Japan",
             "startDateTime": "2025-04-16T10:00:00.000+09:00",
             "endDateTime": "2025-04-16T13:00:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "nara-1",
+        "name": "Nara",
+        "displayName": "Nara",
+        "nights": 1,
+        "arrivalDate": "2025-04-17T13:00:00.000+09:00",
+        "arrivalTime": "2025-04-17T13:00:00.000+09:00",
+        "departureDate": "2025-04-18T10:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 38273,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [34.6851, 135.8048],
+          "city": "Nara",
+          "state": "Nara Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [34.60, 135.70, 34.80, 135.90]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Osaka Station",
+          "arrivalLocation": "Nara Station",
+          "bookingNumber": "JR-LOCAL-NARA-101",
+          "departureDateTime": "2025-04-17T12:00:00.000+09:00",
+          "arrivalDateTime": "2025-04-17T13:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 22,
+          "condition": "Sunny",
+          "weatherCode": 1,
+          "latitude": 34.6851,
+          "longitude": 135.8048,
+          "dateTime": "2025-04-17T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "nara-hotel-1",
+            "name": "Nara Park Hotel",
+            "address": "Nara Park area, Nara, Japan",
+            "checkInDateTime": "2025-04-17T15:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-18T09:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "nara-activity-1",
+            "name": "Todai-ji Temple & Great Buddha",
+            "address": "406-1 Zoshicho, Nara, Japan",
+            "startDateTime": "2025-04-17T14:00:00.000+09:00",
+            "endDateTime": "2025-04-17T16:30:00.000+09:00"
+          },
+          {
+            "id": "nara-activity-2",
+            "name": "Nara Park deer feeding",
+            "address": "Nara Park, Nara, Japan",
+            "startDateTime": "2025-04-17T17:00:00.000+09:00",
+            "endDateTime": "2025-04-17T18:30:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "hiroshima-1",
+        "name": "Hiroshima",
+        "displayName": "Hiroshima",
+        "nights": 2,
+        "arrivalDate": "2025-04-18T13:00:00.000+09:00",
+        "arrivalTime": "2025-04-18T13:00:00.000+09:00",
+        "departureDate": "2025-04-20T09:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 38270,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [34.3853, 132.4553],
+          "city": "Hiroshima",
+          "state": "Hiroshima Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [34.30, 132.30, 34.50, 132.60]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Nara Station",
+          "arrivalLocation": "Hiroshima Station",
+          "bookingNumber": "JR-SHINKANSEN-HIRO-202",
+          "departureDateTime": "2025-04-18T10:30:00.000+09:00",
+          "arrivalDateTime": "2025-04-18T13:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 19,
+          "condition": "Partly cloudy",
+          "weatherCode": 2,
+          "latitude": 34.3853,
+          "longitude": 132.4553,
+          "dateTime": "2025-04-18T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "hiroshima-hotel-1",
+            "name": "Hiroshima Peace Memorial Hotel",
+            "address": "Naka Ward, Hiroshima, Japan",
+            "checkInDateTime": "2025-04-18T15:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-20T08:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "hiroshima-activity-1",
+            "name": "Peace Memorial Park & Museum",
+            "address": "1-2 Nakajimacho, Naka Ward, Hiroshima, Japan",
+            "startDateTime": "2025-04-18T14:00:00.000+09:00",
+            "endDateTime": "2025-04-18T17:00:00.000+09:00"
+          },
+          {
+            "id": "hiroshima-activity-2",
+            "name": "Miyajima Island day trip",
+            "address": "Miyajima, Hatsukaichi, Hiroshima, Japan",
+            "startDateTime": "2025-04-19T09:00:00.000+09:00",
+            "endDateTime": "2025-04-19T17:00:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "hakone-1",
+        "name": "Hakone",
+        "displayName": "Hakone",
+        "nights": 1,
+        "arrivalDate": "2025-04-20T14:00:00.000+09:00",
+        "arrivalTime": "2025-04-20T14:00:00.000+09:00",
+        "departureDate": "2025-04-21T11:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 109742,
+          "osmType": "relation",
+          "placeType": "town",
+          "coordinates": [35.2324, 139.1033],
+          "city": "Hakone",
+          "state": "Kanagawa Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [35.15, 139.00, 35.30, 139.20]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Hiroshima Station",
+          "arrivalLocation": "Hakone-Yumoto Station",
+          "bookingNumber": "JR-SHINKANSEN-HAK-303",
+          "departureDateTime": "2025-04-20T09:30:00.000+09:00",
+          "arrivalDateTime": "2025-04-20T14:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 16,
+          "condition": "Cloudy",
+          "weatherCode": 3,
+          "latitude": 35.2324,
+          "longitude": 139.1033,
+          "dateTime": "2025-04-20T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "hakone-ryokan-1",
+            "name": "Hakone Onsen Ryokan",
+            "address": "Hakone, Kanagawa, Japan",
+            "checkInDateTime": "2025-04-20T16:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-21T10:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "hakone-activity-1",
+            "name": "Hakone Ropeway & Owakudani",
+            "address": "Hakone, Kanagawa, Japan",
+            "startDateTime": "2025-04-20T15:00:00.000+09:00",
+            "endDateTime": "2025-04-20T18:00:00.000+09:00"
+          },
+          {
+            "id": "hakone-activity-2",
+            "name": "Lake Ashi cruise",
+            "address": "Lake Ashi, Hakone, Kanagawa, Japan",
+            "startDateTime": "2025-04-21T08:00:00.000+09:00",
+            "endDateTime": "2025-04-21T10:30:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "nikko-1",
+        "name": "Nikko",
+        "displayName": "Nikko",
+        "nights": 1,
+        "arrivalDate": "2025-04-21T15:00:00.000+09:00",
+        "arrivalTime": "2025-04-21T15:00:00.000+09:00",
+        "departureDate": "2025-04-22T12:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 38274,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [36.7581, 139.4981],
+          "city": "Nikko",
+          "state": "Tochigi Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [36.70, 139.40, 36.80, 139.60]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Hakone-Yumoto Station",
+          "arrivalLocation": "Nikko Station",
+          "bookingNumber": "JR-LOCAL-NIKKO-404",
+          "departureDateTime": "2025-04-21T11:30:00.000+09:00",
+          "arrivalDateTime": "2025-04-21T15:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 14,
+          "condition": "Clear",
+          "weatherCode": 1,
+          "latitude": 36.7581,
+          "longitude": 139.4981,
+          "dateTime": "2025-04-21T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "nikko-hotel-1",
+            "name": "Nikko Traditional Inn",
+            "address": "Nikko, Tochigi, Japan",
+            "checkInDateTime": "2025-04-21T16:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-22T11:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "nikko-activity-1",
+            "name": "Toshogu Shrine complex",
+            "address": "2301 Sannai, Nikko, Tochigi, Japan",
+            "startDateTime": "2025-04-21T16:30:00.000+09:00",
+            "endDateTime": "2025-04-21T19:00:00.000+09:00"
+          },
+          {
+            "id": "nikko-activity-2",
+            "name": "Kegon Falls & Lake Chuzenji",
+            "address": "Chugushi, Nikko, Tochigi, Japan",
+            "startDateTime": "2025-04-22T08:00:00.000+09:00",
+            "endDateTime": "2025-04-22T11:30:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "kanazawa-1",
+        "name": "Kanazawa",
+        "displayName": "Kanazawa",
+        "nights": 2,
+        "arrivalDate": "2025-04-22T16:00:00.000+09:00",
+        "arrivalTime": "2025-04-22T16:00:00.000+09:00",
+        "departureDate": "2025-04-24T10:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 38275,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [36.5613, 136.6562],
+          "city": "Kanazawa",
+          "state": "Ishikawa Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [36.50, 136.50, 36.65, 136.80]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Nikko Station",
+          "arrivalLocation": "Kanazawa Station",
+          "bookingNumber": "JR-SHINKANSEN-KAN-505",
+          "departureDateTime": "2025-04-22T12:30:00.000+09:00",
+          "arrivalDateTime": "2025-04-22T16:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 17,
+          "condition": "Sunny",
+          "weatherCode": 1,
+          "latitude": 36.5613,
+          "longitude": 136.6562,
+          "dateTime": "2025-04-22T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "kanazawa-hotel-1",
+            "name": "Kanazawa Machiya Hotel",
+            "address": "Higashiyama, Kanazawa, Ishikawa, Japan",
+            "checkInDateTime": "2025-04-22T17:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-24T09:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "kanazawa-activity-1",
+            "name": "Kenrokuen Garden",
+            "address": "1 Kenrokumachi, Kanazawa, Ishikawa, Japan",
+            "startDateTime": "2025-04-22T18:00:00.000+09:00",
+            "endDateTime": "2025-04-22T20:00:00.000+09:00"
+          },
+          {
+            "id": "kanazawa-activity-2",
+            "name": "Higashi Chaya District",
+            "address": "Higashiyama, Kanazawa, Ishikawa, Japan",
+            "startDateTime": "2025-04-23T10:00:00.000+09:00",
+            "endDateTime": "2025-04-23T13:00:00.000+09:00"
+          },
+          {
+            "id": "kanazawa-activity-3",
+            "name": "Kanazawa Castle",
+            "address": "1-1 Marunouchi, Kanazawa, Ishikawa, Japan",
+            "startDateTime": "2025-04-23T14:00:00.000+09:00",
+            "endDateTime": "2025-04-23T16:30:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "takayama-1",
+        "name": "Takayama",
+        "displayName": "Takayama",
+        "nights": 1,
+        "arrivalDate": "2025-04-24T13:00:00.000+09:00",
+        "arrivalTime": "2025-04-24T13:00:00.000+09:00",
+        "departureDate": "2025-04-25T10:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 38276,
+          "osmType": "relation",
+          "placeType": "city",
+          "coordinates": [36.1460, 137.2522],
+          "city": "Takayama",
+          "state": "Gifu Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [36.10, 137.15, 36.20, 137.35]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Kanazawa Station",
+          "arrivalLocation": "Takayama Station",
+          "bookingNumber": "JR-LOCAL-TAK-606",
+          "departureDateTime": "2025-04-24T10:30:00.000+09:00",
+          "arrivalDateTime": "2025-04-24T13:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 15,
+          "condition": "Partly cloudy",
+          "weatherCode": 2,
+          "latitude": 36.1460,
+          "longitude": 137.2522,
+          "dateTime": "2025-04-24T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "takayama-ryokan-1",
+            "name": "Takayama Old Town Ryokan",
+            "address": "Sanmachi Suji, Takayama, Gifu, Japan",
+            "checkInDateTime": "2025-04-24T15:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-25T09:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "takayama-activity-1",
+            "name": "Sanmachi Suji historic district",
+            "address": "Sanmachi Suji, Takayama, Gifu, Japan",
+            "startDateTime": "2025-04-24T14:00:00.000+09:00",
+            "endDateTime": "2025-04-24T17:00:00.000+09:00"
+          },
+          {
+            "id": "takayama-activity-2",
+            "name": "Morning market & sake tasting",
+            "address": "Miyagawa Morning Market, Takayama, Gifu, Japan",
+            "startDateTime": "2025-04-25T07:00:00.000+09:00",
+            "endDateTime": "2025-04-25T10:00:00.000+09:00"
+          }
+        ]
+      },
+      {
+        "id": "fuji-lakes-1",
+        "name": "Fuji Five Lakes",
+        "displayName": "Fuji Five Lakes",
+        "nights": 1,
+        "arrivalDate": "2025-04-25T14:00:00.000+09:00",
+        "arrivalTime": "2025-04-25T14:00:00.000+09:00",
+        "departureDate": "2025-04-26T11:00:00.000+09:00",
+        "placeDetails": {
+          "osmId": 38277,
+          "osmType": "relation",
+          "placeType": "region",
+          "coordinates": [35.4984, 138.7685],
+          "city": "Fuji Five Lakes",
+          "state": "Yamanashi Prefecture",
+          "country": "Japan",
+          "countryCode": "jp",
+          "extent": [35.40, 138.60, 35.60, 138.90]
+        },
+        "transportDetails": {
+          "mode": "train",
+          "departureLocation": "Takayama Station",
+          "arrivalLocation": "Kawaguchiko Station",
+          "bookingNumber": "JR-LOCAL-FUJI-707",
+          "departureDateTime": "2025-04-25T10:30:00.000+09:00",
+          "arrivalDateTime": "2025-04-25T14:00:00.000+09:00"
+        },
+        "weatherDetails": {
+          "temperature": 13,
+          "condition": "Clear",
+          "weatherCode": 1,
+          "latitude": 35.4984,
+          "longitude": 138.7685,
+          "dateTime": "2025-04-25T09:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "fuji-hotel-1",
+            "name": "Lake Kawaguchi Resort",
+            "address": "Kawaguchiko, Yamanashi, Japan",
+            "checkInDateTime": "2025-04-25T15:00:00.000+09:00",
+            "checkOutDateTime": "2025-04-26T10:00:00.000+09:00"
+          }
+        ],
+        "activities": [
+          {
+            "id": "fuji-activity-1",
+            "name": "Mount Fuji viewing & Chureito Pagoda",
+            "address": "Arakurayama Sengen Park, Fujiyoshida, Yamanashi, Japan",
+            "startDateTime": "2025-04-25T15:30:00.000+09:00",
+            "endDateTime": "2025-04-25T18:00:00.000+09:00"
+          },
+          {
+            "id": "fuji-activity-2",
+            "name": "Lake Kawaguchi boat cruise",
+            "address": "Lake Kawaguchi, Yamanashi, Japan",
+            "startDateTime": "2025-04-26T08:00:00.000+09:00",
+            "endDateTime": "2025-04-26T10:30:00.000+09:00"
           }
         ]
       }

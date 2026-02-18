@@ -1,12 +1,11 @@
-import { useState, useEffect, useMemo, lazy, Suspense, type ReactElement } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense, type ReactElement } from "react";
 import { useOutletContext, useParams, Navigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import dayjs, { type Dayjs } from "dayjs";
-import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
-import { useTripContext } from "../hooks/useTripContext";
+import { type Trip } from "../types/trip";
 import { calculateTripEndDate, computeDestinationTimeline, hasDateErrors } from "../utils/dateCalculation";
 import { useTripDestinations } from "../hooks/useTripDestinations";
 import { useTripLayout } from "../hooks/useTripLayout";
@@ -14,6 +13,8 @@ import { useTripExploreMenu } from "../hooks/useTripExploreMenu";
 import { useTripCarousel } from "../hooks/useTripCarousel";
 import { useTripKeyNav } from "../hooks/useTripKeyNav";
 import { type TripHeaderProps } from "../components/TripHeader";
+import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
+import { useTripContext } from "../hooks/useTripContext";
 
 const TripLayoutCarousel = lazy(async () => {
   const module = await import("../components/TripLayoutCarousel");
@@ -43,6 +44,18 @@ interface OutletContext {
   setShowInfoButton: (value: boolean) => void;
 }
 
+interface TripViewProps {
+  trip: Trip;
+  updateTrip: (trip: Trip) => void;
+  viewMode: ViewMode;
+  layoutMode: LayoutMode;
+  columns: number;
+  setColumns: (value: number) => void;
+  arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
+  showExploreButton: boolean;
+  showInfoButton: boolean;
+}
+
 const isTextInputElement = (element: HTMLElement | null): boolean => {
   if (!element) return false;
 
@@ -63,32 +76,51 @@ const isTextInputElement = (element: HTMLElement | null): boolean => {
   return false;
 };
 
-export const TripPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton } = useOutletContext<OutletContext>();
-  const { tripId } = useParams<{ tripId: string }>();
-  const { trips, currentTrip, updateTrip, setCurrentTrip } = useTripContext();
+export const TripView = ({
+  trip,
+  updateTrip,
+  viewMode,
+  layoutMode,
+  columns,
+  setColumns,
+  arrivalWeatherBackgroundMode,
+  showExploreButton,
+  showInfoButton,
+}: TripViewProps): ReactElement => {
   const [mapExpanded, setMapExpanded] = useState(false);
   const isNarrowScreen = useMediaQuery(`(max-width: 399px)`);
 
-  useEffect(() => {
-    if (tripId && tripId !== currentTrip?.id) {
-      setCurrentTrip(tripId);
-    }
-  }, [tripId, currentTrip?.id, setCurrentTrip]);
-
-  const { destinations, newlyCreatedId, currentIndex, setCurrentIndex, reorderDragOverIndex, handleAddDestination, handleRemoveDestination, handleDestinationChange, handleReorderDragStart, handleReorderDragOver, handleReorderDrop, handleReorderDragEnd, handleStartDateChange } = useTripDestinations({
-    currentTrip,
+  const {
+    destinations,
+    newlyCreatedId,
+    currentIndex,
+    setCurrentIndex,
+    reorderDragOverIndex,
+    handleAddDestination,
+    handleRemoveDestination,
+    handleDestinationChange,
+    handleReorderDragStart,
+    handleReorderDragOver,
+    handleReorderDrop,
+    handleReorderDragEnd,
+    handleStartDateChange,
+  } = useTripDestinations({
+    currentTrip: trip,
     updateTrip,
     viewMode,
     layoutMode,
     columns,
   });
 
-  const tripStartDate = currentTrip?.startDate ?? null;
+  const tripStartDate = trip.startDate ?? null;
   const { isDesktopList, desktopListColumns } = useTripLayout({ viewMode, layoutMode, columns });
 
   const startDateDayjs = tripStartDate;
-  const { infos: destinationDates, destinationsWithTimeline } = useMemo(() => computeDestinationTimeline(startDateDayjs, destinations), [startDateDayjs, destinations]);
+  const { infos: destinationDates, destinationsWithTimeline } = useMemo(
+    () => computeDestinationTimeline(startDateDayjs, destinations),
+    [startDateDayjs, destinations],
+  );
+
   const tripEndDate = useMemo(() => calculateTripEndDate(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const dateErrorsExist = useMemo(() => hasDateErrors(startDateDayjs, destinations), [startDateDayjs, destinations]);
   const referenceDateForStart = useMemo(() => {
@@ -109,7 +141,7 @@ export const TripPage = (): ReactElement => {
     }
 
     return candidateDates.reduce((earliest, current) => (current.isBefore(earliest, "day") ? current : earliest));
-  }, [destinations]);
+  }, [destinationDates]);
 
   useEffect(() => {
     const destinationCount = destinations.length;
@@ -135,7 +167,7 @@ export const TripPage = (): ReactElement => {
         setCurrentIndex(maxStartIndex);
       }
     }
-  }, [destinations.length, viewMode, currentIndex, isDesktopList, desktopListColumns]);
+  }, [destinations.length, viewMode, currentIndex, isDesktopList, desktopListColumns, setCurrentIndex]);
 
   const handlePrevious = (): void => {
     setCurrentIndex((prev) => Math.max(0, prev - 1));
@@ -186,13 +218,6 @@ export const TripPage = (): ReactElement => {
     onMapExpandChange: setMapExpanded,
     onStartDateChange: handleStartDateChange,
   };
-
-  if (!currentTrip) {
-    if (trips.length > 0) {
-      return <Navigate to={`/trip/${trips[0].id}`} replace />;
-    }
-    return <Navigate to="/trip" replace />;
-  }
 
   if (viewMode === "carousel") {
     return (
@@ -307,5 +332,38 @@ export const TripPage = (): ReactElement => {
         {...tripHeaderProps}
       />
     </Suspense>
+  );
+};
+
+export const TripPage = (): ReactElement => {
+  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton } = useOutletContext<OutletContext>();
+  const { tripId } = useParams<{ tripId: string }>();
+  const { trips, currentTrip, updateTrip, setCurrentTrip } = useTripContext();
+
+  useEffect(() => {
+    if (tripId && tripId !== currentTrip?.id) {
+      setCurrentTrip(tripId);
+    }
+  }, [tripId, currentTrip?.id, setCurrentTrip]);
+
+  if (!currentTrip) {
+    if (trips.length > 0) {
+      return <Navigate to={`/trip/${trips[0].id}`} replace />;
+    }
+    return <Navigate to="/trip" replace />;
+  }
+
+  return (
+    <TripView
+      trip={currentTrip}
+      updateTrip={updateTrip}
+      viewMode={viewMode}
+      layoutMode={layoutMode}
+      columns={columns}
+      setColumns={setColumns}
+      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+      showExploreButton={showExploreButton}
+      showInfoButton={showInfoButton}
+    />
   );
 };

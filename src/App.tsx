@@ -1,6 +1,5 @@
 import { useState, useEffect, type ReactElement, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
-import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
@@ -8,26 +7,21 @@ import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import MenuIcon from "@mui/icons-material/Menu";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
-import ViewListIcon from "@mui/icons-material/ViewList";
-import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
-import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
-import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useThemeMode } from "./theme/ThemeContext";
 import { useAuth } from "./contexts/AuthContext";
 import { useTripContext } from "./hooks/useTripContext";
 import { TripSidebarItem } from "./components/TripSidebarItem";
+import { AppToolbar } from "./components/Toolbar";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { getStringItem, setStringItem } from "./services/storageService";
 import { WeatherTestPage } from "./pages/WeatherTestPage.tsx";
+import { ToolbarActionsProvider, useToolbarActions } from "./components/Toolbar";
+import { type Trip } from "./types/trip";
 
 const TripPage = lazy(async () => {
   const module = await import("./pages/TripPage.tsx");
@@ -59,6 +53,10 @@ function App(): ReactElement {
   const { user, logout } = useAuth();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
   const navigate = useNavigate();
+
+  const openDrawer = (): void => {
+    setDrawerOpen(true);
+  };
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
@@ -172,28 +170,129 @@ function App(): ReactElement {
   }, []);
 
   return (
+    <ToolbarActionsProvider>
+      <AppShell
+        drawerOpen={drawerOpen}
+        handleDrawerToggle={handleDrawerToggle}
+        openDrawer={openDrawer}
+        mode={mode}
+        toggleTheme={toggleTheme}
+        viewMode={viewMode}
+        handleViewModeToggle={handleViewModeToggle}
+        layoutMode={layoutMode}
+        handleLayoutModeToggle={handleLayoutModeToggle}
+        columns={columns}
+        setColumns={setColumns}
+        arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+        handleArrivalWeatherBackgroundModeChange={handleArrivalWeatherBackgroundModeChange}
+        showExploreButton={showExploreButton}
+        handleShowExploreButtonChange={handleShowExploreButtonChange}
+        showInfoButton={showInfoButton}
+        handleShowInfoButtonChange={handleShowInfoButtonChange}
+        passports={passports}
+        handleAddPassport={handleAddPassport}
+        handleRemovePassport={handleRemovePassport}
+        trips={trips}
+        currentTripId={currentTripId}
+        renameTrip={renameTrip}
+        deleteTrip={deleteTrip}
+        editingTripId={editingTripId}
+        setEditingTripId={setEditingTripId}
+        handleTripSelect={handleTripSelect}
+        handleNewTrip={handleNewTrip}
+        handleSettingsClick={handleSettingsClick}
+        user={user}
+        handleLogoutClick={handleLogoutClick}
+        handleLoginClick={handleLoginClick}
+      />
+    </ToolbarActionsProvider>
+  );
+}
+
+interface AppShellProps {
+  drawerOpen: boolean;
+  handleDrawerToggle: () => void;
+  openDrawer: () => void;
+  mode: "light" | "dark";
+  toggleTheme: () => void;
+  viewMode: ViewMode;
+  handleViewModeToggle: () => void;
+  layoutMode: LayoutMode;
+  handleLayoutModeToggle: () => void;
+  columns: number;
+  setColumns: (value: number) => void;
+  arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
+  handleArrivalWeatherBackgroundModeChange: (mode: ArrivalWeatherBackgroundMode) => void;
+  showExploreButton: boolean;
+  handleShowExploreButtonChange: (show: boolean) => void;
+  showInfoButton: boolean;
+  handleShowInfoButtonChange: (show: boolean) => void;
+  passports: string[];
+  handleAddPassport: (countryName: string) => void;
+  handleRemovePassport: (countryName: string) => void;
+  trips: Trip[];
+  currentTripId: string | null;
+  renameTrip: (id: string, name: string) => void;
+  deleteTrip: (id: string) => void;
+  editingTripId: string | null;
+  setEditingTripId: (id: string | null) => void;
+  handleTripSelect: (tripId: string) => void;
+  handleNewTrip: () => void;
+  handleSettingsClick: () => void;
+  user: { email: string } | null;
+  handleLogoutClick: () => void;
+  handleLoginClick: () => void;
+}
+
+const AppShell = ({
+  drawerOpen,
+  handleDrawerToggle,
+  openDrawer,
+  mode,
+  toggleTheme,
+  viewMode,
+  handleViewModeToggle,
+  layoutMode,
+  handleLayoutModeToggle,
+  columns,
+  setColumns,
+  arrivalWeatherBackgroundMode,
+  handleArrivalWeatherBackgroundModeChange,
+  showExploreButton,
+  handleShowExploreButtonChange,
+  showInfoButton,
+  handleShowInfoButtonChange,
+  passports,
+  handleAddPassport,
+  handleRemovePassport,
+  trips,
+  currentTripId,
+  renameTrip,
+  deleteTrip,
+  editingTripId,
+  setEditingTripId,
+  handleTripSelect,
+  handleNewTrip,
+  handleSettingsClick,
+  user,
+  handleLogoutClick,
+  handleLoginClick,
+}: AppShellProps): ReactElement => {
+  const { actions } = useToolbarActions();
+
+  return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Travel Planner
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <IconButton color="inherit" disabled onClick={handleLayoutModeToggle}>
-              {layoutMode === "desktop" ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
-            </IconButton>
-            <IconButton color="inherit" onClick={handleViewModeToggle}>
-              {viewMode === "list" ? <ViewCarouselIcon /> : <ViewListIcon />}
-            </IconButton>
-            <IconButton color="inherit" onClick={toggleTheme}>
-              {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
+      <AppToolbar
+        title="Travel Planner"
+        onDrawerToggle={handleDrawerToggle}
+        viewMode={viewMode}
+        onViewModeToggle={handleViewModeToggle}
+        layoutMode={layoutMode}
+        onLayoutModeToggle={handleLayoutModeToggle}
+        themeMode={mode}
+        onThemeToggle={toggleTheme}
+        actions={actions}
+      />
       <Drawer
         variant="temporary"
         open={drawerOpen}
@@ -210,7 +309,7 @@ function App(): ReactElement {
           },
         }}
       >
-        <Toolbar />
+        <Box sx={{ height: 64 }} />
         <Box
           sx={{
             display: "flex",
@@ -299,8 +398,8 @@ function App(): ReactElement {
                 />
               }
             >
-              <Route path="/" element={<TripRedirect onOpenDrawer={() => setDrawerOpen(true)} />} />
-              <Route path="/trip" element={<TripRedirect onOpenDrawer={() => setDrawerOpen(true)} />} />
+              <Route path="/" element={<TripRedirect onOpenDrawer={openDrawer} />} />
+              <Route path="/trip" element={<TripRedirect onOpenDrawer={openDrawer} />} />
               <Route
                 path="/demo"
                 element={
@@ -325,7 +424,7 @@ function App(): ReactElement {
       </Box>
     </Box>
   );
-}
+};
 
 interface TripRedirectProps {
   onOpenDrawer: () => void;
