@@ -6,14 +6,13 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { MagnificationControls } from "./MagnificationControls";
+import { NavigationControlsDesktopList } from "./NavigationControlsDesktopList";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 import { getPulsingDropShadowSx } from "./utility/pulsingShadow";
@@ -100,8 +99,6 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
   const showTrailingAsAddCard = lastVisibleIndex === destinations.length - 1;
   const addButtonWithTextPosition = showTrailingAsAddCard ? lastVisibleRelativeIndex + 1 : -1;
   const trailingInsertIndex = lastVisibleIndex !== null ? lastVisibleIndex + 1 : destinations.length;
-  const rangeStart = currentIndex + 1;
-  const rangeEnd = Math.min(currentIndex + desktopListColumns, destinations.length);
 
   const clampColumnsForSet = (nextRaw: number | null): void => {
     if (nextRaw === null) return;
@@ -162,12 +159,17 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
     </Button>
   );
 
+  const MAGNIFICATION_TOP_INITIAL_PX = 170;
+  const MAGNIFICATION_TOP_MIN_PX = 70;
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const controlRefs = useRef<(HTMLDivElement | null)[]>([]);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const buttonStackRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const initialColumnTopRef = useRef<number | null>(null);
   const [controlPositions, setControlPositions] = useState<Array<{ left: number; width: number; clampedTop: number | null }>>([]);
+  const [magnificationPosition, setMagnificationPosition] = useState<{ left: number; width: number; top: number } | null>(null);
 
   useEffect(() => {
     const gridContainer = gridContainerRef.current;
@@ -218,6 +220,17 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
           positions.push({ left, width, clampedTop });
         }
         setControlPositions(positions);
+        const columnTop = controlRefs.current[0]?.getBoundingClientRect().top ?? 0;
+        const scrollTop = scrollContainerRef.current?.scrollTop ?? 0;
+        if (initialColumnTopRef.current == null && scrollTop === 0) {
+          initialColumnTopRef.current = columnTop;
+        }
+        const initialColumnTop = initialColumnTopRef.current ?? MAGNIFICATION_TOP_INITIAL_PX;
+        const offset = MAGNIFICATION_TOP_INITIAL_PX - initialColumnTop;
+        const magTop = Math.max(MAGNIFICATION_TOP_MIN_PX, columnTop + offset);
+        setMagnificationPosition(
+          positions[0] != null ? { left: positions[0].left, width: positions[0].width, top: magTop } : null
+        );
       });
     };
 
@@ -299,24 +312,13 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
               mb: 2,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <IconButton onClick={handleListPrevious} disabled={currentIndex === 0} color="primary">
-                <ChevronLeftIcon />
-              </IconButton>
-              <Typography variant="body2">
-                {rangeStart}-{rangeEnd} / {destinations.length}
-              </Typography>
-              <IconButton onClick={handleListNext} disabled={currentIndex + desktopListColumns >= destinations.length} color="primary">
-                <ChevronRightIcon />
-              </IconButton>
-            </Box>
+          <NavigationControlsDesktopList
+            currentIndex={currentIndex}
+            totalCount={destinations.length}
+            visibleCount={desktopListColumns}
+            onPrevious={handleListPrevious}
+            onNext={handleListNext}
+          />
           </Box>
         </Box>
         <Box
@@ -458,13 +460,13 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                   ) : null}
                 </Box>
 
-                {boundaryIndex === 0 && !isAddButtonWithText && (
+                {boundaryIndex === 0 && !isAddButtonWithText && magnificationPosition != null && (
                   <Box
                     sx={{
                       position: "fixed",
-                      bottom: 16,
-                      left: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].left}px` : "auto",
-                      width: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].width}px` : "auto",
+                      top: magnificationPosition.top,
+                      left: `${magnificationPosition.left}px`,
+                      width: `${magnificationPosition.width}px`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",

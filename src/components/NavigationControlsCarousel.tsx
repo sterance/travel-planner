@@ -1,4 +1,5 @@
 import { type ReactElement } from "react";
+import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
@@ -26,12 +27,13 @@ export const NavigationControlsCarousel = ({
 }: NavigationControlsCarouselProps): ReactElement => {
   const isLast = currentIndex >= stepCount - 1;
   return (
-    <Box
+    <Card
       sx={{
         flex: "0 0 auto",
         display: "flex",
         alignItems: "center",
-        bgcolor: "action.hover",
+        bgcolor: "background.paper",
+        elevation: 2,
         borderRadius: 2,
         minWidth: "400px",
         px: 1.5,
@@ -110,6 +112,6 @@ export const NavigationControlsCarousel = ({
             </IconButton>
           ))}
       </Box>
-    </Box>
+    </Card>
   );
 };
