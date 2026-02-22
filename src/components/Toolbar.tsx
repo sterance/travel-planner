@@ -11,6 +11,7 @@ import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
 import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
+import ArticleIcon from '@mui/icons-material/Article';
 import type { LayoutMode, ViewMode } from "../App";
 
 interface ToolbarActionsContextValue {
@@ -74,7 +75,7 @@ export const AppToolbar = ({
         <IconButton color="inherit" edge="start" onClick={onDrawerToggle} sx={{ mr: 2 }}>
           <MenuIcon />
         </IconButton>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, minWidth: 0, overflow: "hidden", whiteSpace: "nowrap" }}>
           {title}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -82,6 +83,9 @@ export const AppToolbar = ({
           {/* layout mode indicator is disabled and hidden for now */}
           <IconButton color="inherit" disabled onClick={onLayoutModeToggle} sx={{ display: "none" }}>
             {layoutMode === "desktop" ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
+          </IconButton>
+          <IconButton color="inherit">
+            <ArticleIcon />
           </IconButton>
           <IconButton color="inherit" onClick={onViewModeToggle}>
             {viewMode === "list" ? <ViewCarouselIcon /> : <ViewListIcon />}

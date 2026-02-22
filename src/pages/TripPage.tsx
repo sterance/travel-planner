@@ -189,7 +189,7 @@ export const TripView = ({
     setCurrentIndex((prev) => Math.min(Math.max(0, destinations.length - desktopListColumns), prev + 1));
   };
 
-  const { exploreAnchorEl, handleExploreClick, handleExploreClose, handleExploreSelect } = useTripExploreMenu();
+  const { exploreAnchorEl, handleExploreClick, handleExploreClose, handleExploreSelect } = useTripExploreMenu(destinationsWithTimeline);
 
   useTripKeyNav({
     active: (viewMode === "carousel" || isDesktopList) && destinations.length > 0,

@@ -18,6 +18,7 @@ import { AppToolbar } from "./components/Toolbar";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import dayjs, { type Dayjs } from "dayjs";
 import { getStringItem, setStringItem } from "./services/storageService";
 import { WeatherTestPage } from "./pages/WeatherTestPage.tsx";
 import { ToolbarActionsProvider, useToolbarActions } from "./components/Toolbar";
@@ -40,6 +41,11 @@ export type ViewMode = "list" | "carousel";
 export type LayoutMode = "portrait" | "desktop";
 export type ArrivalWeatherBackgroundMode = "default" | "light" | "dark";
 
+export interface PassportEntry {
+  countryName: string;
+  expirationDate: Dayjs | null;
+}
+
 function App(): ReactElement {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -48,7 +54,7 @@ function App(): ReactElement {
   const [arrivalWeatherBackgroundMode, setArrivalWeatherBackgroundMode] = useState<ArrivalWeatherBackgroundMode>("default");
   const [showExploreButton, setShowExploreButton] = useState(true);
   const [showInfoButton, setShowInfoButton] = useState(true);
-  const [passports, setPassports] = useState<string[]>([]);
+  const [passports, setPassports] = useState<PassportEntry[]>([]);
   const { mode, toggleTheme } = useThemeMode();
   const { user, logout } = useAuth();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
@@ -114,7 +120,12 @@ function App(): ReactElement {
       try {
         const parsed = JSON.parse(storedPassports);
         if (Array.isArray(parsed)) {
-          setPassports(parsed);
+          const migrated = parsed.map((p: string | { countryName: string; expirationDate: string | null }) => {
+            if (typeof p === "string") return { countryName: p, expirationDate: null as Dayjs | null };
+            const exp = p.expirationDate;
+            return { countryName: p.countryName, expirationDate: exp ? dayjs(exp) : null };
+          });
+          setPassports(migrated);
         }
       } catch (error) {
         console.error("Failed to parse stored passports:", error);
@@ -137,18 +148,29 @@ function App(): ReactElement {
     setStringItem("showInfoButton", show.toString());
   };
 
-  const handleAddPassport = (countryName: string): void => {
-    if (!passports.includes(countryName)) {
-      const updated = [...passports, countryName];
-      setPassports(updated);
-      setStringItem("passports", JSON.stringify(updated));
+  const persistPassports = (updated: PassportEntry[]): void => {
+    setPassports(updated);
+    const toStore = updated.map((p) => ({
+      countryName: p.countryName,
+      expirationDate: p.expirationDate ? p.expirationDate.format("YYYY-MM-DD") : null,
+    }));
+    setStringItem("passports", JSON.stringify(toStore));
+  };
+
+  const handleAddPassport = (countryName: string, expirationDate: Dayjs | null = null): void => {
+    if (!passports.some((p) => p.countryName === countryName)) {
+      persistPassports([...passports, { countryName, expirationDate }]);
     }
   };
 
   const handleRemovePassport = (countryName: string): void => {
-    const updated = passports.filter((p) => p !== countryName);
-    setPassports(updated);
-    setStringItem("passports", JSON.stringify(updated));
+    persistPassports(passports.filter((p) => p.countryName !== countryName));
+  };
+
+  const handleUpdatePassportExpiration = (countryName: string, expirationDate: Dayjs | null): void => {
+    persistPassports(
+      passports.map((p) => (p.countryName === countryName ? { ...p, expirationDate } : p))
+    );
   };
 
   useEffect(() => {
@@ -192,6 +214,7 @@ function App(): ReactElement {
         passports={passports}
         handleAddPassport={handleAddPassport}
         handleRemovePassport={handleRemovePassport}
+        handleUpdatePassportExpiration={handleUpdatePassportExpiration}
         trips={trips}
         currentTripId={currentTripId}
         renameTrip={renameTrip}
@@ -227,9 +250,10 @@ interface AppShellProps {
   handleShowExploreButtonChange: (show: boolean) => void;
   showInfoButton: boolean;
   handleShowInfoButtonChange: (show: boolean) => void;
-  passports: string[];
-  handleAddPassport: (countryName: string) => void;
+  passports: PassportEntry[];
+  handleAddPassport: (countryName: string, expirationDate?: Dayjs | null) => void;
   handleRemovePassport: (countryName: string) => void;
+  handleUpdatePassportExpiration: (countryName: string, expirationDate: Dayjs | null) => void;
   trips: Trip[];
   currentTripId: string | null;
   renameTrip: (id: string, name: string) => void;
@@ -265,6 +289,7 @@ const AppShell = ({
   passports,
   handleAddPassport,
   handleRemovePassport,
+  handleUpdatePassportExpiration,
   trips,
   currentTripId,
   renameTrip,
@@ -394,6 +419,7 @@ const AppShell = ({
                     passports,
                     addPassport: handleAddPassport,
                     removePassport: handleRemovePassport,
+                    updatePassportExpiration: handleUpdatePassportExpiration,
                   }}
                 />
               }

@@ -3,14 +3,12 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
-import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
+import { ExploreMenu } from "./ExploreMenu";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 import { getPulsingDropShadowSx } from "./utility/pulsingShadow";
@@ -96,26 +94,16 @@ export const TripLayoutPortraitList = ({ viewMode, layoutMode, destinationsWithT
               })}
             >
               <Box sx={{ display: "flex", justifyContent: "center", mb: 1, gap: 8 }}>
-                <>
-                  {showExploreButton && (
-                    <IconButton size="small" onClick={(e) => handleExploreClick(e, index)} sx={{ opacity: 0.7 }}>
-                      <TravelExploreIcon />
-                    </IconButton>
-                    // import TravelExploreIcon from '@mui/icons-material/TravelExplore';
-                  )}
-                  <Menu anchorEl={exploreAnchorEl[index]} open={Boolean(exploreAnchorEl[index])} onClose={() => handleExploreClose(index)}>
-                    <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
-                      Explore...
-                    </MenuItem>
-                {index > 0 && <MenuItem onClick={() => handleExploreSelect(index, `near-prev`)}>Near {destinationsWithTimeline[index - 1]?.displayName || destinationsWithTimeline[index - 1]?.name || "previous"}</MenuItem>}
-                    <MenuItem onClick={() => handleExploreSelect(index, `near-next`)}>Near {destinationsWithTimeline[index]?.displayName || destinationsWithTimeline[index]?.name || "next"}</MenuItem>
-                    {/* {index > 0 && (
-                      <MenuItem onClick={() => handleExploreSelect(index, `between`)}>
-                        Between {destinationsWithTimeline[index - 1]?.displayName || destinationsWithTimeline[index - 1]?.name || "previous"} and {destinationsWithTimeline[index]?.displayName || destinationsWithTimeline[index]?.name || "next"}
-                      </MenuItem>
-                    )} */}
-                  </Menu>
-                </>
+                <ExploreMenu
+                  index={index}
+                  show={showExploreButton}
+                  anchorEl={exploreAnchorEl[index]}
+                  prevDestinationName={index > 0 ? destinationsWithTimeline[index - 1]?.displayName ?? destinationsWithTimeline[index - 1]?.name ?? "previous" : undefined}
+                  currentDestinationName={destinationsWithTimeline[index]?.displayName ?? destinationsWithTimeline[index]?.name ?? "next"}
+                  onOpen={handleExploreClick}
+                  onClose={handleExploreClose}
+                  onSelect={handleExploreSelect}
+                />
                 <IconButton
                   onClick={() => handleAddDestination(index)}
                   color="primary"

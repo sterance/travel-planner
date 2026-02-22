@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+const GOOGLE_MAPS_SEARCH_BASE = "https://www.google.com/maps/search/";
+
+interface DestinationForExplore {
+  name: string;
+  displayName?: string;
+}
+
 interface UseTripExploreMenuResult {
   exploreAnchorEl: { [key: string]: HTMLElement | null };
   handleExploreClick: (event: React.MouseEvent<HTMLElement>, index: number) => void;
@@ -7,7 +14,7 @@ interface UseTripExploreMenuResult {
   handleExploreSelect: (index: number, option: string) => void;
 }
 
-export const useTripExploreMenu = (): UseTripExploreMenuResult => {
+export const useTripExploreMenu = (destinations: DestinationForExplore[]): UseTripExploreMenuResult => {
   const [exploreAnchorEl, setExploreAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
 
   const handleExploreClick = (event: React.MouseEvent<HTMLElement>, index: number): void => {
@@ -19,7 +26,11 @@ export const useTripExploreMenu = (): UseTripExploreMenuResult => {
   };
 
   const handleExploreSelect = (index: number, option: string): void => {
-    console.log(`Explore option selected for destination ${index}: ${option}`);
+    const destIndex = option === "near-prev" ? index - 1 : index;
+    const dest = destinations[destIndex];
+    const name = dest?.displayName ?? dest?.name ?? (option === "near-prev" ? "previous" : "next");
+    const url = `${GOOGLE_MAPS_SEARCH_BASE}${encodeURIComponent(name)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
     handleExploreClose(index);
   };
 

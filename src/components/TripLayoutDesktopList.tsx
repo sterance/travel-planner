@@ -4,11 +4,10 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
-import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import TravelExploreIcon from "@mui/icons-material/TravelExplore";
+import { ExploreMenu } from "./ExploreMenu";
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { MagnificationControls } from "./MagnificationControls";
@@ -373,7 +372,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                       }}
                     >
                       {showExploreButton && (
-                        <IconButton size="small" sx={{ opacity: 0.7 }}>
+                        <IconButton size="small" sx={{ opacity: 0.7 }} aria-hidden>
                           <TravelExploreIcon />
                         </IconButton>
                       )}
@@ -418,25 +417,16 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                         gap: 4,
                       }}
                     >
-                      <>
-                        {showExploreButton && (
-                          <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)} sx={{ opacity: 0.7 }}>
-                            <TravelExploreIcon />
-                          </IconButton>
-                        )}
-                        <Menu anchorEl={exploreAnchorEl[insertIndex]} open={Boolean(exploreAnchorEl[insertIndex])} onClose={() => handleExploreClose(insertIndex)}>
-                          <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
-                            Explore...
-                          </MenuItem>
-                          {insertIndex > 0 && <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-prev`)}>Near {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"}</MenuItem>}
-                          <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-next`)}>Near {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}</MenuItem>
-                          {/* {insertIndex > 0 && (
-                            <MenuItem onClick={() => handleExploreSelect(insertIndex, `between`)}>
-                              Between {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"} and {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}
-                            </MenuItem>
-                          )} */}
-                        </Menu>
-                      </>
+                      <ExploreMenu
+                        index={insertIndex}
+                        show={showExploreButton}
+                        anchorEl={exploreAnchorEl[insertIndex]}
+                        prevDestinationName={insertIndex > 0 ? destinationsWithTimeline[insertIndex - 1]?.displayName ?? destinationsWithTimeline[insertIndex - 1]?.name ?? "previous" : undefined}
+                        currentDestinationName={destinationsWithTimeline[insertIndex]?.displayName ?? destinationsWithTimeline[insertIndex]?.name ?? "next"}
+                        onOpen={handleExploreClick}
+                        onClose={handleExploreClose}
+                        onSelect={handleExploreSelect}
+                      />
                       <IconButton
                         onClick={() => handleAddDestination(insertIndex)}
                         color="primary"

@@ -79,19 +79,21 @@ export const DemoPage = (): ReactElement => {
           size="small"
           variant="contained"
           onClick={() => navigate("/")}
-          sx={(theme) =>
-            theme.palette.mode === "light"
-              ? {
-                  backgroundColor: theme.palette.common.white,
-                  color: theme.palette.primary.main,
-                  "&:hover": { backgroundColor: theme.palette.grey[100] },
-                }
-              : {}
-          }
+          sx={[
+            { flexGrow: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+            (theme) =>
+              theme.palette.mode === "light"
+                ? {
+                    backgroundColor: theme.palette.common.white,
+                    color: theme.palette.primary.main,
+                    "&:hover": { backgroundColor: theme.palette.grey[100] },
+                  }
+                : {},
+          ]}
         >
           try it!
         </Button>
-        <Button size="small" variant="outlined" color="inherit" onClick={reloadDemoTrip} disabled={loading}>
+        <Button size="small" variant="outlined" color="inherit" onClick={reloadDemoTrip} disabled={loading} sx={{ flexGrow: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           reset
         </Button>
       </Box>,
