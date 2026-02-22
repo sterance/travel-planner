@@ -40,15 +40,15 @@ export const DestinationImage = ({ destination }: DestinationImageProps): ReactE
       component="img"
       src={imageUrl}
       alt={destination.displayName || destination.name || "Location"}
-      sx={{
+      sx={(theme) => ({
         width: "100%",
         height: "auto",
         maxHeight: "250px",
         objectFit: "cover",
         borderRadius: 0,
         display: "block",
-      }}
+        boxShadow: theme.palette.mode === "dark" ?  "0 1px 12px #b4b4b4" : "0 4px 10px #121212",
+      })}
     />
   );
 };
-

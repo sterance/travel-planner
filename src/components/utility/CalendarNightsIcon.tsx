@@ -30,7 +30,7 @@ export const CalendarNightsIcon = ({ nights, size = 32 }: CalendarNightsIconProp
       sx={{
         width: size,
         height: size,
-        backgroundColor: "action.active",
+        backgroundColor: "text.primary",
         maskImage: `url(${icon})`,
         maskSize: "contain",
         maskRepeat: "no-repeat",

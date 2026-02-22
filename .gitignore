@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 .env
+domain.env
+.env.production
+.env.development
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +29,4 @@ dist-ssr
 
 # other
 /.cursor/
+server/data

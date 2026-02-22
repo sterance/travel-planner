@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - refactor
+      - backend
 
 permissions:
   contents: read
@@ -35,6 +35,7 @@ jobs:
         run: npm run build
         env:
           VITE_UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - name: upload bundle visualizer
         uses: actions/upload-artifact@v4

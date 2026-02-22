@@ -2,6 +2,7 @@ import { type ReactElement, type ReactNode } from "react";
 import Box from "@mui/material/Box";
 import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { getPulsingDropShadowSx } from "./pulsingShadow";
 
 interface StatusBadgeProps {
   variant: "info" | "start" | "end" | "warning";
@@ -15,67 +16,73 @@ export const StatusBadge = ({ variant, visible = true, children, attachToText = 
     
     if (!visible) return null;
 
-    const baseStyles = {
-      position: "absolute" as const,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      opacity: 0.7,
-      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
-      top: attachToText ? -4 : 2,
-      right: attachToText ? -6 : 2,
+    const shadowColorMap = {
+      info: (theme: { palette: { info: { main: string } } }) => theme.palette.info.main,
+      warning: (theme: { palette: { warning: { main: string } } }) => theme.palette.warning.main,
+      success: (theme: { palette: { success: { main: string } } }) => theme.palette.success.main,
     };
 
-    switch (variant) {
-      case "info":
-        return (
-          <Box
-            sx={{
-              ...baseStyles,
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              bgcolor: "info.main",
-            }}
-          />
-        );
-      case "warning":
-        return (
-          <Box
-            sx={{
-              ...baseStyles,
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              bgcolor: "warning.main",
-            }}
-          />
-        );
-      case "start":
-        return (
-          <Box
-            sx={{
-              ...baseStyles,
-              width: 12,
-              height: 12,
-            }}
-          >
-            <OutlinedFlagIcon sx={{ fontSize: 12, color: "info.main" }} />
-          </Box>
-        );
-      case "end":
-        return (
-          <Box
-            sx={{
-              ...baseStyles,
-              width: 12,
-              height: 12,
-            }}
-          >
-            <CheckCircleIcon sx={{ fontSize: 12, color: "success.main" }} />
-          </Box>
-        );
-    }
+    return (
+      <Box
+        sx={(theme) => {
+          const shadowColor = variant === "end" ? shadowColorMap.success(theme) : shadowColorMap[variant === "warning" ? "warning" : "info"](theme);
+          const pulseSx = getPulsingDropShadowSx({
+            minShadow: `0 1px 4px ${shadowColor}80`,
+            maxShadow: `0 2px 8px ${shadowColor}CC`,
+            minVarName: "--status-badge-shadow-min",
+            maxVarName: "--status-badge-shadow-max",
+            duration: "2.5s",
+            easing: "ease-in-out",
+          });
+          const baseStyles = {
+            position: "absolute" as const,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: 0.7,
+            ...pulseSx,
+            top: attachToText ? -4 : 2,
+            right: attachToText ? -6 : 2,
+          };
+          switch (variant) {
+            case "info":
+              return {
+                ...baseStyles,
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                bgcolor: "info.main",
+              };
+            case "warning":
+              return {
+                ...baseStyles,
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                bgcolor: "warning.main",
+              };
+            case "start":
+              return {
+                ...baseStyles,
+                width: 12,
+                height: 12,
+              };
+            case "end":
+              return {
+                ...baseStyles,
+                width: 12,
+                height: 12,
+              };
+            default:
+              return baseStyles;
+          }
+        }}
+      >
+        {(variant === "start" || variant === "end") && (
+          variant === "start" ? <OutlinedFlagIcon sx={{ fontSize: 12, color: "info.main" }} /> : <CheckCircleIcon sx={{ fontSize: 12, color: "success.main" }} />
+        )}
+      </Box>
+    );
   };
 
   const badge = renderBadge();

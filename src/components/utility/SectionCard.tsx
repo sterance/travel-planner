@@ -18,10 +18,11 @@ export const SectionCard = ({ title, children }: SectionCardProps): ReactElement
         mb: 2,
         mx: 1,
         borderRadius: 2,
+        bgcolor: "background.default",
       }}
     >
       <Box sx={{ mb: 1 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 500, textAlign: "center" }}>
+        <Typography variant="h6" sx={{ fontWeight: 500, textAlign: "center" }}>
           {title}
         </Typography>
       </Box>

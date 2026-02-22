@@ -1,4 +1,4 @@
-import { type ReactElement, lazy, Suspense } from "react";
+import { type ReactElement, lazy, Suspense, useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -8,15 +8,15 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
-import { QuestionMark } from "@mui/icons-material";
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
+import { MagnificationControls } from "./MagnificationControls";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
+import { getPulsingDropShadowSx } from "./utility/pulsingShadow";
 
 const DestinationCard = lazy(async () => {
   const module = await import("./DestinationCard");
@@ -38,6 +38,7 @@ interface TripLayoutDesktopListProps extends TripHeaderProps {
   currentIndex: number;
   desktopListColumns: number;
   columns: number;
+  setColumns: (value: number) => void;
   reorderDragOverIndex: number | null;
   newlyCreatedId: string | null;
   showExploreButton: boolean;
@@ -45,8 +46,6 @@ interface TripLayoutDesktopListProps extends TripHeaderProps {
   arrivalWeatherBackgroundMode: ArrivalWeatherBackgroundMode;
   exploreAnchorEl: { [key: string]: HTMLElement | null };
   handleAddDestination: (index?: number) => void;
-  handleIncreaseColumns: () => void;
-  handleDecreaseColumns: () => void;
   handleListPrevious: () => void;
   handleListNext: () => void;
   handleDestinationChange: (destination: DestinationType) => void;
@@ -60,7 +59,7 @@ interface TripLayoutDesktopListProps extends TripHeaderProps {
   handleExploreSelect: (index: number, option: string) => void;
 }
 
-export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, destinationsWithTimeline, destinationDates, currentIndex, desktopListColumns, columns, reorderDragOverIndex, newlyCreatedId, showExploreButton, showInfoButton, arrivalWeatherBackgroundMode, exploreAnchorEl, handleAddDestination, handleIncreaseColumns, handleDecreaseColumns, handleListPrevious, handleListNext, handleDestinationChange, handleRemoveDestination, handleReorderDragStart, handleReorderDragOver, handleReorderDrop, handleReorderDragEnd, handleExploreClick, handleExploreClose, handleExploreSelect, ...settingsProps
+export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, destinationsWithTimeline, destinationDates, currentIndex, desktopListColumns, columns, setColumns, reorderDragOverIndex, newlyCreatedId, showExploreButton, showInfoButton, arrivalWeatherBackgroundMode, exploreAnchorEl, handleAddDestination, handleListPrevious, handleListNext, handleDestinationChange, handleRemoveDestination, handleReorderDragStart, handleReorderDragOver, handleReorderDrop, handleReorderDragEnd, handleExploreClick, handleExploreClose, handleExploreSelect, ...settingsProps
 }: TripLayoutDesktopListProps): ReactElement => {
   if (destinations.length === 0) {
     return (
@@ -104,6 +103,28 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
   const rangeStart = currentIndex + 1;
   const rangeEnd = Math.min(currentIndex + desktopListColumns, destinations.length);
 
+  const clampColumnsForSet = (nextRaw: number | null): void => {
+    if (nextRaw === null) return;
+    if (!Number.isFinite(nextRaw)) return;
+
+    const nextRounded = Math.round(nextRaw);
+    const nextClampedToHardBounds = Math.min(7, Math.max(3, nextRounded));
+
+    if (nextClampedToHardBounds <= columns) {
+      setColumns(nextClampedToHardBounds);
+      return;
+    }
+
+    const destinationCap = destinations.length;
+    const nextClamped = Math.min(nextClampedToHardBounds, destinationCap);
+
+    if (nextClamped <= columns) {
+      return;
+    }
+
+    setColumns(nextClamped);
+  };
+
   const verticalAddButton = (
     <Button
       variant="contained"
@@ -113,18 +134,74 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-        gap: 0.5,
+        gap: 0,
         px: 0.5,
         whiteSpace: "nowrap",
         writingMode: "vertical-lr",
         textOrientation: "upright",
         minWidth: 0,
+        transition: "gap 0.3s ease",
+        "& .add-label": {
+          maxHeight: 0,
+          overflow: "hidden",
+          opacity: 0,
+          transition: "max-height 0.3s ease, opacity 0.3s ease",
+        },
+        "&:hover": {
+          gap: 0.5,
+        },
+        "&:hover .add-label": {
+          maxHeight: 400,
+          opacity: 1,
+        },
       }}
     >
-      <AddIcon sx={{ mb: 0.5 }} />
-      New Destination
+      <AddIcon sx={{ flexShrink: 0 }} />
+      <span className="add-label">New Destination</span>
     </Button>
   );
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+  const controlRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [controlPositions, setControlPositions] = useState<Array<{ left: number; width: number }>>([]);
+
+  useEffect(() => {
+    const gridContainer = gridContainerRef.current;
+    if (!gridContainer) return;
+
+    const updatePositions = () => {
+      requestAnimationFrame(() => {
+        const positions = controlRefs.current
+          .filter((ref) => ref !== null)
+          .map((ref) => {
+            if (!ref) return { left: 0, width: 0 };
+            const rect = ref.getBoundingClientRect();
+            return {
+              left: rect.left,
+              width: rect.width,
+            };
+          });
+        setControlPositions(positions);
+      });
+    };
+
+    updatePositions();
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", updatePositions, { passive: true });
+    }
+    window.addEventListener("resize", updatePositions);
+    window.addEventListener("scroll", updatePositions, { passive: true, capture: true });
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener("scroll", updatePositions);
+      }
+      window.removeEventListener("resize", updatePositions);
+      window.removeEventListener("scroll", updatePositions, { capture: true });
+    };
+  }, [desktopListColumns, currentIndex]);
 
   return (
     <Box
@@ -135,6 +212,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
       }}
     >
       <Stack
+        ref={scrollContainerRef}
         sx={{
           flex: 1,
           overflow: "auto",
@@ -164,31 +242,13 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
             sx={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
+              justifyContent: "center",
               gap: 2,
               flex: 1,
               mx: 5,
               mb: 2,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 0.5,
-              }}
-            >
-              <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7 || columns >= destinations.length} color="primary" size="small" aria-label="increase columns">
-                <ZoomOutIcon fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" component="span">
-                /
-              </Typography>
-              <IconButton onClick={handleDecreaseColumns} disabled={columns <= 3} color="primary" size="small" aria-label="decrease columns">
-                <ZoomInIcon fontSize="small" />
-              </IconButton>
-            </Box>
             <Box
               sx={{
                 display: "flex",
@@ -207,27 +267,10 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                 <ChevronRightIcon />
               </IconButton>
             </Box>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 0.5,
-              }}
-            >
-              <IconButton onClick={handleIncreaseColumns} disabled={columns >= 7 || columns >= destinations.length} color="primary" size="small" aria-label="increase columns">
-                <ZoomOutIcon fontSize="small" />
-              </IconButton>
-              <Typography variant="body2" component="span">
-                /
-              </Typography>
-              <IconButton onClick={handleDecreaseColumns} disabled={columns <= 3} color="primary" size="small" aria-label="decrease columns">
-                <ZoomInIcon fontSize="small" />
-              </IconButton>
-            </Box>
           </Box>
         </Box>
         <Box
+          ref={gridContainerRef}
           sx={{
             display: "grid",
             gridTemplateColumns,
@@ -242,6 +285,9 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
             return (
               <Box
                 key={`before-${boundaryIndex}`}
+                ref={(el: HTMLDivElement | null) => {
+                  controlRefs.current[boundaryIndex] = el;
+                }}
                 sx={{
                   gridColumn: boundaryIndex * 2 + 1,
                   gridRow: 1,
@@ -250,49 +296,131 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                   alignItems: "center",
                   justifyContent: "center",
                   height: "100%",
+                  position: "relative",
                 }}
               >
-                {isAddButtonWithText ? (
-                  verticalAddButton
-                ) : hasDestination ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    visibility: "hidden",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {isAddButtonWithText ? (
+                    verticalAddButton
+                  ) : hasDestination ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
                       {showExploreButton && (
-                        <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)} sx={{ opacity: 0.7 }}>
-                          <QuestionMark />
+                        <IconButton size="small" sx={{ opacity: 0.7 }}>
+                          <TravelExploreIcon />
                         </IconButton>
                       )}
-                      <Menu anchorEl={exploreAnchorEl[insertIndex]} open={Boolean(exploreAnchorEl[insertIndex])} onClose={() => handleExploreClose(insertIndex)}>
-                        <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
-                          Explore...
-                        </MenuItem>
-                        {insertIndex > 0 && <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-prev`)}>Near {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"}</MenuItem>}
-                        <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-next`)}>Near {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}</MenuItem>
-                        {insertIndex > 0 && (
-                          <MenuItem onClick={() => handleExploreSelect(insertIndex, `between`)}>
-                            Between {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"} and {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}
-                          </MenuItem>
-                        )}
-                      </Menu>
-                    </>
-                    <IconButton onClick={() => handleAddDestination(insertIndex)} color="primary" size="small" aria-label="add destination">
-                      <AddIcon />
-                    </IconButton>
-                    {showInfoButton && (
-                      <IconButton size="small" sx={{ opacity: 0.7 }}>
-                        <InfoOutline />
+                      <IconButton color="primary" size="small" aria-label="add destination">
+                        <AddIcon sx={{ transform: "scale(1.4)" }} />
                       </IconButton>
-                    )}
+                      {showInfoButton && (
+                        <IconButton size="small" sx={{ opacity: 0.7 }}>
+                          <InfoOutline />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ) : null}
+                </Box>
+                <Box
+                  sx={{
+                    position: "fixed",
+                    top: "50vh",
+                    left: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].left}px` : "auto",
+                    width: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].width}px` : "auto",
+                    transform: "translateY(-50%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1,
+                    pointerEvents: "auto",
+                  }}
+                >
+                  {isAddButtonWithText ? (
+                    verticalAddButton
+                  ) : hasDestination ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <>
+                        {showExploreButton && (
+                          <IconButton size="small" onClick={(e) => handleExploreClick(e, insertIndex)} sx={{ opacity: 0.7 }}>
+                            <TravelExploreIcon />
+                          </IconButton>
+                        )}
+                        <Menu anchorEl={exploreAnchorEl[insertIndex]} open={Boolean(exploreAnchorEl[insertIndex])} onClose={() => handleExploreClose(insertIndex)}>
+                          <MenuItem disabled sx={{ opacity: 0.6, fontWeight: 600 }}>
+                            Explore...
+                          </MenuItem>
+                          {insertIndex > 0 && <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-prev`)}>Near {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"}</MenuItem>}
+                          <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-next`)}>Near {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}</MenuItem>
+                          {/* {insertIndex > 0 && (
+                            <MenuItem onClick={() => handleExploreSelect(insertIndex, `between`)}>
+                              Between {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"} and {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}
+                            </MenuItem>
+                          )} */}
+                        </Menu>
+                      </>
+                      <IconButton
+                        onClick={() => handleAddDestination(insertIndex)}
+                        color="primary"
+                        size="small"
+                        aria-label="add destination"
+                        sx={(theme) => ({
+                          ...getPulsingDropShadowSx({
+                            minShadow: `0 1px 4px ${theme.palette.primary.main}80`,
+                            maxShadow: `0 2px 8px ${theme.palette.primary.main}CC`,
+                          }),
+                        })}
+                      >
+                        <AddIcon sx={{ transform: "scale(1.4)" }} />
+                      </IconButton>
+                      {showInfoButton && (
+                        <IconButton size="small" sx={{ opacity: 0.7 }}>
+                          <InfoOutline />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ) : null}
+                </Box>
+
+                {boundaryIndex === 0 && !isAddButtonWithText && (
+                  <Box
+                    sx={{
+                      position: "fixed",
+                      bottom: 16,
+                      left: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].left}px` : "auto",
+                      width: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].width}px` : "auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 1,
+                      pointerEvents: "auto",
+                    }}
+                  >
+                    <MagnificationControls columns={columns} destinationCount={destinations.length} onColumnsChange={clampColumnsForSet} />
                   </Box>
-                ) : null}
+                )}
               </Box>
             );
           })}
@@ -354,6 +482,9 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
             );
           })}
           <Box
+            ref={(el: HTMLDivElement | null) => {
+              controlRefs.current[desktopListColumns] = el;
+            }}
             sx={{
               gridColumn: desktopListColumns * 2 + 1,
               gridRow: 1,
@@ -362,15 +493,58 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
               alignItems: "center",
               justifyContent: "center",
               height: "100%",
+              position: "relative",
             }}
           >
-            {addButtonWithTextPosition === desktopListColumns ? (
-              verticalAddButton
-            ) : !showTrailingAsAddCard ? (
-              <IconButton onClick={() => handleAddDestination(trailingInsertIndex)} color="primary" size="small" aria-label="add destination">
-                <AddIcon />
-              </IconButton>
-            ) : null}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                visibility: "hidden",
+                pointerEvents: "none",
+              }}
+            >
+              {addButtonWithTextPosition === desktopListColumns ? (
+                verticalAddButton
+              ) : !showTrailingAsAddCard ? (
+                <IconButton color="primary" size="small" aria-label="add destination">
+                  <AddIcon sx={{ transform: "scale(1.4)" }} />
+                </IconButton>
+              ) : null}
+            </Box>
+            <Box
+              sx={{
+                position: "fixed",
+                top: "50vh",
+                left: controlPositions[desktopListColumns] ? `${controlPositions[desktopListColumns].left}px` : "auto",
+                width: controlPositions[desktopListColumns] ? `${controlPositions[desktopListColumns].width}px` : "auto",
+                transform: "translateY(-50%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1,
+                pointerEvents: "auto",
+              }}
+            >
+              {addButtonWithTextPosition === desktopListColumns ? (
+                verticalAddButton
+              ) : !showTrailingAsAddCard ? (
+                <IconButton
+                onClick={() => handleAddDestination(trailingInsertIndex)} 
+                color="primary" 
+                size="small" 
+                aria-label="add destination" 
+                sx={(theme) => ({
+                  ...getPulsingDropShadowSx({
+                    minShadow: `0 1px 4px ${theme.palette.primary.main}80`,
+                    maxShadow: `0 2px 8px ${theme.palette.primary.main}CC`,
+                  }),
+                })}>
+                  <AddIcon sx={{ transform: "scale(1.4)" }} />
+                </IconButton>
+              ) : null}
+            </Box>
           </Box>
         </Box>
       </Stack>

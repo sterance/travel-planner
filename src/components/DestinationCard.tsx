@@ -58,8 +58,29 @@ interface DestinationCardProps {
   arrivalWeatherBackgroundMode?: "default" | "light" | "dark";
   isCarousel?: boolean;
 }
+// this is for the tiny gap between the adornment and the card
+const CARD_RIBBON_PSEUDO_MARGIN_TOP = "0.3px";
 
-export const DestinationCard = ({ destination, nextDestination, previousDestination, onDestinationChange, onRemove, shouldFocus = false, alwaysExpanded = false, isFirst = false, arrivalDate = null, departureDate = null, dateError, layoutMode = "portrait", tripStartDate = null, isListMode = false, onReorderDragStart, onReorderDragEnd, arrivalWeatherBackgroundMode = "default", isCarousel = false }: DestinationCardProps): ReactElement => {
+export const DestinationCard = ({
+  destination,
+  nextDestination,
+  previousDestination,
+  onDestinationChange,
+  onRemove,
+  shouldFocus = false,
+  alwaysExpanded = false,
+  isFirst = false,
+  arrivalDate = null,
+  departureDate = null,
+  dateError,
+  layoutMode = "portrait",
+  tripStartDate = null,
+  isListMode = false,
+  onReorderDragStart,
+  onReorderDragEnd,
+  arrivalWeatherBackgroundMode = "default",
+  isCarousel = false,
+}: DestinationCardProps): ReactElement => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -197,7 +218,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
             onMouseLeave={() => setButtonHover(null)}
             sx={(theme) => ({
               position: "absolute",
-              top: -34,
+              top: -35,
               ...(isCarousel
                 ? {
                     left: "50%",
@@ -211,6 +232,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       top: 0,
                       width: "100%",
                       height: "100%",
+                      marginTop: CARD_RIBBON_PSEUDO_MARGIN_TOP,
                       backgroundColor: "inherit",
                       backgroundImage: "inherit",
                       clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
@@ -222,6 +244,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       top: 0,
                       width: "100%",
                       height: "100%",
+                      marginTop: CARD_RIBBON_PSEUDO_MARGIN_TOP,
                       backgroundColor: "inherit",
                       backgroundImage: "inherit",
                       clipPath: "polygon(0% 0, 0% 100%, 100% 100%)",
@@ -232,7 +255,8 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   }
                 : {
                     right: 0,
-                    borderTopRightRadius: theme.shape.borderRadius,
+                    borderTopLeftRadius: 0,
+                    borderTopRightRadius: 15,
                     "&::after": {
                       content: '""',
                       position: "absolute",
@@ -240,6 +264,7 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       top: 0,
                       width: "100%",
                       height: "100%",
+                      marginTop: CARD_RIBBON_PSEUDO_MARGIN_TOP,
                       backgroundColor: "inherit",
                       backgroundImage: "inherit",
                       clipPath: "polygon(100% 0, 0% 100%, 100% 100%)",
@@ -247,14 +272,15 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   }),
               zIndex: 0,
               boxShadow: "none",
-              borderRadius: 0,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
               padding: 0,
               "&:hover": {
                 backgroundColor: theme.palette.mode === "dark" ? "rgba(211, 47, 47, 0.16)" : "rgba(211, 47, 47, 0.08)",
               },
             })}
           >
-            <DeleteOutlineIcon fontSize="large" />
+            <DeleteOutlineIcon fontSize="large" sx={{ transform: "translateX(-0.2rem)" }} />
           </Paper>
           {isListMode && (
             <Paper
@@ -271,12 +297,12 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
               onMouseLeave={() => setButtonHover(null)}
               sx={(theme) => ({
                 position: "absolute",
-                top: -34,
+                top: -35,
                 left: 0,
                 zIndex: 0,
                 boxShadow: "none",
                 borderRadius: 0,
-                borderTopLeftRadius: theme.shape.borderRadius,
+                borderTopLeftRadius:15,
                 cursor: onReorderDragStart ? "grab" : undefined,
                 "&:active": onReorderDragStart ? { cursor: "grabbing" } : undefined,
                 padding: 0,
@@ -290,13 +316,15 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                   top: 0,
                   width: "100%",
                   height: "100%",
+                  marginTop: CARD_RIBBON_PSEUDO_MARGIN_TOP,
                   backgroundColor: "inherit",
                   backgroundImage: "inherit",
                   clipPath: "polygon(0 0, 0% 100%, 100% 100%)",
+                  
                 },
               })}
             >
-              <DragIndicatorIcon fontSize="large" sx={{ transform: "rotate(90deg)" }} />
+              <DragIndicatorIcon fontSize="large" sx={{ transform: "translateX(0.2rem) rotate(90deg)" }} />
             </Paper>
           )}
           <CardHeader
@@ -313,6 +341,10 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
               },
               pb: alwaysExpanded ? "1rem" : 0,
               overflow: "visible",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "inset 0 -6px 6px -5px #b4b4b4"
+                  : "inset 0 -6px 6px -5px #121212",
               ...(buttonHover === "remove" && {
                 backgroundColor: theme.palette.mode === "dark" ? "rgba(211, 47, 47, 0.16)" : "rgba(211, 47, 47, 0.08)",
               }),
@@ -339,6 +371,11 @@ export const DestinationCard = ({ destination, nextDestination, previousDestinat
                       {arrivalDate.format("MMM D, YYYY")}
                     </Typography>
                   </StatusBadge>
+                )}
+                {!alwaysExpanded && (
+                <Typography variant="body1" color="text.secondary" sx={{ flexShrink: 0 }}>
+                    {destination.name || destination.displayName || destination.placeDetails?.city || destination.placeDetails?.country || "Unknown Destination"}
+                  </Typography>
                 )}
                 {departureDate && (
                   <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>

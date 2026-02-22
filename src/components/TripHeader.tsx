@@ -48,7 +48,13 @@ export const TripHeader = ({
         <Box sx={{ gridColumn: "1", gridRow: "1" }}>
           <TripCardDate startDate={tripStartDate} endDate={tripEndDate} onStartDateChange={onStartDateChange} hasDateErrors={dateErrorsExist} referenceDateForStart={referenceDateForStart} />
         </Box>
-        <Box sx={{ gridColumn: "2", gridRow: "1" }}>
+        <Box
+          sx={{
+            gridColumn: "2",
+            gridRow: "1",
+            mt: 2,
+          }}
+        >
           <Suspense fallback={null}>
             <TripCardMap destinations={destinations} layoutMode={layoutMode} headerOnly expanded={mapExpanded} onExpandChange={onMapExpandChange} />
           </Suspense>

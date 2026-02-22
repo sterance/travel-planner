@@ -51,7 +51,6 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
     endDateTime,
     latestEndDate,
     hasCoveragePastDestinationEnd,
-    showAddButton,
     openForNew,
     openForEdit,
     closeModal,
@@ -85,7 +84,7 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
     <>
       <SectionCard title="Activities">
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <Box sx={{ mt: 1 }}>
+          <Box>
             <ExternalLinksGrid links={activityButtons} />
           </Box>
           {hasCoveragePastDestinationEnd && destinationCheckOut && latestEndDate && (
@@ -108,11 +107,9 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
               ))}
             </CollapsibleList>
           )}
-          {showAddButton && (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={openForNew} fullWidth>
-              add activities
-            </Button>
-          )}
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openForNew} fullWidth>
+            add activities
+          </Button>
         </Box>
       </SectionCard>
       <LocalizationProvider dateAdapter={AdapterDayjs}>

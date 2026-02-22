@@ -245,13 +245,13 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
         <SectionCard title="Onwards">
           <ListCard
             primaryText={destination.transportDetails.bookingNumber ?? ""}
-            secondaryText={`${formatLocationDisplay(destination.transportDetails.departureLocation, nextMode) || "Origin"} \u2192 ${formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}`}
+            secondaryText={`${formatLocationDisplay(destination.transportDetails.departureLocation, nextMode) || "Origin"} ￫ ${formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}`}
             tertiaryText={formatDateTimeRange(destination.transportDetails.departureDateTime, destination.transportDetails.arrivalDateTime, "No departure time", "No arrival time")}
             onEdit={modalState.open}
             centerPrimary
           />
           {destination.transportDetails.departureLocation && (
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 2 }}>
               <ExternalLinksGrid links={onwardsButtons} />
             </Box>
           )}

@@ -131,12 +131,14 @@ interface DestinationCardHeaderDisplayProps {
 }
 
 export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalDate, departureDate, alwaysExpanded, expanded, isFirst, currentTransport, isTransportSet, calculatedNights, showCustomNights, customNightsValue, calendarOpen, calendarAnchorEl, transportAnchorEl, transportOpen, onTransportClick, onTransportClose, onTransportSelect, onCalendarClick, onCalendarClose, onNightSelect, onExpandClick, onEditClick, isOnwardsTravelBooked, customNightsInputRef, onCustomNightsChange, onCustomNightsKeyDown, onCustomNightsSubmit }: DestinationCardHeaderDisplayProps): ReactElement => {
+  const isExpanded = expanded || alwaysExpanded;
+  const iconOpacitySx = !isExpanded ? { opacity: 0.7 } : { color: "text.primary" };
   return (
     <>
       <Box sx={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
         <Box sx={{ position: "absolute", left: 0, pt: 0.5, pl: 0.5 }}>
           <StatusBadge variant="info" visible={!isTransportSet}>
-            <IconButton aria-label="transport" size="small" onClick={onTransportClick} sx={{ padding: 0.5 }}>
+            <IconButton aria-label="transport" size="small" onClick={onTransportClick} sx={{ padding: 0.5, ...iconOpacitySx }}>
               <TransportIcon mode={currentTransport} />
             </IconButton>
           </StatusBadge>
@@ -162,15 +164,20 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
           ]}
           onSelect={(value) => onTransportSelect(String(value) as string)}
         />
-        <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "center", }}>
           <Typography
-            variant="h6"
+            variant="h5"
             component="div"
             onClick={onEditClick}
             sx={{
               textAlign: "center",
               cursor: "text",
-              ...(alwaysExpanded && { transform: "translateY(1rem)" }),
+              // outline: "1px solid black",
+              // bgcolor: "background.paper",
+              // paddingX: 1,
+              // paddingY: 0.25,
+              borderRadius: "0.5rem",
+              ...(alwaysExpanded && { transform: "translateY(0.5rem)" }),
             }}
           >
             {destination.displayName || destination.name || "Destination name"}
@@ -178,7 +185,7 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
         </Box>
         <Box sx={{ position: "absolute", right: 0, pt: 0.5, pr: 0.5 }}>
           <StatusBadge variant="info" visible={!(typeof destination.nights === "number" || (destination.nights === "dates" && destination.arrivalDate && destination.departureDate))}>
-            <IconButton aria-label="calendar" size="small" onClick={onCalendarClick} sx={{ padding: 0.5 }}>
+            <IconButton aria-label="calendar" size="small" onClick={onCalendarClick} sx={{ padding: 0.5, ...iconOpacitySx }}>
               {!expanded && calculatedNights !== null && calculatedNights >= 0 && calculatedNights <= 9 ? <CalendarNightsIcon nights={calculatedNights} /> : <CalendarMonthOutlinedIcon sx={{ fontSize: "2rem" }} />}
             </IconButton>
           </StatusBadge>
@@ -300,15 +307,20 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
             width: "100%",
-            mt: 1,
+            mt: 2,
           }}
         >
           <Box sx={{ justifySelf: "start" }}>
             <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
               {currentTransport || "\u00A0"}
+            </Typography>
+          </Box>
+          <Box sx={{ justifySelf: "start" }}>
+            <Typography variant="body2" color="text.secondary" sx={{ textTransform: "capitalize" }}>
+            {destination.name || destination.displayName || destination.placeDetails?.city || destination.placeDetails?.country || "Unknown Destination"}
             </Typography>
           </Box>
           <Box sx={{ justifySelf: "end" }}>

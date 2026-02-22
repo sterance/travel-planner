@@ -128,7 +128,7 @@ export const TripCardMap = ({ destinations, layoutMode, headerOnly = false, body
             width: "100%",
           }}
         >
-          <Typography variant="h5" component="div" sx={layoutMode === "desktop" ? { py: 1.5 } : undefined}>
+          <Typography variant="h6" component="div" sx={layoutMode === "desktop" ? { py: 1.5 } : undefined}>
             Trip Map
           </Typography>
           <IconButton

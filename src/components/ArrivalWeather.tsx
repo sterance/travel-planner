@@ -84,7 +84,7 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
         border: 1,
         borderColor: backgroundGradient ? "rgba(255, 255, 255, 0.35)" : "divider",
         borderRadius: 2,
-        boxShadow: "none",
+        boxShadow: 1,
       }}
     >
       <CardContent sx={{ padding: "8px !important", "&:last-child": { paddingBottom: "8px !important" } }}>
@@ -126,7 +126,7 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
           })()}
 
           {isLoadingWeather && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 1 }}>
               <CircularProgress size={16} />
               <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                 Loading weather...
@@ -134,7 +134,7 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
             </Box>
           )}
           {weatherError && !isLoadingWeather && (
-            <Typography variant="body2" color="error">
+            <Typography variant="body2" color="error" sx={{ textAlign: "center" }}>
               Unable to load weather forecast
               {weatherErrorDateTime && weatherErrorDateTime.isValid() ? ` for ${weatherErrorDateTime.format("MMM D, YYYY")}` : ""}
             </Typography>

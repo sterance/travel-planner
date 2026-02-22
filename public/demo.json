@@ -1,0 +1,747 @@
+{
+  "trip": {
+    "id": "demo-trip",
+    "name": "Demo Trip",
+    "startDate": "2027-04-27T09:12:52.237Z",
+    "endDate": "2027-05-29T14:00:00.000Z",
+    "createdAt": "2026-02-19T08:08:19.498Z",
+    "updatedAt": "2026-02-22T01:59:46.230Z",
+    "destinations": [
+      {
+        "id": "49362b7c-cb79-44ea-812b-2d3ac8d8d956",
+        "name": "Tokyo, Japan",
+        "displayName": "Tokyo",
+        "nights": 5,
+        "arrivalDate": "2027-04-26T14:00:00.000Z",
+        "departureDate": "2027-05-01T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 1543125,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            139.7638947,
+            35.6768601
+          ],
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            135.8536855,
+            35.8984245,
+            154.205541,
+            20.2145811
+          ]
+        },
+        "transportDetails": {
+          "mode": "by plane",
+          "departureDateTime": "2027-05-02T00:00:00.000Z",
+          "arrivalDateTime": "2027-05-02T02:00:00.000Z",
+          "departureLocation": "Shinjuku Station",
+          "arrivalLocation": "Nikko Station"
+        },
+        "arrivalTime": "2027-04-27T00:15:00.000Z",
+        "weatherDetails": {
+          "temperature": 19,
+          "condition": "light drizzle",
+          "weatherCode": 51,
+          "latitude": 35.6768601,
+          "longitude": 139.7638947,
+          "dateTime": "2027-04-27T00:15:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "1771489021331-krq2j5",
+            "name": "Shinjuku Park Hotel",
+            "address": "3-1-3 Shinjuku, Shinjuku-ku, Tokyo, Japan",
+            "checkInDateTime": "2027-04-27T04:00:00.000Z",
+            "checkOutDateTime": "2027-04-30T01:00:00.000Z"
+          },
+          {
+            "id": "1771724638369-z1coc5",
+            "name": "ADD ANOTHER HERE",
+            "address": "ADDRESS",
+            "checkInDateTime": "2027-04-30T05:00:00.000Z",
+            "checkOutDateTime": "2027-05-02T01:00:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771489098113-qmjw9e",
+            "name": "Shibuya Crossing & Hachiko Statue",
+            "address": "Shibuya City, Tokyo, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771489107415-kyvmbb",
+            "name": "Tsukiji Outer Market food walk",
+            "address": "Tsukiji, Chuo City, Tokyo, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771489117631-3hloch",
+            "name": "Tokyo Skytree observation deck",
+            "address": "1-1-2 Oshiage, Sumida City, Tokyo, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ]
+      },
+      {
+        "id": "62ba01a3-3869-4f7c-a6de-047ba767e71a",
+        "name": "Nikko, Japan",
+        "displayName": "Nikko",
+        "nights": 2,
+        "arrivalDate": "2027-05-01T14:00:00.000Z",
+        "departureDate": "2027-05-03T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 4196326,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            139.698139,
+            36.7197576
+          ],
+          "state": "Tochigi Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            139.326559,
+            37.091903,
+            139.852775,
+            36.600973
+          ]
+        },
+        "transportDetails": {
+          "mode": "by train",
+          "departureDateTime": "2027-05-03T22:30:00.000Z",
+          "arrivalDateTime": "2027-05-06T03:30:00.000Z",
+          "departureLocation": "Nikko Station",
+          "arrivalLocation": "Kyoto Station"
+        },
+        "arrivalTime": "2027-05-02T02:00:00.000Z",
+        "weatherDetails": {
+          "temperature": 15,
+          "condition": "partly cloudy",
+          "weatherCode": 2,
+          "latitude": 36.7197576,
+          "longitude": 139.698139,
+          "dateTime": "2027-05-02T02:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "1771489412601-83xjqd",
+            "name": "Nikko Traditional Inn",
+            "address": "Nikko, Tochigi, Japan",
+            "checkInDateTime": "2027-05-02T05:00:00.000Z",
+            "checkOutDateTime": "2027-05-04T00:30:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771489506730-2g97in",
+            "name": "Toshogu Shrine complex",
+            "address": "2301 Sannai, Nikko, Tochigi, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771489523983-ixbxyo",
+            "name": "Kegon Falls & Lake Chuzenji",
+            "address": "Chugushi, Nikko, Tochigi, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ]
+      },
+      {
+        "id": "029e5abe-c361-460e-a9ec-84cef30cdc52",
+        "name": "Kyoto, Japan",
+        "displayName": "Kyoto",
+        "nights": 4,
+        "arrivalDate": "2027-05-05T14:00:00.000Z",
+        "departureDate": "2027-05-09T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 357794,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            135.7681441,
+            35.0115754
+          ],
+          "state": "Kyoto Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            135.559006,
+            35.3212207,
+            135.878442,
+            34.874916
+          ]
+        },
+        "transportDetails": {
+          "mode": "by train",
+          "departureDateTime": "2027-05-10T02:00:00.000Z",
+          "arrivalDateTime": "2027-05-10T03:00:00.000Z",
+          "departureLocation": "Kyoto Station",
+          "arrivalLocation": "Osaka Station"
+        },
+        "arrivalTime": "2027-05-06T03:30:00.000Z",
+        "weatherDetails": {
+          "temperature": 21,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 35.0115754,
+          "longitude": 135.7681441,
+          "dateTime": "2027-05-06T03:30:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "1771489772345-3u4dz5",
+            "name": "Gion Riverside Ryokan",
+            "address": "Higashiyama Ward, Kyoto, Japan",
+            "checkInDateTime": "2027-05-06T06:00:00.000Z",
+            "checkOutDateTime": "2027-05-10T01:30:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771489818139-8h1lmf",
+            "name": "Fushimi Inari Taisha",
+            "address": "68 Fukakusa Yabunouchicho, Fushimi Ward, Kyoto, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771489828089-vs0r73",
+            "name": "Arashiyama Bamboo Grove & river walk",
+            "address": "Ukyo Ward, Kyoto, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ]
+      },
+      {
+        "id": "b8f2381b-a855-433c-9c6c-ad3f10c83b54",
+        "name": "Osaka, Japan",
+        "displayName": "Osaka",
+        "nights": 3,
+        "arrivalDate": "2027-05-09T14:00:00.000Z",
+        "departureDate": "2027-05-12T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 358674,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            135.5014539,
+            34.6937569
+          ],
+          "state": "Osaka Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            135.3099784,
+            34.768849,
+            135.5991702,
+            34.586154
+          ]
+        },
+        "transportDetails": {
+          "mode": "by train",
+          "departureDateTime": "2027-05-12T21:30:00.000Z",
+          "arrivalDateTime": "2027-05-12T22:30:00.000Z",
+          "departureLocation": "Osaka Station",
+          "arrivalLocation": "Shin-Onomichi"
+        },
+        "accommodations": [
+          {
+            "id": "1771490124298-n8kunt",
+            "name": "Namba Station Hotel",
+            "address": "Namba, Chuo Ward, Osaka, Japan",
+            "checkInDateTime": "2027-05-10T06:00:00.000Z",
+            "checkOutDateTime": "2027-05-12T23:30:00.000Z"
+          }
+        ],
+        "arrivalTime": "2027-05-10T03:00:00.000Z",
+        "weatherDetails": {
+          "temperature": 22,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 34.6937569,
+          "longitude": 135.5014539,
+          "dateTime": "2027-05-10T03:00:00.000Z"
+        },
+        "activities": [
+          {
+            "id": "1771490202881-vnz35r",
+            "name": "Dotonbori street food tour",
+            "address": "Dotonbori, Chuo Ward, Osaka, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771490215701-i6gah9",
+            "name": "Osaka Castle & park",
+            "address": "1-1 Osakajo, Chuo Ward, Osaka, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ]
+      },
+      {
+        "id": "20c8aa66-f508-4a6e-b265-16ff2e87fd1b",
+        "name": "Onomichi, Japan",
+        "displayName": "Onomichi",
+        "nights": 1,
+        "arrivalDate": "2027-05-12T14:00:00.000Z",
+        "departureDate": "2027-05-13T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 4090359,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            133.2051549,
+            34.4088519
+          ],
+          "state": "Hiroshima Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            133.0300969,
+            34.573099,
+            133.296987,
+            34.2443572
+          ]
+        },
+        "transportDetails": {
+          "mode": "by train",
+          "departureDateTime": null,
+          "arrivalDateTime": null
+        },
+        "arrivalTime": "2027-05-12T22:30:00.000Z",
+        "weatherDetails": {
+          "temperature": 17,
+          "condition": "light drizzle",
+          "weatherCode": 51,
+          "latitude": 34.4088519,
+          "longitude": 133.2051549,
+          "dateTime": "2027-05-12T22:30:00.000Z"
+        },
+        "activities": [
+          {
+            "id": "1771490432925-soae3c",
+            "name": "Shimanami Kaido",
+            "startDateTime": "2027-05-13T21:00:00.000Z",
+            "endDateTime": "2027-05-14T08:00:00.000Z"
+          }
+        ],
+        "accommodations": [
+          {
+            "id": "1771490535469-sn2tuv",
+            "name": "Hotel Cycle",
+            "address": "Hiroshima, Onomichi, Nishigoshocho 5-11, Japan",
+            "checkInDateTime": "2027-05-13T04:30:00.000Z",
+            "checkOutDateTime": "2027-05-14T01:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "704a5693-6713-4775-bdf6-663cdc23fb7c",
+        "name": "Imabari, Japan",
+        "displayName": "Imabari",
+        "nights": 1,
+        "arrivalDate": "2027-05-13T14:00:00.000Z",
+        "departureDate": "2027-05-14T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 4048246,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            132.9976758,
+            34.0658182
+          ],
+          "state": "Ehime Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            132.784119,
+            34.3096519,
+            133.2921312,
+            33.901847
+          ]
+        },
+        "transportDetails": {
+          "mode": "by bicycle",
+          "departureDateTime": "2027-05-15T06:00:00.000Z",
+          "arrivalDateTime": "2027-05-15T07:00:00.000Z",
+          "departureLocation": "Betsumyo",
+          "arrivalLocation": "Matsuyama Shieki"
+        },
+        "arrivalTime": "2027-05-14T08:00:00.000Z",
+        "weatherDetails": {
+          "temperature": 20,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 34.0658182,
+          "longitude": 132.9976758,
+          "dateTime": "2027-05-14T08:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "1771724229402-mvx6nc",
+            "name": "Cyclo No Ie",
+            "address": "Ehime, Imabari, Kita-Horai-Cho 1-1-12, Japan",
+            "checkInDateTime": "2027-05-14T05:00:00.000Z",
+            "checkOutDateTime": "2027-05-15T00:30:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771724280044-4f6xhu",
+            "name": "Kirosan Observatory Park",
+            "startDateTime": "2027-05-13T20:00:00.000Z",
+            "endDateTime": "2027-05-13T23:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "id": "f4619b2e-3379-4bda-acff-9159bc7bc116",
+        "name": "Matsuyama, Japan",
+        "displayName": "Matsuyama",
+        "nights": 3,
+        "arrivalDate": "2027-05-14T14:00:00.000Z",
+        "departureDate": "2027-05-17T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 4050217,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            132.7653521,
+            33.8395188
+          ],
+          "state": "Ehime Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            132.4464404,
+            34.122797,
+            132.926804,
+            33.687358
+          ]
+        },
+        "transportDetails": {
+          "mode": "by bus",
+          "departureDateTime": "2027-05-18T02:00:00.000Z",
+          "arrivalDateTime": "2027-05-18T04:00:00.000Z",
+          "departureLocation": "Matsuyama Port",
+          "arrivalLocation": "Hiroshima Port"
+        },
+        "arrivalTime": "2027-05-15T07:00:00.000Z",
+        "weatherDetails": {
+          "temperature": 20,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 33.8395188,
+          "longitude": 132.7653521,
+          "dateTime": "2027-05-15T07:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "1771724517394-zdsifs",
+            "name": "Dormy Inn Matsuyama Natural Hot Spring",
+            "address": "Ehime, Matsuyama, Okaido 2-6-5, Japan",
+            "checkInDateTime": "2027-05-15T04:30:00.000Z",
+            "checkOutDateTime": "2027-05-18T02:00:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771724600001-mats01",
+            "name": "Dogo Onsen main bath",
+            "address": "5-6 Dogo Yunomachi, Matsuyama, Ehime, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771724600002-mats02",
+            "name": "Matsuyama Castle & ropeway",
+            "address": "1 Marunouchi, Matsuyama, Ehime, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ]
+      },
+      {
+        "id": "d6cb488e-44c4-4348-80ce-b52b4d8bdb36",
+        "name": "Hiroshima, Japan",
+        "displayName": "Hiroshima",
+        "nights": 2,
+        "arrivalDate": "2027-05-17T14:00:00.000Z",
+        "departureDate": "2027-05-19T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 4097196,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            132.4517589,
+            34.3917241
+          ],
+          "state": "Hiroshima Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            132.178545,
+            34.614767,
+            132.696098,
+            34.288802
+          ]
+        },
+        "transportDetails": {
+          "mode": "by boat",
+          "departureDateTime": "2027-05-20T07:00:00.000Z",
+          "arrivalDateTime": "2027-05-20T08:00:00.000Z",
+          "departureLocation": "Hiroshima Station",
+          "arrivalLocation": "Fukuoka Station"
+        },
+        "arrivalTime": "2027-05-18T04:00:00.000Z",
+        "weatherDetails": {
+          "temperature": 22,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 34.3917241,
+          "longitude": 132.4517589,
+          "dateTime": "2027-05-18T04:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "1771724737419-0mar77",
+            "name": "The Knot Hiroshima",
+            "address": "Hiroshima, Hiroshima, Naka-ku Otemachi 3-1-1, Japan",
+            "checkInDateTime": "2027-05-18T03:00:00.000Z",
+            "checkOutDateTime": "2027-05-20T00:30:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771724700001-hiro01",
+            "name": "Peace Memorial Park & Museum",
+            "address": "1-2 Nakajimacho, Naka Ward, Hiroshima, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771724700002-hiro02",
+            "name": "Itsukushima Shrine & Miyajima",
+            "address": "Miyajimacho, Hatsukaichi, Hiroshima, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ]
+      },
+      {
+        "id": "9994f2bd-b9e5-4c46-8418-1df01c636021",
+        "name": "Fukuoka, Japan",
+        "displayName": "Fukuoka",
+        "nights": 2,
+        "arrivalDate": "2027-05-19T14:00:00.000Z",
+        "departureDate": "2027-05-21T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 4008611,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            130.4017509,
+            33.5898988
+          ],
+          "state": "Fukuoka Prefecture",
+          "country": "Japan",
+          "countryCode": "JP",
+          "extent": [
+            129.871637,
+            34.0626937,
+            130.4949043,
+            33.424959
+          ]
+        },
+        "transportDetails": {
+          "mode": "by train",
+          "departureDateTime": "2027-05-22T02:30:00.000Z",
+          "arrivalDateTime": "2027-05-22T08:30:00.000Z",
+          "departureLocation": "Hakata Port",
+          "arrivalLocation": "Busan Port"
+        },
+        "arrivalTime": "2027-05-20T08:00:00.000Z",
+        "weatherDetails": {
+          "temperature": 23,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 33.5898988,
+          "longitude": 130.4017509,
+          "dateTime": "2027-05-20T08:00:00.000Z"
+        },
+        "accommodations": [
+          {
+            "id": "1771724824347-alx7m6",
+            "name": "The Royal Park Hotel Fukuoka",
+            "address": "Fukuoka, Fukuoka, Hakata-ku Hakataekimae 2-14-15 , Japan",
+            "checkInDateTime": "2027-05-20T05:00:00.000Z",
+            "checkOutDateTime": "2027-05-21T23:30:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771724800001-fuku01",
+            "name": "Canal City Hakata",
+            "address": "1-2 Sumiyoshi, Hakata Ward, Fukuoka, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771724800002-fuku02",
+            "name": "Ohori Park & Japanese garden",
+            "address": "1 Ohorikoen, Chuo Ward, Fukuoka, Japan",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ]
+      },
+      {
+        "id": "b929d922-432e-4942-83ec-a5995e6eab80",
+        "name": "Busan, South Korea",
+        "displayName": "Busan",
+        "nights": 3,
+        "arrivalDate": "2027-05-21T14:00:00.000Z",
+        "departureDate": "2027-05-24T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 2396450,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            129.0752365,
+            35.1799528
+          ],
+          "country": "South Korea",
+          "countryCode": "KR",
+          "extent": [
+            128.7568072,
+            35.3892236,
+            129.4889527,
+            34.7252504
+          ]
+        },
+        "transportDetails": {
+          "mode": "by boat",
+          "departureDateTime": "2027-05-25T04:00:00.000Z",
+          "arrivalDateTime": "2027-05-25T06:50:00.000Z",
+          "departureLocation": "Busan Station",
+          "arrivalLocation": "Seoul Station"
+        },
+        "arrivalTime": "2027-05-22T08:30:00.000Z",
+        "accommodations": [
+          {
+            "id": "1771725257682-86kndl",
+            "name": "Lotte Hotel Busan",
+            "address": "772, Gaya-daero, Busanjin-gu, Busanjin-Gu, 47285 Busan, South Korea",
+            "checkInDateTime": "2027-05-22T04:30:00.000Z",
+            "checkOutDateTime": "2027-05-25T01:30:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771725300001-busa01",
+            "name": "Haeundae Beach & Dongbaek",
+            "address": "Haeundae-gu, Busan, South Korea",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771725300002-busa02",
+            "name": "Gamcheon Culture Village",
+            "address": "Gamcheon-dong, Saha-gu, Busan, South Korea",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ],
+        "weatherDetails": {
+          "temperature": 21,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 35.1799528,
+          "longitude": 129.0752365,
+          "dateTime": "2027-05-22T08:30:00.000Z"
+        }
+      },
+      {
+        "id": "b209cc18-2c27-4e7b-8d28-c0af8813df4b",
+        "name": "Seoul, South Korea",
+        "displayName": "Seoul",
+        "nights": 5,
+        "arrivalDate": "2027-05-24T14:00:00.000Z",
+        "departureDate": "2027-05-29T14:00:00.000Z",
+        "placeDetails": {
+          "osmId": 2297418,
+          "osmType": "R",
+          "placeType": "city",
+          "coordinates": [
+            126.9782914,
+            37.5666791
+          ],
+          "country": "South Korea",
+          "countryCode": "KR",
+          "extent": [
+            126.7644328,
+            37.7014794,
+            127.1837702,
+            37.4285424
+          ]
+        },
+        "transportDetails": {
+          "mode": "by train",
+          "departureDateTime": null,
+          "arrivalDateTime": null
+        },
+        "arrivalTime": "2027-05-25T06:50:00.000Z",
+        "accommodations": [
+          {
+            "id": "1771725374025-04eftl",
+            "name": "Hotel28 Myeongdong",
+            "address": "13, Myeongdong 7-gil, Jung-Gu, Jung-Gu, 04534 Seoul, South Korea",
+            "checkInDateTime": "2027-05-25T04:00:00.000Z",
+            "checkOutDateTime": "2027-05-29T01:00:00.000Z"
+          },
+          {
+            "id": "1771725389906-da651b",
+            "name": "Golden Tulip Incheon Airport Hotel",
+            "address": "8, Huinbawi-ro 59beon-gil, Jung-gu, Jung-gu, 22371 Incheon, South Korea",
+            "checkInDateTime": "2027-05-29T03:00:00.000Z",
+            "checkOutDateTime": "2027-05-30T00:30:00.000Z"
+          }
+        ],
+        "activities": [
+          {
+            "id": "1771725400001-seou01",
+            "name": "Gyeongbokgung Palace",
+            "address": "161 Sajik-ro, Jongno-gu, Seoul, South Korea",
+            "startDateTime": null,
+            "endDateTime": null
+          },
+          {
+            "id": "1771725400002-seou02",
+            "name": "Myeongdong shopping & street food",
+            "address": "Myeong-dong, Jung-gu, Seoul, South Korea",
+            "startDateTime": null,
+            "endDateTime": null
+          }
+        ],
+        "weatherDetails": {
+          "temperature": 21,
+          "condition": "overcast",
+          "weatherCode": 3,
+          "latitude": 37.5666791,
+          "longitude": 126.9782914,
+          "dateTime": "2027-05-25T06:50:00.000Z"
+        }
+      }
+    ]
+  }
+}

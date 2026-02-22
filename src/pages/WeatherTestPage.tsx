@@ -68,7 +68,7 @@ export const WeatherTestPage = (): ReactElement => {
         <Typography variant="body2" color="text.secondary">
           quick page to show one example card for each weather category so you can tweak the gradient colors.
         </Typography>
-        <Box sx={{ mt: 1 }}>
+        <Box sx={{ mt: 2 }}>
           <ToggleButtonGroup
             value={gradientMode}
             exclusive
