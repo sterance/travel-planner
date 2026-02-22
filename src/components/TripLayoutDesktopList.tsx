@@ -134,16 +134,30 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
-        gap: 0.5,
+        gap: 0,
         px: 0.5,
         whiteSpace: "nowrap",
         writingMode: "vertical-lr",
         textOrientation: "upright",
         minWidth: 0,
+        transition: "gap 0.3s ease",
+        "& .add-label": {
+          maxHeight: 0,
+          overflow: "hidden",
+          opacity: 0,
+          transition: "max-height 0.3s ease, opacity 0.3s ease",
+        },
+        "&:hover": {
+          gap: 0.5,
+        },
+        "&:hover .add-label": {
+          maxHeight: 400,
+          opacity: 1,
+        },
       }}
     >
-      <AddIcon sx={{ mb: 0.5 }} />
-      New Destination
+      <AddIcon sx={{ flexShrink: 0 }} />
+      <span className="add-label">New Destination</span>
     </Button>
   );
 
@@ -360,11 +374,11 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                           </MenuItem>
                           {insertIndex > 0 && <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-prev`)}>Near {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"}</MenuItem>}
                           <MenuItem onClick={() => handleExploreSelect(insertIndex, `near-next`)}>Near {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}</MenuItem>
-                          {insertIndex > 0 && (
+                          {/* {insertIndex > 0 && (
                             <MenuItem onClick={() => handleExploreSelect(insertIndex, `between`)}>
                               Between {destinationsWithTimeline[insertIndex - 1]?.displayName || destinationsWithTimeline[insertIndex - 1]?.name || "previous"} and {destinationsWithTimeline[insertIndex]?.displayName || destinationsWithTimeline[insertIndex]?.name || "next"}
                             </MenuItem>
-                          )}
+                          )} */}
                         </Menu>
                       </>
                       <IconButton
@@ -516,7 +530,17 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
               {addButtonWithTextPosition === desktopListColumns ? (
                 verticalAddButton
               ) : !showTrailingAsAddCard ? (
-                <IconButton onClick={() => handleAddDestination(trailingInsertIndex)} color="primary" size="small" aria-label="add destination">
+                <IconButton
+                onClick={() => handleAddDestination(trailingInsertIndex)} 
+                color="primary" 
+                size="small" 
+                aria-label="add destination" 
+                sx={(theme) => ({
+                  ...getPulsingDropShadowSx({
+                    minShadow: `0 1px 4px ${theme.palette.primary.main}80`,
+                    maxShadow: `0 2px 8px ${theme.palette.primary.main}CC`,
+                  }),
+                })}>
                   <AddIcon sx={{ transform: "scale(1.4)" }} />
                 </IconButton>
               ) : null}

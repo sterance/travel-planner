@@ -109,11 +109,11 @@ export const TripLayoutPortraitList = ({ viewMode, layoutMode, destinationsWithT
                     </MenuItem>
                 {index > 0 && <MenuItem onClick={() => handleExploreSelect(index, `near-prev`)}>Near {destinationsWithTimeline[index - 1]?.displayName || destinationsWithTimeline[index - 1]?.name || "previous"}</MenuItem>}
                     <MenuItem onClick={() => handleExploreSelect(index, `near-next`)}>Near {destinationsWithTimeline[index]?.displayName || destinationsWithTimeline[index]?.name || "next"}</MenuItem>
-                    {index > 0 && (
+                    {/* {index > 0 && (
                       <MenuItem onClick={() => handleExploreSelect(index, `between`)}>
                         Between {destinationsWithTimeline[index - 1]?.displayName || destinationsWithTimeline[index - 1]?.name || "previous"} and {destinationsWithTimeline[index]?.displayName || destinationsWithTimeline[index]?.name || "next"}
                       </MenuItem>
-                    )}
+                    )} */}
                   </Menu>
                 </>
                 <IconButton

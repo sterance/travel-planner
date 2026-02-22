@@ -51,7 +51,6 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
     endDateTime,
     latestEndDate,
     hasCoveragePastDestinationEnd,
-    showAddButton,
     openForNew,
     openForEdit,
     closeModal,
@@ -108,11 +107,9 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
               ))}
             </CollapsibleList>
           )}
-          {showAddButton && (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={openForNew} fullWidth>
-              add activities
-            </Button>
-          )}
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openForNew} fullWidth>
+            add activities
+          </Button>
         </Box>
       </SectionCard>
       <LocalizationProvider dateAdapter={AdapterDayjs}>

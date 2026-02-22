@@ -134,7 +134,7 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
             </Box>
           )}
           {weatherError && !isLoadingWeather && (
-            <Typography variant="body2" color="error">
+            <Typography variant="body2" color="error" sx={{ textAlign: "center" }}>
               Unable to load weather forecast
               {weatherErrorDateTime && weatherErrorDateTime.isValid() ? ` for ${weatherErrorDateTime.format("MMM D, YYYY")}` : ""}
             </Typography>

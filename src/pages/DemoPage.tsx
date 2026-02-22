@@ -75,10 +75,23 @@ export const DemoPage = (): ReactElement => {
   useEffect(() => {
     setActions(
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mr: 1 }}>
-        <Button size="small" variant="contained" onClick={() => navigate("/")}>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => navigate("/")}
+          sx={(theme) =>
+            theme.palette.mode === "light"
+              ? {
+                  backgroundColor: theme.palette.common.white,
+                  color: theme.palette.primary.main,
+                  "&:hover": { backgroundColor: theme.palette.grey[100] },
+                }
+              : {}
+          }
+        >
           try it!
         </Button>
-        <Button size="small" variant="outlined" onClick={reloadDemoTrip} disabled={loading}>
+        <Button size="small" variant="outlined" color="inherit" onClick={reloadDemoTrip} disabled={loading}>
           reset
         </Button>
       </Box>,
