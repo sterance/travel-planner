@@ -6,14 +6,13 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import { InfoOutline } from "@mui/icons-material";
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import { type Dayjs } from "dayjs";
 import { TripHeader, type TripHeaderProps } from "./TripHeader";
 import { MagnificationControls } from "./MagnificationControls";
+import { NavigationControlsDesktopList } from "./NavigationControlsDesktopList";
 import { type Destination as DestinationType } from "../types/destination";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 import { getPulsingDropShadowSx } from "./utility/pulsingShadow";
@@ -100,8 +99,6 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
   const showTrailingAsAddCard = lastVisibleIndex === destinations.length - 1;
   const addButtonWithTextPosition = showTrailingAsAddCard ? lastVisibleRelativeIndex + 1 : -1;
   const trailingInsertIndex = lastVisibleIndex !== null ? lastVisibleIndex + 1 : destinations.length;
-  const rangeStart = currentIndex + 1;
-  const rangeEnd = Math.min(currentIndex + desktopListColumns, destinations.length);
 
   const clampColumnsForSet = (nextRaw: number | null): void => {
     if (nextRaw === null) return;
@@ -140,7 +137,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
         writingMode: "vertical-lr",
         textOrientation: "upright",
         minWidth: 0,
-        transition: "gap 0.3s ease",
+        transition: "gap 0.3s ease, transform 0.3s ease",
         "& .add-label": {
           maxHeight: 0,
           overflow: "hidden",
@@ -149,6 +146,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
         },
         "&:hover": {
           gap: 0.5,
+          transform: "translateY(-50%)",
         },
         "&:hover .add-label": {
           maxHeight: 400,
@@ -161,28 +159,78 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
     </Button>
   );
 
+  const MAGNIFICATION_TOP_INITIAL_PX = 170;
+  const MAGNIFICATION_TOP_MIN_PX = 70;
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const controlRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [controlPositions, setControlPositions] = useState<Array<{ left: number; width: number }>>([]);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const buttonStackRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const initialColumnTopRef = useRef<number | null>(null);
+  const [controlPositions, setControlPositions] = useState<Array<{ left: number; width: number; clampedTop: number | null }>>([]);
+  const [magnificationPosition, setMagnificationPosition] = useState<{ left: number; width: number; top: number } | null>(null);
 
   useEffect(() => {
     const gridContainer = gridContainerRef.current;
     if (!gridContainer) return;
 
+    const RIBBON_OFFSET_PX = 35;
+    const viewportCenterY = () => window.innerHeight / 2;
+
     const updatePositions = () => {
       requestAnimationFrame(() => {
-        const positions = controlRefs.current
-          .filter((ref) => ref !== null)
-          .map((ref) => {
-            if (!ref) return { left: 0, width: 0 };
-            const rect = ref.getBoundingClientRect();
-            return {
-              left: rect.left,
-              width: rect.width,
-            };
-          });
+        const positions: Array<{ left: number; width: number; clampedTop: number | null }> = [];
+        for (let i = 0; i <= desktopListColumns; i++) {
+          const controlEl = controlRefs.current[i];
+          const left = controlEl?.getBoundingClientRect().left ?? 0;
+          const width = controlEl?.getBoundingClientRect().width ?? 0;
+
+          const leftCard = i > 0 ? cardRefs.current[i - 1] : null;
+          const rightCard = i < desktopListColumns ? cardRefs.current[i] : null;
+          const leftRect = leftCard?.getBoundingClientRect();
+          const rightRect = rightCard?.getBoundingClientRect();
+          const leftContentRect = leftCard?.firstElementChild?.getBoundingClientRect();
+          const rightContentRect = rightCard?.firstElementChild?.getBoundingClientRect();
+
+          const stackEl = buttonStackRefs.current[i];
+          const stackHeight = stackEl?.getBoundingClientRect().height ?? 0;
+
+          let clampedTop: number | null = null;
+          if (stackHeight > 0) {
+            let topBound = -Infinity;
+            if (leftRect) topBound = Math.max(topBound, leftRect.top - RIBBON_OFFSET_PX);
+            if (rightRect) topBound = Math.max(topBound, rightRect.top - RIBBON_OFFSET_PX);
+
+            let bottomBound = -Infinity;
+            if (leftContentRect) bottomBound = Math.max(bottomBound, leftContentRect.bottom);
+            if (rightContentRect) bottomBound = Math.max(bottomBound, rightContentRect.bottom);
+            if (bottomBound === -Infinity) bottomBound = Infinity;
+
+            const hasBounds = leftRect != null || rightRect != null;
+            if (hasBounds) {
+              let top = viewportCenterY() - stackHeight / 2;
+              if (top < topBound) top = topBound;
+              if (top + stackHeight > bottomBound) top = bottomBound - stackHeight;
+              if (top < topBound) top = topBound;
+              clampedTop = top;
+            }
+          }
+
+          positions.push({ left, width, clampedTop });
+        }
         setControlPositions(positions);
+        const columnTop = controlRefs.current[0]?.getBoundingClientRect().top ?? 0;
+        const scrollTop = scrollContainerRef.current?.scrollTop ?? 0;
+        if (initialColumnTopRef.current == null && scrollTop === 0) {
+          initialColumnTopRef.current = columnTop;
+        }
+        const initialColumnTop = initialColumnTopRef.current ?? MAGNIFICATION_TOP_INITIAL_PX;
+        const offset = MAGNIFICATION_TOP_INITIAL_PX - initialColumnTop;
+        const magTop = Math.max(MAGNIFICATION_TOP_MIN_PX, columnTop + offset);
+        setMagnificationPosition(
+          positions[0] != null ? { left: positions[0].left, width: positions[0].width, top: magTop } : null
+        );
       });
     };
 
@@ -193,15 +241,30 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
     }
     window.addEventListener("resize", updatePositions);
     window.addEventListener("scroll", updatePositions, { passive: true, capture: true });
+    const resizeObserver = new ResizeObserver(updatePositions);
+    resizeObserver.observe(gridContainer);
+    const deferredUpdate = () => {
+      const rafId = requestAnimationFrame(() => {
+        requestAnimationFrame(updatePositions);
+      });
+      const timeoutId = setTimeout(updatePositions, 350);
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(timeoutId);
+      };
+    };
+    const cancelDeferred = deferredUpdate();
 
     return () => {
+      cancelDeferred();
+      resizeObserver.disconnect();
       if (scrollContainer) {
         scrollContainer.removeEventListener("scroll", updatePositions);
       }
       window.removeEventListener("resize", updatePositions);
       window.removeEventListener("scroll", updatePositions, { capture: true });
     };
-  }, [desktopListColumns, currentIndex]);
+  }, [desktopListColumns, currentIndex, settingsProps.mapExpanded]);
 
   return (
     <Box
@@ -249,24 +312,13 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
               mb: 2,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <IconButton onClick={handleListPrevious} disabled={currentIndex === 0} color="primary">
-                <ChevronLeftIcon />
-              </IconButton>
-              <Typography variant="body2">
-                {rangeStart}-{rangeEnd} / {destinations.length}
-              </Typography>
-              <IconButton onClick={handleListNext} disabled={currentIndex + desktopListColumns >= destinations.length} color="primary">
-                <ChevronRightIcon />
-              </IconButton>
-            </Box>
+          <NavigationControlsDesktopList
+            currentIndex={currentIndex}
+            totalCount={destinations.length}
+            visibleCount={desktopListColumns}
+            onPrevious={handleListPrevious}
+            onNext={handleListNext}
+          />
           </Box>
         </Box>
         <Box
@@ -337,17 +389,21 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                   ) : null}
                 </Box>
                 <Box
+                  ref={(el: HTMLDivElement | null) => {
+                    buttonStackRefs.current[boundaryIndex] = el;
+                  }}
                   sx={{
                     position: "fixed",
-                    top: "50vh",
+                    top: controlPositions[boundaryIndex]?.clampedTop != null ? `${controlPositions[boundaryIndex].clampedTop}px` : "50vh",
                     left: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].left}px` : "auto",
                     width: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].width}px` : "auto",
-                    transform: "translateY(-50%)",
+                    transform: controlPositions[boundaryIndex]?.clampedTop != null ? "none" : "translateY(-50%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     zIndex: 1,
                     pointerEvents: "auto",
+                    overflow: "visible",
                   }}
                 >
                   {isAddButtonWithText ? (
@@ -404,13 +460,13 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                   ) : null}
                 </Box>
 
-                {boundaryIndex === 0 && !isAddButtonWithText && (
+                {boundaryIndex === 0 && !isAddButtonWithText && magnificationPosition != null && (
                   <Box
                     sx={{
                       position: "fixed",
-                      bottom: 16,
-                      left: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].left}px` : "auto",
-                      width: controlPositions[boundaryIndex] ? `${controlPositions[boundaryIndex].width}px` : "auto",
+                      top: magnificationPosition.top,
+                      left: `${magnificationPosition.left}px`,
+                      width: `${magnificationPosition.width}px`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -429,6 +485,9 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
             return (
               <Box
                 key={destination?.id ?? `empty-${absoluteIndex}`}
+                ref={(el: HTMLDivElement | null) => {
+                  cardRefs.current[relativeIndex] = el;
+                }}
                 sx={{
                   minWidth: 0,
                   overflow: "visible",
@@ -439,7 +498,7 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                       outline: 2,
                       outlineStyle: "dashed",
                       outlineColor: "primary.main",
-                      borderRadius: 1,
+                      borderRadius: 2,
                     }),
                 }}
                 {...(destination && {
@@ -514,17 +573,21 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
               ) : null}
             </Box>
             <Box
+              ref={(el: HTMLDivElement | null) => {
+                buttonStackRefs.current[desktopListColumns] = el;
+              }}
               sx={{
                 position: "fixed",
-                top: "50vh",
+                top: controlPositions[desktopListColumns]?.clampedTop != null ? `${controlPositions[desktopListColumns].clampedTop}px` : "50vh",
                 left: controlPositions[desktopListColumns] ? `${controlPositions[desktopListColumns].left}px` : "auto",
                 width: controlPositions[desktopListColumns] ? `${controlPositions[desktopListColumns].width}px` : "auto",
-                transform: "translateY(-50%)",
+                transform: controlPositions[desktopListColumns]?.clampedTop != null ? "none" : "translateY(-50%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 zIndex: 1,
                 pointerEvents: "auto",
+                overflow: "visible",
               }}
             >
               {addButtonWithTextPosition === desktopListColumns ? (
