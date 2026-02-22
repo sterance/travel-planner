@@ -222,7 +222,7 @@ export const DestinationCardHeaderDisplay = ({ destination, layoutMode, arrivalD
               bgcolor: "background.paper",
               boxShadow: 3,
               p: 1,
-              borderRadius: 1,
+              borderRadius: 2,
             }}
           >
             <TextField

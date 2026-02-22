@@ -87,7 +87,7 @@ export const TripLayoutPortraitList = ({ viewMode, layoutMode, destinationsWithT
                     outline: 2,
                     outlineStyle: "dashed",
                     outlineColor: "primary.main",
-                    borderRadius: 1,
+                    borderRadius: 2,
                   }),
               }}
               {...(viewMode === "list" && {

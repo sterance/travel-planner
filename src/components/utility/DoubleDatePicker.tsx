@@ -227,7 +227,7 @@ export const DoubleDatePicker = ({ open, anchorEl, onClose, checkInDate, checkOu
         <Box sx={{ p: 2, minWidth: 350 }}>
           <Stack spacing={2}>
             <Box sx={{ display: "flex", gap: 1 }}>
-              <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 0.5, border: 1, borderColor: "divider", borderRadius: 1, px: 1, py: 0.5 }}>
+              <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 0.5, border: 1, borderColor: "divider", borderRadius: 2, px: 1, py: 0.5 }}>
                 <CalendarMonthIcon sx={{ fontSize: 20, color: "action.active" }} />
                 <Typography variant="body2" sx={{ flex: 1 }}>
                   {localCheckIn ? localCheckIn.format("ddd D MMM") : "Check-in"}
@@ -243,7 +243,7 @@ export const DoubleDatePicker = ({ open, anchorEl, onClose, checkInDate, checkOu
                   </Box>
                 )}
               </Box>
-              <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 0.5, border: 1, borderColor: "divider", borderRadius: 1, px: 1, py: 0.5 }}>
+              <Box sx={{ flex: 1, display: "flex", alignItems: "center", gap: 0.5, border: 1, borderColor: "divider", borderRadius: 2, px: 1, py: 0.5 }}>
                 <CalendarMonthIcon sx={{ fontSize: 20, color: "action.active" }} />
                 <Typography variant="body2" sx={{ flex: 1 }}>
                   {localCheckOut ? localCheckOut.format("ddd D MMM") : "Check-out"}
