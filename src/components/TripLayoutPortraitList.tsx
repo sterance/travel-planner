@@ -82,6 +82,8 @@ export const TripLayoutPortraitList = ({ viewMode, layoutMode, destinationsWithT
                 overflow: "visible",
                 ...(viewMode === "list" &&
                   reorderDragOverIndex === index && {
+                    position: "relative",
+                    zIndex: 10,
                     outline: 2,
                     outlineStyle: "dashed",
                     outlineColor: "primary.main",

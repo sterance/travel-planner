@@ -66,14 +66,6 @@ export const useDestinationSearch = ({ destination, onDestinationChange, shouldF
   const handleInputChange = (_event: unknown, newValue: string | null): void => {
     const value = newValue || "";
     setInputValue(value);
-    if (!value) {
-      onDestinationChange({
-        ...destination,
-        name: "",
-        displayName: "",
-        placeDetails: undefined,
-      });
-    }
   };
 
   const handleChange = (_event: unknown, value: string | PlaceSuggestion | null, _reason?: unknown, _details?: unknown): void => {
@@ -97,7 +89,9 @@ export const useDestinationSearch = ({ destination, onDestinationChange, shouldF
   };
 
   const handleBlur = (): void => {
-    if (inputValue && !destination.placeDetails) {
+    if (!inputValue) {
+      setInputValue(destination.name);
+    } else if (!destination.placeDetails) {
       const cityName = inputValue.includes(",") ? inputValue.split(",")[0].trim() : inputValue;
       onDestinationChange({
         ...destination,

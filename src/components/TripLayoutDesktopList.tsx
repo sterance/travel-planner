@@ -485,10 +485,27 @@ export const TripLayoutDesktopList = ({ viewMode, layoutMode, destinations, dest
                   gridRow: 1,
                   ...(destination &&
                     reorderDragOverIndex === absoluteIndex && {
-                      outline: 2,
-                      outlineStyle: "dashed",
-                      outlineColor: "primary.main",
-                      borderRadius: 2,
+                      position: "relative",
+                      zIndex: 10,
+                      border: "2px dashed",
+                      borderColor: "primary.main",
+                      borderTop: "none",
+                      borderBottomLeftRadius: 8,
+                      borderBottomRightRadius: 8,
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: -35,
+                        left: -2,
+                        right: -2,
+                        height: 35,
+                        border: "2px dashed",
+                        borderColor: "primary.main",
+                        borderBottom: "none",
+                        borderTopLeftRadius: 8,
+                        borderTopRightRadius: 8,
+                        pointerEvents: "none",
+                      },
                     }),
                 }}
                 {...(destination && {
