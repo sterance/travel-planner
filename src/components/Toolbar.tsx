@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactElement, type ReactNode } from "react";
+import { type ReactElement, type ReactNode } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -13,38 +13,6 @@ import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
 import ArticleIcon from '@mui/icons-material/Article';
 import type { LayoutMode, ViewMode } from "../App";
-
-interface ToolbarActionsContextValue {
-  actions: ReactNode;
-  setActions: (node: ReactNode) => void;
-}
-
-const ToolbarActionsContext = createContext<ToolbarActionsContextValue | undefined>(undefined);
-
-interface ToolbarActionsProviderProps {
-  children: ReactNode;
-}
-
-export const ToolbarActionsProvider = ({ children }: ToolbarActionsProviderProps): ReactElement => {
-  const [actions, setActions] = useState<ReactNode>(null);
-
-  const value = useMemo<ToolbarActionsContextValue>(() => {
-    return {
-      actions,
-      setActions,
-    };
-  }, [actions]);
-
-  return <ToolbarActionsContext.Provider value={value}>{children}</ToolbarActionsContext.Provider>;
-};
-
-export const useToolbarActions = (): ToolbarActionsContextValue => {
-  const value = useContext(ToolbarActionsContext);
-  if (!value) {
-    throw new Error("useToolbarActions must be used within ToolbarActionsProvider");
-  }
-  return value;
-};
 
 interface AppToolbarProps {
   title: string;

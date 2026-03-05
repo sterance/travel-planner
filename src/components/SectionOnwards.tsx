@@ -18,6 +18,7 @@ import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { ListCard } from "./ListCard";
 import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
 import { useOnwardsDetailsModal } from "../hooks/useOnwardsDetailsModal";
+import { useDateFormat, getDateTimeFormat } from "../hooks/useDateFormat";
 
 interface SectionOnwardsProps {
   destination: Destination;
@@ -63,11 +64,20 @@ const formatLocationDisplay = (location: string | undefined, transport?: string 
 };
 
 export const SectionOnwards = ({ destination, nextDestination, onDestinationChange }: SectionOnwardsProps): ReactElement => {
+  const dateFormat = useDateFormat();
+  const dateTimeFormat = getDateTimeFormat(dateFormat);
+
+  const nextMode = nextDestination?.transportDetails?.mode;
+
+  const modalState = useOnwardsDetailsModal({
+    destination,
+    transportMode: nextMode,
+    onDestinationChange,
+  });
+
   if (!nextDestination) {
     return <></>;
   }
-
-  const nextMode = nextDestination.transportDetails?.mode;
 
   if (!nextMode) {
     return (
@@ -78,12 +88,6 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
       </SectionCard>
     );
   }
-
-  const modalState = useOnwardsDetailsModal({
-    destination,
-    transportMode: nextMode,
-    onDestinationChange,
-  });
 
   const {
     isOpen: isModalOpen,
@@ -154,6 +158,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                 label="Departure Date & Time"
                 value={getSafeDayjsValue(departureDateTime)}
                 onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
               />
@@ -174,6 +179,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                 label="Arrival Date & Time"
                 value={getSafeDayjsValue(arrivalDateTime)}
                 onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
               />
@@ -194,6 +200,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                 label="Departure Date & Time"
                 value={getSafeDayjsValue(departureDateTime)}
                 onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
               />
@@ -208,6 +215,7 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
                 label="Arrival Date & Time"
                 value={getSafeDayjsValue(arrivalDateTime)}
                 onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
               />

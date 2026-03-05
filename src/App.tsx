@@ -21,7 +21,8 @@ import { RegisterPage } from "./pages/RegisterPage";
 import dayjs, { type Dayjs } from "dayjs";
 import { getStringItem, setStringItem } from "./services/storageService";
 import { WeatherTestPage } from "./pages/WeatherTestPage.tsx";
-import { ToolbarActionsProvider, useToolbarActions } from "./components/Toolbar";
+import { useToolbarActions } from "./contexts/ToolbarActionsContext.tsx";
+import { ToolbarActionsProvider } from "./components/ToolbarActionsProvider.tsx";
 import { type Trip } from "./types/trip";
 
 const TripPage = lazy(async () => {
@@ -40,6 +41,7 @@ const ASPECT_RATIO_BREAKPOINT = 1;
 export type ViewMode = "list" | "carousel";
 export type LayoutMode = "portrait" | "desktop";
 export type ArrivalWeatherBackgroundMode = "default" | "light" | "dark";
+export type DateFormatPreference = "DD/MM/YYYY" | "MM/DD/YYYY";
 
 export interface PassportEntry {
   countryName: string;
@@ -51,10 +53,38 @@ function App(): ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("portrait");
   const [columns, setColumns] = useState(3);
-  const [arrivalWeatherBackgroundMode, setArrivalWeatherBackgroundMode] = useState<ArrivalWeatherBackgroundMode>("default");
-  const [showExploreButton, setShowExploreButton] = useState(true);
-  const [showInfoButton, setShowInfoButton] = useState(true);
-  const [passports, setPassports] = useState<PassportEntry[]>([]);
+  const [arrivalWeatherBackgroundMode, setArrivalWeatherBackgroundMode] = useState<ArrivalWeatherBackgroundMode>(() => {
+    const stored = getStringItem("arrivalWeatherBackgroundMode", "default");
+    return stored === "default" || stored === "light" || stored === "dark" ? stored : "default";
+  });
+  const [showExploreButton, setShowExploreButton] = useState(() => {
+    return getStringItem("showExploreButton", "true") === "true";
+  });
+  const [showInfoButton, setShowInfoButton] = useState(() => {
+    return getStringItem("showInfoButton", "true") === "true";
+  });
+  const [passports, setPassports] = useState<PassportEntry[]>(() => {
+    const storedPassports = getStringItem("passports", "");
+    if (storedPassports) {
+      try {
+        const parsed = JSON.parse(storedPassports);
+        if (Array.isArray(parsed)) {
+          return parsed.map((p: string | { countryName: string; expirationDate: string | null }) => {
+            if (typeof p === "string") return { countryName: p, expirationDate: null as Dayjs | null };
+            const exp = p.expirationDate;
+            return { countryName: p.countryName, expirationDate: exp ? dayjs(exp) : null };
+          });
+        }
+      } catch (error) {
+        console.error("Failed to parse stored passports:", error);
+      }
+    }
+    return [];
+  });
+  const [dateFormat, setDateFormat] = useState<DateFormatPreference>(() => {
+    const stored = getStringItem("dateFormat", "DD/MM/YYYY");
+    return stored === "DD/MM/YYYY" || stored === "MM/DD/YYYY" ? stored : "DD/MM/YYYY";
+  });
   const { mode, toggleTheme } = useThemeMode();
   const { user, logout } = useAuth();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
@@ -103,36 +133,6 @@ function App(): ReactElement {
     setDrawerOpen(false);
   };
 
-  useEffect(() => {
-    const stored = getStringItem("arrivalWeatherBackgroundMode", "default");
-    if (stored === "default" || stored === "light" || stored === "dark") {
-      setArrivalWeatherBackgroundMode(stored);
-    }
-
-    const storedShowExplore = getStringItem("showExploreButton", "true");
-    setShowExploreButton(storedShowExplore === "true");
-
-    const storedShowInfo = getStringItem("showInfoButton", "true");
-    setShowInfoButton(storedShowInfo === "true");
-
-    const storedPassports = getStringItem("passports", "");
-    if (storedPassports) {
-      try {
-        const parsed = JSON.parse(storedPassports);
-        if (Array.isArray(parsed)) {
-          const migrated = parsed.map((p: string | { countryName: string; expirationDate: string | null }) => {
-            if (typeof p === "string") return { countryName: p, expirationDate: null as Dayjs | null };
-            const exp = p.expirationDate;
-            return { countryName: p.countryName, expirationDate: exp ? dayjs(exp) : null };
-          });
-          setPassports(migrated);
-        }
-      } catch (error) {
-        console.error("Failed to parse stored passports:", error);
-      }
-    }
-  }, []);
-
   const handleArrivalWeatherBackgroundModeChange = (mode: ArrivalWeatherBackgroundMode): void => {
     setArrivalWeatherBackgroundMode(mode);
     setStringItem("arrivalWeatherBackgroundMode", mode);
@@ -146,6 +146,11 @@ function App(): ReactElement {
   const handleShowInfoButtonChange = (show: boolean): void => {
     setShowInfoButton(show);
     setStringItem("showInfoButton", show.toString());
+  };
+
+  const handleDateFormatChange = (format: DateFormatPreference): void => {
+    setDateFormat(format);
+    setStringItem("dateFormat", format);
   };
 
   const persistPassports = (updated: PassportEntry[]): void => {
@@ -211,6 +216,8 @@ function App(): ReactElement {
         handleShowExploreButtonChange={handleShowExploreButtonChange}
         showInfoButton={showInfoButton}
         handleShowInfoButtonChange={handleShowInfoButtonChange}
+        dateFormat={dateFormat}
+        handleDateFormatChange={handleDateFormatChange}
         passports={passports}
         handleAddPassport={handleAddPassport}
         handleRemovePassport={handleRemovePassport}
@@ -250,6 +257,8 @@ interface AppShellProps {
   handleShowExploreButtonChange: (show: boolean) => void;
   showInfoButton: boolean;
   handleShowInfoButtonChange: (show: boolean) => void;
+  dateFormat: DateFormatPreference;
+  handleDateFormatChange: (format: DateFormatPreference) => void;
   passports: PassportEntry[];
   handleAddPassport: (countryName: string, expirationDate?: Dayjs | null) => void;
   handleRemovePassport: (countryName: string) => void;
@@ -286,6 +295,8 @@ const AppShell = ({
   handleShowExploreButtonChange,
   showInfoButton,
   handleShowInfoButtonChange,
+  dateFormat,
+  handleDateFormatChange,
   passports,
   handleAddPassport,
   handleRemovePassport,
@@ -416,6 +427,8 @@ const AppShell = ({
                     setShowExploreButton: handleShowExploreButtonChange,
                     showInfoButton,
                     setShowInfoButton: handleShowInfoButtonChange,
+                    dateFormat,
+                    setDateFormat: handleDateFormatChange,
                     passports,
                     addPassport: handleAddPassport,
                     removePassport: handleRemovePassport,

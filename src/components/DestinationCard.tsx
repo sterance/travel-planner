@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense, type ReactElement } from "react";
+import { useState, useRef, lazy, Suspense, type ReactElement } from "react";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
@@ -81,13 +81,8 @@ export const DestinationCard = ({
   arrivalWeatherBackgroundMode = "default",
   isCarousel = false,
 }: DestinationCardProps): ReactElement => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(alwaysExpanded);
 
-  useEffect(() => {
-    if (alwaysExpanded) {
-      setExpanded(true);
-    }
-  }, [alwaysExpanded]);
   const [buttonHover, setButtonHover] = useState<"remove" | "reorder" | null>(null);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const customNightsInputRef = useRef<HTMLInputElement>(null);

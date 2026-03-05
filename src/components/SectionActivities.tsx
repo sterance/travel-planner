@@ -17,6 +17,7 @@ import { type Destination, type ActivityDetails } from "../types/destination";
 import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { useSectionItemList } from "../hooks/useSectionItemList";
+import { useDateFormat, getDateTimeFormat } from "../hooks/useDateFormat";
 
 interface SectionActivitiesProps {
   destination: Destination;
@@ -25,6 +26,8 @@ interface SectionActivitiesProps {
 }
 
 export const SectionActivities = ({ destination, onDestinationChange, arrivalDate }: SectionActivitiesProps): ReactElement => {
+  const dateFormat = useDateFormat();
+  const dateTimeFormat = getDateTimeFormat(dateFormat);
   const activityButtons = [
     {
       label: "TripAdvisor",
@@ -131,6 +134,7 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
               label="Start date & time"
               value={getSafeDayjsValue(startDateTime)}
               onChange={(newValue) => setStartDateTime(getSafeDayjsValue(newValue))}
+              format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {
@@ -143,6 +147,7 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
               label="End date & time"
               value={getSafeDayjsValue(endDateTime)}
               onChange={(newValue) => setEndDateTime(getSafeDayjsValue(newValue))}
+              format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {

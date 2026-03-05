@@ -8,7 +8,7 @@ import { type Trip } from "../types/trip";
 import { loadDemoTrip } from "../services/demoLoader";
 import type { ArrivalWeatherBackgroundMode, LayoutMode, ViewMode } from "../App";
 import { TripView } from "./TripPage";
-import { useToolbarActions } from "../components/Toolbar";
+import { useToolbarActions } from "../contexts/ToolbarActionsContext";
 
 interface OutletContext {
   viewMode: ViewMode;

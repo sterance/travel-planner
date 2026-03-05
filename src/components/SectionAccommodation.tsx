@@ -18,6 +18,7 @@ import type { Dayjs } from "dayjs";
 import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { useSectionItemList } from "../hooks/useSectionItemList";
+import { useDateFormat, getDateTimeFormat } from "../hooks/useDateFormat";
 
 interface SectionAccommodationProps {
   destination: Destination;
@@ -27,6 +28,8 @@ interface SectionAccommodationProps {
 
 export const SectionAccommodation = ({ destination, onDestinationChange, arrivalDate }: SectionAccommodationProps): ReactElement => {
   const links = buildAccommodationLinks(destination);
+  const dateFormat = useDateFormat();
+  const dateTimeFormat = getDateTimeFormat(dateFormat);
 
   const accommodations = destination.accommodations ?? [];
 
@@ -132,6 +135,7 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
               label="Check-in date & time"
               value={getSafeDayjsValue(startDateTime)}
               onChange={(newValue) => setStartDateTime(getSafeDayjsValue(newValue))}
+              format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {
@@ -144,6 +148,7 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
               label="Check-out date & time"
               value={getSafeDayjsValue(endDateTime)}
               onChange={(newValue) => setEndDateTime(getSafeDayjsValue(newValue))}
+              format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
                 textField: {

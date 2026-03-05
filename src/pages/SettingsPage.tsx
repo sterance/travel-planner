@@ -10,13 +10,15 @@ import Checkbox from "@mui/material/Checkbox";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import RadioGroup from "@mui/material/RadioGroup";
+import Radio from "@mui/material/Radio";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { type Dayjs } from "dayjs";
-import { type ArrivalWeatherBackgroundMode, type PassportEntry } from "../App";
+import { type ArrivalWeatherBackgroundMode, type DateFormatPreference, type PassportEntry } from "../App";
 import { searchCountries, type Country } from "../services/passportService";
 import { Footer } from "../components/Footer";
 
@@ -27,6 +29,8 @@ interface OutletContext {
   setShowExploreButton: (value: boolean) => void;
   showInfoButton: boolean;
   setShowInfoButton: (value: boolean) => void;
+  dateFormat: DateFormatPreference;
+  setDateFormat: (value: DateFormatPreference) => void;
   passports: PassportEntry[];
   addPassport: (countryName: string, expirationDate?: Dayjs | null) => void;
   removePassport: (countryName: string) => void;
@@ -39,6 +43,8 @@ export const SettingsPage = (): ReactElement => {
     setShowExploreButton,
     showInfoButton,
     setShowInfoButton,
+    dateFormat,
+    setDateFormat,
     passports,
     addPassport,
     removePassport,
@@ -119,6 +125,7 @@ export const SettingsPage = (): ReactElement => {
                         label="Expiration date"
                         value={pendingExpiration}
                         onChange={(d) => setPendingExpiration(d)}
+                        format={dateFormat}
                         minDate={dayjs()}
                         slotProps={{ textField: { size: "small", sx: { minWidth: 160 } } }}
                       />
@@ -177,6 +184,7 @@ export const SettingsPage = (): ReactElement => {
                           label="Expiration"
                           value={entry.expirationDate}
                           onChange={(d) => updatePassportExpiration(entry.countryName, d ?? null)}
+                          format={dateFormat}
                           minDate={dayjs()}
                           slotProps={{ textField: { size: "small", sx: { minWidth: 160 } } }}
                         />
@@ -208,6 +216,24 @@ export const SettingsPage = (): ReactElement => {
               <FormControlLabel control={<Checkbox checked={showExploreButton} onChange={(e) => setShowExploreButton(e.target.checked)} />} label="Show explore button" />
               <FormControlLabel control={<Checkbox checked={showInfoButton} onChange={(e) => setShowInfoButton(e.target.checked)} />} label="Show info button" />
             </Box>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader
+            title={
+              <Typography variant="h5" component="div">
+                Date format
+              </Typography>
+            }
+          />
+          <CardContent>
+            <RadioGroup
+              value={dateFormat}
+              onChange={(e) => setDateFormat(e.target.value as DateFormatPreference)}
+            >
+              <FormControlLabel value="DD/MM/YYYY" control={<Radio />} label="DD/MM/YYYY" />
+              <FormControlLabel value="MM/DD/YYYY" control={<Radio />} label="MM/DD/YYYY" />
+            </RadioGroup>
           </CardContent>
         </Card>
       </Box>
