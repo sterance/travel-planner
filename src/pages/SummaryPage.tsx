@@ -8,16 +8,15 @@ import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined
 import { ItineraryPage } from "./ItineraryPage";
 import { BudgetPage } from "./BudgetPage";
 import { CalendarPage } from "./CalendarPage";
+import { type Trip } from "../types/trip";
 
 type Tab = "itinerary" | "budget" | "calendar";
 
-const tabContent: Record<Tab, ReactElement> = {
-  itinerary: <ItineraryPage />,
-  budget: <BudgetPage />,
-  calendar: <CalendarPage />,
-};
+interface SummaryPageProps {
+  trip?: Trip | null;
+}
 
-export const SummaryPage = (): ReactElement => {
+export const SummaryPage = ({ trip }: SummaryPageProps): ReactElement => {
   const [tab, setTab] = useState<Tab>("itinerary");
 
   return (
@@ -44,7 +43,9 @@ export const SummaryPage = (): ReactElement => {
         </ToggleButton>
       </ToggleButtonGroup>
 
-      {tabContent[tab]}
+      {tab === "itinerary" && <ItineraryPage trip={trip} />}
+      {tab === "budget" && <BudgetPage />}
+      {tab === "calendar" && <CalendarPage />}
     </Box>
   );
 };

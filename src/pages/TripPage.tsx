@@ -42,6 +42,7 @@ interface OutletContext {
   setShowExploreButton: (value: boolean) => void;
   showInfoButton: boolean;
   setShowInfoButton: (value: boolean) => void;
+  setDisplayTrip: (trip: Trip | null) => void;
 }
 
 interface TripViewProps {
@@ -336,7 +337,7 @@ export const TripView = ({
 };
 
 export const TripPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton } = useOutletContext<OutletContext>();
+  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton, setDisplayTrip } = useOutletContext<OutletContext>();
   const { tripId } = useParams<{ tripId: string }>();
   const { trips, currentTrip, updateTrip, setCurrentTrip } = useTripContext();
 
@@ -345,6 +346,10 @@ export const TripPage = (): ReactElement => {
       setCurrentTrip(tripId);
     }
   }, [tripId, currentTrip?.id, setCurrentTrip]);
+
+  useEffect(() => {
+    setDisplayTrip(currentTrip);
+  }, [currentTrip, setDisplayTrip]);
 
   if (!currentTrip) {
     if (trips.length > 0) {

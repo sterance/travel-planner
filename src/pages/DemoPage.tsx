@@ -21,10 +21,11 @@ interface OutletContext {
   setShowExploreButton: (value: boolean) => void;
   showInfoButton: boolean;
   setShowInfoButton: (value: boolean) => void;
+  setDisplayTrip: (trip: Trip | null) => void;
 }
 
 export const DemoPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton } = useOutletContext<OutletContext>();
+  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton, setDisplayTrip } = useOutletContext<OutletContext>();
   const [demoTrip, setDemoTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +72,10 @@ export const DemoPage = (): ReactElement => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    setDisplayTrip(demoTrip);
+  }, [demoTrip, setDisplayTrip]);
 
   useEffect(() => {
     setActions(

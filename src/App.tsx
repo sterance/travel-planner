@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactElement, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, type ReactElement, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, Outlet, useNavigate, useOutletContext } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -487,14 +487,16 @@ const AppShell = ({
 
 const TripContentLayout = ({ summaryMode }: { summaryMode: boolean }): ReactElement => {
   const context = useOutletContext();
+  const [displayTrip, setDisplayTripState] = useState<Trip | null>(null);
+  const setDisplayTrip = useCallback((trip: Trip | null) => setDisplayTripState(trip), []);
   return (
     <>
       <Box sx={{ display: summaryMode ? "none" : "contents" }}>
-        <Outlet context={context} />
+        <Outlet context={{ ...context as object, setDisplayTrip }} />
       </Box>
       {summaryMode && (
         <Suspense fallback={<Box sx={{ p: 3 }}>Loading...</Box>}>
-          <SummaryPage />
+          <SummaryPage trip={displayTrip} />
         </Suspense>
       )}
     </>
