@@ -110,7 +110,7 @@ export const ArrivalWeather = ({ destination, previousDestination, arrivalDate, 
           {weather && !isLoadingWeather && (() => {
             const WeatherIcon = getWeatherIcon(weather.weatherCode);
             return (
-              <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 }}>
+              <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", columnGap: 4, rowGap:0, flexWrap: "wrap" }}>
                 <Typography variant="h3" sx={{ color: mainTextColor }}>
                   {weather.temperature}°C
                 </Typography>
