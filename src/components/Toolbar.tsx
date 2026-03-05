@@ -12,11 +12,14 @@ import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
 import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
 import ArticleIcon from '@mui/icons-material/Article';
+import MapIcon from '@mui/icons-material/Map';
 import type { LayoutMode, ViewMode } from "../App";
 
 interface AppToolbarProps {
   title: string;
   onDrawerToggle: () => void;
+  summaryMode: boolean;
+  onSummaryModeToggle: () => void;
   viewMode: ViewMode;
   onViewModeToggle: () => void;
   layoutMode: LayoutMode;
@@ -29,6 +32,8 @@ interface AppToolbarProps {
 export const AppToolbar = ({
   title,
   onDrawerToggle,
+  summaryMode,
+  onSummaryModeToggle,
   viewMode,
   onViewModeToggle,
   layoutMode,
@@ -52,10 +57,10 @@ export const AppToolbar = ({
           <IconButton color="inherit" disabled onClick={onLayoutModeToggle} sx={{ display: "none" }}>
             {layoutMode === "desktop" ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
           </IconButton>
-          <IconButton color="inherit">
-            <ArticleIcon />
+          <IconButton color="inherit" onClick={onSummaryModeToggle}>
+            {summaryMode ? <MapIcon /> : <ArticleIcon />}
           </IconButton>
-          <IconButton color="inherit" onClick={onViewModeToggle}>
+          <IconButton color="inherit" onClick={onViewModeToggle} disabled={summaryMode}>
             {viewMode === "list" ? <ViewCarouselIcon /> : <ViewListIcon />}
           </IconButton>
           <IconButton color="inherit" onClick={onThemeToggle}>

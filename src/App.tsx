@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactElement, lazy, Suspense } from "react";
-import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useNavigate, useOutletContext } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
@@ -30,6 +30,11 @@ const TripPage = lazy(async () => {
   return { default: module.TripPage };
 });
 
+const SummaryPage = lazy(async () => {
+  const module = await import("./pages/SummaryPage.tsx");
+  return { default: module.SummaryPage };
+});
+
 const DemoPage = lazy(async () => {
   const module = await import("./pages/DemoPage.tsx");
   return { default: module.DemoPage };
@@ -50,6 +55,7 @@ export interface PassportEntry {
 
 function App(): ReactElement {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [summaryMode, setSummaryMode] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("portrait");
   const [columns, setColumns] = useState(3);
@@ -107,6 +113,10 @@ function App(): ReactElement {
   const handleNewTrip = (): void => {
     const newTrip = createTrip();
     navigate(`/trip/${newTrip.id}`);
+  };
+
+  const handleSummaryModeToggle = (): void => {
+    setSummaryMode((prev) => !prev);
   };
 
   const handleViewModeToggle = (): void => {
@@ -204,6 +214,8 @@ function App(): ReactElement {
         openDrawer={openDrawer}
         mode={mode}
         toggleTheme={toggleTheme}
+        summaryMode={summaryMode}
+        handleSummaryModeToggle={handleSummaryModeToggle}
         viewMode={viewMode}
         handleViewModeToggle={handleViewModeToggle}
         layoutMode={layoutMode}
@@ -245,6 +257,8 @@ interface AppShellProps {
   openDrawer: () => void;
   mode: "light" | "dark";
   toggleTheme: () => void;
+  summaryMode: boolean;
+  handleSummaryModeToggle: () => void;
   viewMode: ViewMode;
   handleViewModeToggle: () => void;
   layoutMode: LayoutMode;
@@ -283,6 +297,8 @@ const AppShell = ({
   openDrawer,
   mode,
   toggleTheme,
+  summaryMode,
+  handleSummaryModeToggle,
   viewMode,
   handleViewModeToggle,
   layoutMode,
@@ -321,6 +337,8 @@ const AppShell = ({
       <AppToolbar
         title="Travel Planner"
         onDrawerToggle={handleDrawerToggle}
+        summaryMode={summaryMode}
+        onSummaryModeToggle={handleSummaryModeToggle}
         viewMode={viewMode}
         onViewModeToggle={handleViewModeToggle}
         layoutMode={layoutMode}
@@ -439,22 +457,24 @@ const AppShell = ({
             >
               <Route path="/" element={<TripRedirect onOpenDrawer={openDrawer} />} />
               <Route path="/trip" element={<TripRedirect onOpenDrawer={openDrawer} />} />
-              <Route
-                path="/demo"
-                element={
-                  <Suspense fallback={<Box sx={{ p: 3 }}>Loading demo...</Box>}>
-                    <DemoPage />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/trip/:tripId"
-                element={
-                  <Suspense fallback={<Box sx={{ p: 3 }}>Loading trip...</Box>}>
-                    <TripPage />
-                  </Suspense>
-                }
-              />
+              <Route element={<TripContentLayout summaryMode={summaryMode} />}>
+                <Route
+                  path="/demo"
+                  element={
+                    <Suspense fallback={<Box sx={{ p: 3 }}>Loading demo...</Box>}>
+                      <DemoPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/trip/:tripId"
+                  element={
+                    <Suspense fallback={<Box sx={{ p: 3 }}>Loading trip...</Box>}>
+                      <TripPage />
+                    </Suspense>
+                  }
+                />
+              </Route>
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/weather-test" element={<WeatherTestPage />} />
             </Route>
@@ -462,6 +482,22 @@ const AppShell = ({
         </Box>
       </Box>
     </Box>
+  );
+};
+
+const TripContentLayout = ({ summaryMode }: { summaryMode: boolean }): ReactElement => {
+  const context = useOutletContext();
+  return (
+    <>
+      <Box sx={{ display: summaryMode ? "none" : "contents" }}>
+        <Outlet context={context} />
+      </Box>
+      {summaryMode && (
+        <Suspense fallback={<Box sx={{ p: 3 }}>Loading...</Box>}>
+          <SummaryPage />
+        </Suspense>
+      )}
+    </>
   );
 };
 
