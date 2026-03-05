@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from "react";
 import Box from "@mui/material/Box";
+import Skeleton from "@mui/material/Skeleton";
 import { type Destination } from "../types/destination";
 import { getLocationImage } from "../services/imagesService";
 
@@ -31,8 +32,25 @@ export const DestinationImage = ({ destination }: DestinationImageProps): ReactE
     });
   }, [destination.displayName, destination.placeDetails, destination.name]);
 
+  const imageSx = (theme: import("@mui/material/styles").Theme) => ({
+    width: "100%",
+    maxHeight: "250px",
+    borderRadius: 0,
+    display: "block",
+    boxShadow: theme.palette.mode === "dark" ? "0 1px 12px #b4b4b4" : "0 4px 10px #121212",
+  });
+
   if (!imageUrl) {
-    return null;
+    return (
+      <Skeleton
+        variant="rectangular"
+        animation="wave"
+        sx={(theme) => ({
+          ...imageSx(theme),
+          aspectRatio: "2 / 1",
+        })}
+      />
+    );
   }
 
   return (
@@ -41,13 +59,9 @@ export const DestinationImage = ({ destination }: DestinationImageProps): ReactE
       src={imageUrl}
       alt={destination.displayName || destination.name || "Location"}
       sx={(theme) => ({
-        width: "100%",
+        ...imageSx(theme),
         height: "auto",
-        maxHeight: "250px",
         objectFit: "cover",
-        borderRadius: 0,
-        display: "block",
-        boxShadow: theme.palette.mode === "dark" ?  "0 1px 12px #b4b4b4" : "0 4px 10px #121212",
       })}
     />
   );
