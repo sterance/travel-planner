@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
@@ -14,7 +15,7 @@ import type { Destination, TransportDetails, AccommodationDetails, ActivityDetai
 import type { Trip } from "../types/trip";
 import type { DateFormatPreference } from "../App";
 import { useTripContext } from "../hooks/useTripContext";
-import { useDateFormat, getDateTimeFormat } from "../hooks/useDateFormat";
+import { useDateFormat } from "../hooks/useDateFormat";
 import { computeDestinationTimeline } from "../utils/dateCalculation";
 
 const formatTransportMode = (mode: string): string => {
@@ -49,10 +50,10 @@ interface DateDisplayProps {
   includeTime?: boolean;
 }
 
-const formatDate = ({ date, dateFormat, includeTime }: DateDisplayProps): string => {
+const formatDate = ({ date, includeTime }: DateDisplayProps): string => {
   if (!date || !date.isValid()) return "";
-  if (includeTime) return date.format(getDateTimeFormat(dateFormat));
-  return date.format(dateFormat);
+  if (includeTime) return date.format("MMM DD, YYYY hh:mm A");
+  return date.format("MMM DD, YYYY");
 };
 
 const DateRange = ({
@@ -69,9 +70,23 @@ const DateRange = ({
   const f = formatDate({ date: from, dateFormat, includeTime });
   const t = formatDate({ date: to, dateFormat, includeTime });
   if (!f && !t) return null;
+
+  // If both dates fall on the same day and time is shown, omit the repeated date from "to"
+  let displayTo = t;
+  if (
+    includeTime &&
+    from &&
+    to &&
+    from.isValid() &&
+    to.isValid() &&
+    from.format("YYYY-MM-DD") === to.format("YYYY-MM-DD")
+  ) {
+    displayTo = to.format("hh:mm A");
+  }
+
   return (
     <Typography variant="body2" color="text.secondary">
-      {f || "?"} ￫ {t || "?"}
+      {f || "?"} ￫ {displayTo || "?"}
     </Typography>
   );
 };
@@ -87,13 +102,14 @@ const TransportSection = ({
 }): ReactElement => {
   const displayMode = modeOverride ?? transport.mode;
   return (
-    <Box sx={{ pl: 2, mt: 1 }}>
+    <Box sx={{ pl: 3, mt: 1 }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
         <Chip
           icon={<TransportIcon mode={displayMode} sx={{ fontSize: "16px !important" }} />}
           label={formatTransportMode(displayMode)}
           size="small"
           variant="outlined"
+          sx={{pl:1}}
         />
         {transport.bookingNumber && (
           <Typography variant="caption" color="text.secondary">
@@ -127,13 +143,13 @@ const AccommodationSection = ({
   accommodations: AccommodationDetails[];
   dateFormat: DateFormatPreference;
 }): ReactElement => (
-  <Box sx={{ pl: 1, mt: 1.5 }}>
+  <Box sx={{ pl: 3.5, mt: 1.5 }}>
     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
       <HotelIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-      <Typography variant="subtitle2">Accommodation</Typography>
+      <Typography variant="subtitle1">Accommodation</Typography>
     </Stack>
     {accommodations.map((acc) => (
-      <Box key={acc.id} sx={{ pl: 2, mb: 1 }}>
+      <Box key={acc.id} sx={{ pl: 2.5, mb: 1 }}>
         {acc.name && (
           <Typography variant="body2" fontWeight={500}>
             {acc.name}
@@ -159,13 +175,13 @@ const ActivitiesSection = ({
   activities: ActivityDetails[];
   dateFormat: DateFormatPreference;
 }): ReactElement => (
-  <Box sx={{ pl: 1, mt: 1.5 }}>
+  <Box sx={{ pl: 3.5, mt: 1.5 }}>
     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
       <EventIcon sx={{ fontSize: 18, color: "text.secondary" }} />
-      <Typography variant="subtitle2">Activities</Typography>
+      <Typography variant="subtitle1">Activities</Typography>
     </Stack>
     {activities.map((act) => (
-      <Box key={act.id} sx={{ pl: 2, mb: 1 }}>
+      <Box key={act.id} sx={{ pl: 2.5, mb: 1 }}>
         {act.name && (
           <Typography variant="body2" fontWeight={500}>
             {act.name}
@@ -278,7 +294,7 @@ export const ItineraryPage = ({ trip: tripProp }: ItineraryPageProps): ReactElem
   const totalNights = getTotalNights(destinations);
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Card sx={{ p: 1, my: 2, maxWidth: 600, mx: "auto" }}>
       {/* Trip header */}
       <Box sx={{ mb: 2 }}>
         <Typography variant="h5" fontWeight={600}>
@@ -323,6 +339,6 @@ export const ItineraryPage = ({ trip: tripProp }: ItineraryPageProps): ReactElem
           />
         ))
       )}
-    </Box>
+    </Card>
   );
 };
