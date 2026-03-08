@@ -296,24 +296,21 @@ export const ItineraryPage = ({ trip: tripProp }: ItineraryPageProps): ReactElem
   return (
     <Card sx={{ p: 1, my: 2, maxWidth: 600, mx: "auto" }}>
       {/* Trip header */}
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h5" fontWeight={600}>
+      <Box sx={{ mb: 2, textAlign: "center" }}>
+        <Typography variant="h5" fontWeight={600} sx={{ mb: 1 }}>
           {trip.name}
         </Typography>
         {(trip.startDate || trip.endDate) && (
           <DateRange from={trip.startDate} to={trip.endDate} dateFormat={dateFormat} />
         )}
-        <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+        <Stack direction="column" sx={{ mt: 1 }} justifyContent="center">
           <Typography variant="body2" color="text.secondary">
             {destinations.length} {destinations.length === 1 ? "destination" : "destinations"}
           </Typography>
           {totalNights !== null && (
             <>
               <Typography variant="body2" color="text.secondary">
-                ·
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {totalNights} {totalNights === 1 ? "night" : "nights"} total
+                {totalNights} {totalNights === 1 ? "night" : "nights"}
               </Typography>
             </>
           )}

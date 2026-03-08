@@ -359,26 +359,32 @@ export const DestinationCard = ({
               <Suspense fallback={null}>
                 <DestinationImage destination={destination} />
               </Suspense>
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: arrivalDate && departureDate ? "space-between" : arrivalDate ? "flex-start" : "flex-end", py: 1.5, px: 2, position: "relative", overflow: "visible" }}>
-                {arrivalDate && (
-                  <StatusBadge variant="warning" visible={!!dateError} attachToText>
-                    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                      {arrivalDate.format("MMM D, YYYY")}
-                    </Typography>
-                  </StatusBadge>
-                )}
-                {!alwaysExpanded && (
-                <Typography variant="body1" color="text.secondary" sx={{ flexShrink: 0 }}>
+              <Box sx={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", py: 1.5, px: 2, position: "relative", overflow: "visible" }}>
+                <Box sx={{ justifySelf: "start" }}>
+                  {arrivalDate && (
+                    <StatusBadge variant="warning" visible={!!dateError} attachToText>
+                      <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                        {arrivalDate.format("MMM D, YYYY")}
+                      </Typography>
+                    </StatusBadge>
+                  )}
+                </Box>
+                {!alwaysExpanded ? (
+                  <Typography variant="body1" color="text.secondary" sx={{ flexShrink: 0, justifySelf: "center" }}>
                     {destination.name || destination.displayName || destination.placeDetails?.city || destination.placeDetails?.country || "Unknown Destination"}
                   </Typography>
+                ) : (
+                  <Box />
                 )}
-                {departureDate && (
-                  <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
-                    <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-                      {departureDate.format("MMM D, YYYY")}
-                    </Typography>
-                  </StatusBadge>
-                )}
+                <Box sx={{ justifySelf: "end" }}>
+                  {departureDate && (
+                    <StatusBadge variant="info" visible={!isOnwardsTravelBooked()} attachToText>
+                      <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
+                        {departureDate.format("MMM D, YYYY")}
+                      </Typography>
+                    </StatusBadge>
+                  )}
+                </Box>
               </Box>
               {currentTransport !== "starting point" && (
                 <>
