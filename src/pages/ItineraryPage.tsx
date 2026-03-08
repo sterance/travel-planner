@@ -1,4 +1,4 @@
-import { type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
@@ -6,10 +6,15 @@ import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import HotelIcon from "@mui/icons-material/Hotel";
 import PlaceIcon from "@mui/icons-material/Place";
 import EventIcon from "@mui/icons-material/Event";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import { TransportIcon } from "../components/utility/TransportIcon";
+import { pdf } from "@react-pdf/renderer";
+import { ItineraryPdfDocument } from "../components/ItineraryPdf";
 import type { Dayjs } from "dayjs";
 import type { Destination, TransportDetails, AccommodationDetails, ActivityDetails } from "../types/destination";
 import type { Trip } from "../types/trip";
@@ -17,44 +22,7 @@ import type { DateFormatPreference } from "../App";
 import { useTripContext } from "../hooks/useTripContext";
 import { useDateFormat } from "../hooks/useDateFormat";
 import { computeDestinationTimeline } from "../utils/dateCalculation";
-
-const formatTransportMode = (mode: string): string => {
-  return mode.replace(/^by\s+/, "").replace(/^\w/, (c) => c.toUpperCase());
-};
-
-const formatNights = (nights: Destination["nights"]): string => {
-  if (nights === "none") return "Day visit";
-  if (nights === "dates") return "Custom dates";
-  if (typeof nights === "number") return nights === 1 ? "1 night" : `${nights} nights`;
-  return "Nights not set";
-};
-
-const getTotalNights = (destinations: Destination[]): number | null => {
-  let total = 0;
-  let allSet = true;
-  for (const d of destinations) {
-    if (typeof d.nights === "number") {
-      total += d.nights;
-    } else if (d.nights === "none") {
-      // day visit, 0 nights
-    } else {
-      allSet = false;
-    }
-  }
-  return allSet ? total : null;
-};
-
-interface DateDisplayProps {
-  date: Dayjs | null | undefined;
-  dateFormat: DateFormatPreference;
-  includeTime?: boolean;
-}
-
-const formatDate = ({ date, includeTime }: DateDisplayProps): string => {
-  if (!date || !date.isValid()) return "";
-  if (includeTime) return date.format("MMM DD, YYYY hh:mm A");
-  return date.format("MMM DD, YYYY");
-};
+import { formatTransportMode, formatNights, getTotalNights, formatDate } from "../utils/itineraryFormatters";
 
 const DateRange = ({
   from,
@@ -270,6 +238,23 @@ export const ItineraryPage = ({ trip: tripProp }: ItineraryPageProps): ReactElem
   const { currentTrip, tripsLoading } = useTripContext();
   const trip = tripProp ?? currentTrip;
   const dateFormat = useDateFormat();
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const handleOpenPdf = async () => {
+    if (!trip || generatingPdf) return;
+    setGeneratingPdf(true);
+    try {
+      const blob = await pdf(
+        <ItineraryPdfDocument trip={trip} dateFormat={dateFormat} />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (err) {
+      console.error("Failed to generate PDF:", err);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   if (tripsLoading) {
     return (
@@ -296,7 +281,14 @@ export const ItineraryPage = ({ trip: tripProp }: ItineraryPageProps): ReactElem
   return (
     <Card sx={{ p: 1, my: 2, maxWidth: 600, mx: "auto" }}>
       {/* Trip header */}
-      <Box sx={{ mb: 2, textAlign: "center" }}>
+      <Box sx={{ mb: 2, textAlign: "center", position: "relative" }}>
+        <Tooltip title="Open PDF">
+          <span style={{ position: "absolute", top: 0, right: 0 }}>
+            <IconButton onClick={handleOpenPdf} disabled={generatingPdf} color="primary" size="small">
+              {generatingPdf ? <CircularProgress size={20} /> : <PictureAsPdfIcon />}
+            </IconButton>
+          </span>
+        </Tooltip>
         <Typography variant="h5" fontWeight={600} sx={{ mb: 1 }}>
           {trip.name}
         </Typography>
