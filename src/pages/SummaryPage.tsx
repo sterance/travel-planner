@@ -43,8 +43,8 @@ export const SummaryPage = ({ trip }: SummaryPageProps): ReactElement => {
         </ToggleButton>
       </ToggleButtonGroup>
 
-      {tab === "itinerary" && <ItineraryPage trip={trip} />}
-      {tab === "budget" && <BudgetPage />}
+      {tab === "itinerary" && <ItineraryPage trip={trip ?? undefined} />}
+      {tab === "budget" && <BudgetPage trip={trip ?? undefined} />}
       {tab === "calendar" && <CalendarPage />}
     </Box>
   );
