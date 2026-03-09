@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import { Typography, TextField, Box, Tooltip } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -15,33 +17,53 @@ import type { Destination } from "../types/destination";
 import type { Trip } from "../types/trip";
 import CircularProgress from "@mui/material/CircularProgress";
 import { formatTransportMode } from "../utils/itineraryFormatters";
+import {
+  buildCurrencyOptions,
+  formatCurrencySymbol,
+  formatCurrencyAmount,
+  getCurrencyExponent,
+  getDestinationCurrency,
+  createDineroFromDecimal,
+  dineroToDecimal,
+  createZeroDinero,
+  type CurrencyOption,
+} from "../utils/currency";
+import { toSnapshot, type Dinero } from "dinero.js";
 
 interface MoneyInputProps {
-  value: number;
-  onChange: (v: number) => void;
+  value: Dinero<number> | null | undefined;
+  onChange: (v: Dinero<number> | null) => void;
+  currencyCode?: string;
 }
 
-interface OtherItem {
-  id: string;
-  label: string;
-  cost: number;
-  paid: boolean;
-}
-
-const MoneyInput = ({ value, onChange }: MoneyInputProps) => {
-  const displayValue =
-    Number.isFinite(value) && value !== 0 ? value.toFixed(2) : "";
+const MoneyInput = ({ value, onChange, currencyCode = "USD" }: MoneyInputProps) => {
+  const exponent = getCurrencyExponent(currencyCode);
+  const decimal = value ? dineroToDecimal(value) : null;
+  const displayValue = decimal == null ? "" : exponent === 0 ? String(Math.round(decimal)) : decimal.toFixed(exponent);
+  const symbol = formatCurrencySymbol(currencyCode);
 
   return (
     <TextField
       type="number"
       size="small"
       slotProps={{
-        htmlInput: { step: 0.01, min: 0 },
-        input: { startAdornment: <span style={{ marginRight: 4 }}>$</span> }
+        htmlInput: { step: exponent === 0 ? 1 : Math.pow(10, -exponent), min: 0 },
+        input: { startAdornment: <span style={{ marginRight: 4 }}>{symbol}</span> }
       }}
       value={displayValue}
-      onChange={e => onChange(parseFloat(e.target.value) || 0)}
+      onChange={(e) => {
+        const raw = e.target.value;
+        if (!raw.trim()) {
+          onChange(null);
+          return;
+        }
+        const parsed = Number(raw);
+        if (!Number.isFinite(parsed)) {
+          onChange(null);
+          return;
+        }
+        onChange(createDineroFromDecimal(parsed, currencyCode));
+      }}
       sx={{
         width: 100,
         "& .MuiOutlinedInput-root": {
@@ -61,80 +83,82 @@ const MoneyInput = ({ value, onChange }: MoneyInputProps) => {
 
 interface DestinationBudgetTableProps {
   destination: Destination;
+  homeCurrency: string;
   outboundMode?: string;
   showOnwards?: boolean;
   onTotalChange?: (id: string, total: number) => void;
   onPlannedTotalChange?: (id: string, plannedTotal: number) => void;
+  onDestinationChange: (updated: Destination) => void;
 }
 
 const DestinationBudgetTable = ({
   destination,
+  homeCurrency,
   outboundMode,
   showOnwards,
   onTotalChange,
   onPlannedTotalChange,
+  onDestinationChange,
 }: DestinationBudgetTableProps) => {
-  // Accommodation costs
-  const [accommodationCosts, setAccommodationCosts] = useState(
-    (destination.accommodations || []).map(() => 0)
+  const destCurrency = getDestinationCurrency(destination.placeDetails?.countryCode);
+  const fallback = destCurrency ?? homeCurrency;
+  const selectedCurrency = destination.destinationCurrency
+    ? toSnapshot(destination.destinationCurrency).currency.code
+    : fallback;
+
+  useEffect(() => {
+    if (destination.destinationCurrency) return;
+    const initial = createZeroDinero(selectedCurrency);
+    if (!initial) return;
+    onDestinationChange({ ...destination, destinationCurrency: initial });
+  }, [destination, selectedCurrency, onDestinationChange]);
+
+  const currencyOptions = buildCurrencyOptions(
+    homeCurrency,
+    destination.placeDetails?.countryCode
   );
-  // Activity costs
-  const [activityCosts, setActivityCosts] = useState(
-    (destination.activities || []).map(() => 0)
-  );
-  const [accommodationPaid, setAccommodationPaid] = useState(
-    (destination.accommodations || []).map(() => false)
-  );
-  const [activityPaid, setActivityPaid] = useState(
-    (destination.activities || []).map(() => false)
-  );
-  // Other costs
-  const [otherItems, setOtherItems] = useState<OtherItem[]>([]);
+  const selectedOption = currencyOptions.find((c) => c.code === selectedCurrency) ?? currencyOptions[0];
+
+  const otherItems = destination.customBudgetItems ?? [];
   const [editingOtherId, setEditingOtherId] = useState<string | null>(null);
   const [editingOtherLabel, setEditingOtherLabel] = useState("");
   const [hoveredOtherId, setHoveredOtherId] = useState<string | null>(null);
-  // Onwards transport cost
-  const [onwardsCost, setOnwardsCost] = useState(0);
-  const [onwardsPaid, setOnwardsPaid] = useState(false);
 
-  const handleAccommodationChange = (idx: number, val: number) => {
-    setAccommodationCosts(costs => costs.map((c, i) => (i === idx ? val : c)));
-  };
-  const handleActivityChange = (idx: number, val: number) => {
-    setActivityCosts(costs => costs.map((c, i) => (i === idx ? val : c)));
+  const updateAccommodations = (updater: (current: NonNullable<Destination["accommodations"]>) => NonNullable<Destination["accommodations"]>) => {
+    const current = destination.accommodations ?? [];
+    onDestinationChange({ ...destination, accommodations: updater(current) });
   };
 
-  const handleAccommodationPaidChange = (idx: number, checked: boolean) => {
-    setAccommodationPaid(flags => flags.map((f, i) => (i === idx ? checked : f)));
-  };
-
-  const handleActivityPaidChange = (idx: number, checked: boolean) => {
-    setActivityPaid(flags => flags.map((f, i) => (i === idx ? checked : f)));
+  const updateActivities = (updater: (current: NonNullable<Destination["activities"]>) => NonNullable<Destination["activities"]>) => {
+    const current = destination.activities ?? [];
+    onDestinationChange({ ...destination, activities: updater(current) });
   };
 
   const handleAddOther = () => {
     const id = globalThis.crypto?.randomUUID?.() ?? String(Date.now());
-    const newItem: OtherItem = {
+    const newItem = {
       id,
       label: "",
-      cost: 0,
+      costs: null,
       paid: false,
     };
-    setOtherItems(items => [...items, newItem]);
+    onDestinationChange({ ...destination, customBudgetItems: [...otherItems, newItem] });
     setEditingOtherId(id);
     setEditingOtherLabel("");
   };
 
-  const handleOtherCostChange = (id: string, val: number) => {
-    setOtherItems(items =>
-      items.map(item => (item.id === id ? { ...item, cost: val } : item)),
-    );
+  const handleOtherCostChange = (id: string, val: Dinero<number> | null) => {
+    onDestinationChange({
+      ...destination,
+      customBudgetItems: otherItems.map((item) => (item.id === id ? { ...item, costs: val } : item)),
+    });
   };
 
   const handleOtherLabelSave = (id: string) => {
     const trimmed = editingOtherLabel.trim();
-    setOtherItems(items =>
-      items.map(item =>
+    onDestinationChange({
+      ...destination,
+      customBudgetItems: otherItems.map((item) =>
         item.id === id
           ? {
               ...item,
@@ -142,7 +166,7 @@ const DestinationBudgetTable = ({
             }
           : item,
       ),
-    );
+    });
     setEditingOtherId(null);
     setEditingOtherLabel("");
   };
@@ -153,32 +177,34 @@ const DestinationBudgetTable = ({
   };
 
   const handleRemoveOther = (id: string) => {
-    setOtherItems(items => items.filter(item => item.id !== id));
+    onDestinationChange({ ...destination, customBudgetItems: otherItems.filter((item) => item.id !== id) });
     setHoveredOtherId(current => (current === id ? null : current));
     setEditingOtherId(current => (current === id ? null : current));
     setEditingOtherLabel("");
   };
 
-  const totalCost =
-    accommodationCosts.reduce((sum, val) => sum + val, 0) +
-    activityCosts.reduce((sum, val) => sum + val, 0) +
-    otherItems.reduce((sum, item) => sum + item.cost, 0) +
-    onwardsCost;
+  const totalCost = (
+    (destination.accommodations ?? []).reduce((sum, a) => sum + (a.costs ? dineroToDecimal(a.costs) : 0), 0) +
+    (destination.activities ?? []).reduce((sum, a) => sum + (a.costs ? dineroToDecimal(a.costs) : 0), 0) +
+    otherItems.reduce((sum, item) => sum + (item.costs ? dineroToDecimal(item.costs) : 0), 0) +
+    (destination.transportDetails?.costs ? dineroToDecimal(destination.transportDetails.costs) : 0)
+  );
 
-  const plannedTotal =
-    accommodationCosts.reduce(
-      (sum, val, idx) => sum + (accommodationPaid[idx] ? 0 : val),
+  const plannedTotal = (
+    (destination.accommodations ?? []).reduce(
+      (sum, a) => sum + (a.paid === true ? 0 : a.costs ? dineroToDecimal(a.costs) : 0),
       0,
     ) +
-    activityCosts.reduce(
-      (sum, val, idx) => sum + (activityPaid[idx] ? 0 : val),
+    (destination.activities ?? []).reduce(
+      (sum, a) => sum + (a.paid === true ? 0 : a.costs ? dineroToDecimal(a.costs) : 0),
       0,
     ) +
     otherItems.reduce(
-      (sum, item) => sum + (item.paid ? 0 : item.cost),
+      (sum, item) => sum + (item.paid ? 0 : item.costs ? dineroToDecimal(item.costs) : 0),
       0,
     ) +
-    (onwardsPaid ? 0 : onwardsCost);
+    (destination.transportDetails?.paid === true ? 0 : destination.transportDetails?.costs ? dineroToDecimal(destination.transportDetails.costs) : 0)
+  );
 
   useEffect(() => {
     if (onTotalChange) {
@@ -194,7 +220,52 @@ const DestinationBudgetTable = ({
 
   return (
     <Card sx={{ p: 1, my: 2, maxWidth: 600, mx: "auto" }}>
-      <Typography variant="h5" sx={{ mb: 1 }}>{destination.displayName || destination.name}</Typography>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", my: 1, gap: 1, flexWrap: "wrap" }}>
+        <Typography variant="h5">{destination.displayName || destination.name}</Typography>
+        <Autocomplete
+          size="small"
+          options={currencyOptions}
+          getOptionLabel={(option: CurrencyOption) => `${option.code} -- ${option.name}`}
+          value={selectedOption}
+          onChange={(_, newValue) => {
+            if (!newValue) return;
+            const next = createZeroDinero(newValue.code);
+            if (!next) return;
+            onDestinationChange({ ...destination, destinationCurrency: next });
+          }}
+          isOptionEqualToValue={(option, value) => option.code === value.code}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Currency"
+              slotProps={{
+                htmlInput: {
+                  ...params.inputProps,
+                  value: selectedOption ? selectedOption.code : "",
+                  style: {
+                    ...(typeof params.inputProps?.style === "object" && params.inputProps.style),
+                    overflow: "visible",
+                    textOverflow: "clip",
+                    minWidth: "3em",
+                  },
+                },
+              }}
+              sx={{
+                "& .MuiInputBase-input": {
+                  overflow: "visible !important",
+                  textOverflow: "clip !important",
+                },
+              }}
+            />
+          )}
+          sx={{
+            minWidth: 100,
+            flexShrink: 0,
+            "& .MuiInputBase-root": { overflow: "visible" },
+            "& .MuiInputBase-input": { overflow: "visible !important", textOverflow: "clip !important" },
+          }}
+        />
+      </Box>
       <Table size="small" sx={{ "& td": { pr: 1 } }}>
         <TableBody>
           {/* Accommodation Section */}
@@ -207,17 +278,29 @@ const DestinationBudgetTable = ({
             <TableRow key={acc.id || idx}>
               <TableCell>{acc.name || `accommodation ${idx + 1}`}</TableCell>
               <TableCell align="right">
-                <MoneyInput value={accommodationCosts[idx]} onChange={val => handleAccommodationChange(idx, val)} />
+                <MoneyInput
+                  value={acc.costs}
+                  onChange={(val) =>
+                    updateAccommodations((current) =>
+                      current.map((a, i) => (i === idx ? { ...a, costs: val } : a)),
+                    )
+                  }
+                  currencyCode={selectedCurrency}
+                />
               </TableCell>
               <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
-                <Tooltip title={accommodationPaid[idx] ? "Paid" : "Planned"}>
+                <Tooltip title={acc.paid === true ? "Paid" : "Planned"}>
                   <Checkbox
                     size="small"
-                    checked={accommodationPaid[idx]}
-                    onChange={e => handleAccommodationPaidChange(idx, e.target.checked)}
+                    checked={acc.paid === true}
+                    onChange={(e) =>
+                      updateAccommodations((current) =>
+                        current.map((a, i) => (i === idx ? { ...a, paid: e.target.checked } : a)),
+                      )
+                    }
                     slotProps={{
                       input: {
-                        "aria-label": `${acc.name || `accommodation ${idx + 1}`} ${accommodationPaid[idx] ? "Paid" : "Planned"}`,
+                        "aria-label": `${acc.name || `accommodation ${idx + 1}`} ${acc.paid === true ? "Paid" : "Planned"}`,
                       },
                     }}
                   />
@@ -236,17 +319,29 @@ const DestinationBudgetTable = ({
             <TableRow key={act.id || idx}>
               <TableCell>{act.name || `activity ${idx + 1}`}</TableCell>
               <TableCell align="right">
-                <MoneyInput value={activityCosts[idx]} onChange={val => handleActivityChange(idx, val)} />
+                <MoneyInput
+                  value={act.costs}
+                  onChange={(val) =>
+                    updateActivities((current) =>
+                      current.map((a, i) => (i === idx ? { ...a, costs: val } : a)),
+                    )
+                  }
+                  currencyCode={selectedCurrency}
+                />
               </TableCell>
               <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
-                <Tooltip title={activityPaid[idx] ? "Paid" : "Planned"}>
+                <Tooltip title={act.paid === true ? "Paid" : "Planned"}>
                   <Checkbox
                     size="small"
-                    checked={activityPaid[idx]}
-                    onChange={e => handleActivityPaidChange(idx, e.target.checked)}
+                    checked={act.paid === true}
+                    onChange={(e) =>
+                      updateActivities((current) =>
+                        current.map((a, i) => (i === idx ? { ...a, paid: e.target.checked } : a)),
+                      )
+                    }
                     slotProps={{
                       input: {
-                        "aria-label": `${act.name || `activity ${idx + 1}`} ${activityPaid[idx] ? "Paid" : "Planned"}`,
+                        "aria-label": `${act.name || `activity ${idx + 1}`} ${act.paid === true ? "Paid" : "Planned"}`,
                       },
                     }}
                   />
@@ -323,8 +418,9 @@ const DestinationBudgetTable = ({
                 </TableCell>
                 <TableCell align="right">
                   <MoneyInput
-                    value={item.cost}
-                    onChange={val => handleOtherCostChange(item.id, val)}
+                    value={item.costs}
+                    onChange={(val) => handleOtherCostChange(item.id, val)}
+                    currencyCode={selectedCurrency}
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
@@ -332,12 +428,13 @@ const DestinationBudgetTable = ({
                     <Checkbox
                       size="small"
                       checked={item.paid}
-                      onChange={e =>
-                        setOtherItems(items =>
-                          items.map(other =>
+                      onChange={(e) =>
+                        onDestinationChange({
+                          ...destination,
+                          customBudgetItems: otherItems.map((other) =>
                             other.id === item.id ? { ...other, paid: e.target.checked } : other,
                           ),
-                        )
+                        })
                       }
                       slotProps={{
                         input: {
@@ -397,17 +494,33 @@ const DestinationBudgetTable = ({
                       {label}
                     </TableCell>
                     <TableCell align="right">
-                      <MoneyInput value={onwardsCost} onChange={setOnwardsCost} />
+                      <MoneyInput
+                        value={destination.transportDetails?.costs}
+                        onChange={(val) => {
+                          if (!destination.transportDetails) return;
+                          onDestinationChange({
+                            ...destination,
+                            transportDetails: { ...destination.transportDetails, costs: val },
+                          });
+                        }}
+                        currencyCode={selectedCurrency}
+                      />
                     </TableCell>
                     <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
-                      <Tooltip title={onwardsPaid ? "Paid" : "Planned"}>
+                      <Tooltip title={destination.transportDetails?.paid === true ? "Paid" : "Planned"}>
                         <Checkbox
                           size="small"
-                          checked={onwardsPaid}
-                          onChange={e => setOnwardsPaid(e.target.checked)}
+                          checked={destination.transportDetails?.paid === true}
+                          onChange={(e) => {
+                            if (!destination.transportDetails) return;
+                            onDestinationChange({
+                              ...destination,
+                              transportDetails: { ...destination.transportDetails, paid: e.target.checked },
+                            });
+                          }}
                           slotProps={{
                             input: {
-                              "aria-label": `onwards ${onwardsPaid ? "Paid" : "Planned"}`,
+                              "aria-label": `onwards ${destination.transportDetails?.paid === true ? "Paid" : "Planned"}`,
                             },
                           }}
                         />
@@ -433,7 +546,7 @@ const DestinationBudgetTable = ({
           {destination.displayName || destination.name} total:
         </Typography>
         <Typography variant="h6">
-          ${totalCost.toFixed(2)}
+          {formatCurrencyAmount(totalCost, selectedCurrency)}
         </Typography>
       </Box>
       
@@ -441,11 +554,23 @@ const DestinationBudgetTable = ({
   );
 };
 
+interface BudgetOutletContext {
+  homeCurrency: string;
+}
+
 export function BudgetPage({ trip }: { trip?: Trip }) {
-  const { currentTrip, tripsLoading } = useTripContext();
+  const { homeCurrency } = useOutletContext<BudgetOutletContext>();
+  const { currentTrip, tripsLoading, updateTrip } = useTripContext();
   const usedTrip = trip ?? currentTrip;
   const [destinationTotals, setDestinationTotals] = useState<Record<string, number>>({});
   const [plannedTotals, setPlannedTotals] = useState<Record<string, number>>({});
+  const handleDestinationUpdate = (updated: Destination) => {
+    if (!usedTrip) return;
+    updateTrip({
+      ...usedTrip,
+      destinations: (usedTrip.destinations ?? []).map((d) => (d.id === updated.id ? updated : d)),
+    });
+  };
 
   if (tripsLoading) {
     return (
@@ -503,25 +628,32 @@ export function BudgetPage({ trip }: { trip?: Trip }) {
             <DestinationBudgetTable
               key={dest.id}
               destination={dest}
+              homeCurrency={homeCurrency}
               outboundMode={destinations[index + 1]?.transportDetails?.mode}
               showOnwards={index < destinations.length - 1}
               onTotalChange={handleDestinationTotalChange}
               onPlannedTotalChange={handlePlannedTotalChange}
+              onDestinationChange={handleDestinationUpdate}
             />
           ))}
           <Card sx={{ p: 1, my: 2, maxWidth: 600, mx: "auto" }}>
             <Table size="small">
               <TableBody>
-                {destinations.map(dest => (
-                  <TableRow key={dest.id}>
-                    <TableCell>
-                      {dest.displayName || dest.name}
-                    </TableCell>
-                    <TableCell align="right">
-                      ${ (destinationTotals[dest.id] ?? 0).toFixed(2) }
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {destinations.map(dest => {
+                  const currencyCode = dest.destinationCurrency
+                    ? toSnapshot(dest.destinationCurrency).currency.code
+                    : getDestinationCurrency(dest.placeDetails?.countryCode) ?? homeCurrency;
+                  return (
+                    <TableRow key={dest.id}>
+                      <TableCell>
+                        {dest.displayName || dest.name}
+                      </TableCell>
+                      <TableCell align="right">
+                        {formatCurrencyAmount(destinationTotals[dest.id] ?? 0, currencyCode)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             <Box
@@ -537,7 +669,7 @@ export function BudgetPage({ trip }: { trip?: Trip }) {
                 Outstanding:
               </Typography>
               <Typography variant="h6">
-                ${outstandingTotal.toFixed(2)}
+                {formatCurrencyAmount(outstandingTotal, homeCurrency)}
               </Typography>
             </Box>
             <Box
@@ -553,7 +685,7 @@ export function BudgetPage({ trip }: { trip?: Trip }) {
                 Total:
               </Typography>
               <Typography variant="h6">
-                ${grandTotal.toFixed(2)}
+                {formatCurrencyAmount(grandTotal, homeCurrency)}
               </Typography>
             </Box>
             

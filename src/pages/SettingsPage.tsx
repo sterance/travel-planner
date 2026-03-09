@@ -20,6 +20,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { type Dayjs } from "dayjs";
 import { type ArrivalWeatherBackgroundMode, type DateFormatPreference, type PassportEntry } from "../App";
 import { searchCountries, type Country } from "../services/passportService";
+import { currencyList } from "../utils/currency";
 import { Footer } from "../components/Footer";
 
 interface OutletContext {
@@ -31,6 +32,8 @@ interface OutletContext {
   setShowInfoButton: (value: boolean) => void;
   dateFormat: DateFormatPreference;
   setDateFormat: (value: DateFormatPreference) => void;
+  homeCurrency: string;
+  setHomeCurrency: (code: string) => void;
   passports: PassportEntry[];
   addPassport: (countryName: string, expirationDate?: Dayjs | null) => void;
   removePassport: (countryName: string) => void;
@@ -45,6 +48,8 @@ export const SettingsPage = (): ReactElement => {
     setShowInfoButton,
     dateFormat,
     setDateFormat,
+    homeCurrency,
+    setHomeCurrency,
     passports,
     addPassport,
     removePassport,
@@ -222,12 +227,34 @@ export const SettingsPage = (): ReactElement => {
           <CardHeader
             title={
               <Typography variant="h5" component="div">
+                Currency
+              </Typography>
+            }
+          />
+          <CardContent>
+            <Autocomplete
+              options={currencyList}
+              getOptionLabel={(option) => `${option.code} -- ${option.name}`}
+              value={currencyList.find((c) => c.code === homeCurrency) ?? null}
+              onChange={(_, newValue) => {
+                if (newValue) setHomeCurrency(newValue.code);
+              }}
+              isOptionEqualToValue={(option, value) => option.code === value.code}
+              renderInput={(params) => <TextField {...params} label="Home Currency" size="small" />}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader
+            title={
+              <Typography variant="h5" component="div">
                 Date format
               </Typography>
             }
           />
           <CardContent>
             <RadioGroup
+              row
               value={dateFormat}
               onChange={(e) => setDateFormat(e.target.value as DateFormatPreference)}
             >

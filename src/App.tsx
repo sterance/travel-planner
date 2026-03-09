@@ -91,6 +91,7 @@ function App(): ReactElement {
     const stored = getStringItem("dateFormat", "DD/MM/YYYY");
     return stored === "DD/MM/YYYY" || stored === "MM/DD/YYYY" ? stored : "DD/MM/YYYY";
   });
+  const [homeCurrency, setHomeCurrencyState] = useState(() => getStringItem("homeCurrency", "USD"));
   const { mode, toggleTheme } = useThemeMode();
   const { user, logout } = useAuth();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
@@ -163,6 +164,11 @@ function App(): ReactElement {
     setStringItem("dateFormat", format);
   };
 
+  const handleHomeCurrencyChange = (code: string): void => {
+    setHomeCurrencyState(code);
+    setStringItem("homeCurrency", code);
+  };
+
   const persistPassports = (updated: PassportEntry[]): void => {
     setPassports(updated);
     const toStore = updated.map((p) => ({
@@ -230,6 +236,8 @@ function App(): ReactElement {
         handleShowInfoButtonChange={handleShowInfoButtonChange}
         dateFormat={dateFormat}
         handleDateFormatChange={handleDateFormatChange}
+        homeCurrency={homeCurrency}
+        setHomeCurrency={handleHomeCurrencyChange}
         passports={passports}
         handleAddPassport={handleAddPassport}
         handleRemovePassport={handleRemovePassport}
@@ -273,6 +281,8 @@ interface AppShellProps {
   handleShowInfoButtonChange: (show: boolean) => void;
   dateFormat: DateFormatPreference;
   handleDateFormatChange: (format: DateFormatPreference) => void;
+  homeCurrency: string;
+  setHomeCurrency: (code: string) => void;
   passports: PassportEntry[];
   handleAddPassport: (countryName: string, expirationDate?: Dayjs | null) => void;
   handleRemovePassport: (countryName: string) => void;
@@ -313,6 +323,8 @@ const AppShell = ({
   handleShowInfoButtonChange,
   dateFormat,
   handleDateFormatChange,
+  homeCurrency,
+  setHomeCurrency,
   passports,
   handleAddPassport,
   handleRemovePassport,
@@ -447,6 +459,8 @@ const AppShell = ({
                     setShowInfoButton: handleShowInfoButtonChange,
                     dateFormat,
                     setDateFormat: handleDateFormatChange,
+                    homeCurrency,
+                    setHomeCurrency,
                     passports,
                     addPassport: handleAddPassport,
                     removePassport: handleRemovePassport,

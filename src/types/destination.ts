@@ -1,4 +1,5 @@
 import type { Dayjs } from "dayjs";
+import type { Dinero } from "dinero.js";
 
 export interface WeatherDetails {
   temperature: number;
@@ -22,6 +23,8 @@ export interface Destination {
   weatherDetails?: WeatherDetails;
   accommodations?: AccommodationDetails[];
   activities?: ActivityDetails[];
+  destinationCurrency?: Dinero<number> | null;
+  customBudgetItems?: CustomBudgetItem[];
 }
 
 export interface PlaceDetails {
@@ -43,6 +46,8 @@ export interface TransportDetails {
   bookingNumber?: string;
   departureDateTime?: Dayjs | null;
   arrivalDateTime?: Dayjs | null;
+  costs?: Dinero<number> | null;
+  paid?: boolean;
 }
 
 export interface AccommodationDetails {
@@ -51,6 +56,8 @@ export interface AccommodationDetails {
   address?: string;
   checkInDateTime?: Dayjs | null;
   checkOutDateTime?: Dayjs | null;
+  costs?: Dinero<number> | null;
+  paid?: boolean;
 }
 
 export interface ActivityDetails {
@@ -59,4 +66,13 @@ export interface ActivityDetails {
   address?: string;
   startDateTime?: Dayjs | null;
   endDateTime?: Dayjs | null;
+  costs?: Dinero<number> | null;
+  paid?: boolean;
+}
+
+export interface CustomBudgetItem {
+  id: string;
+  label: string;
+  costs: Dinero<number> | null;
+  paid: boolean;
 }
