@@ -558,15 +558,16 @@ interface BudgetOutletContext {
   homeCurrency: string;
 }
 
-export function BudgetPage({ trip }: { trip?: Trip }) {
+export function BudgetPage({ trip, onUpdateTrip }: { trip?: Trip; onUpdateTrip?: (trip: Trip) => void }) {
   const { homeCurrency } = useOutletContext<BudgetOutletContext>();
   const { currentTrip, tripsLoading, updateTrip } = useTripContext();
   const usedTrip = trip ?? currentTrip;
+  const effectiveUpdateTrip = onUpdateTrip ?? updateTrip;
   const [destinationTotals, setDestinationTotals] = useState<Record<string, number>>({});
   const [plannedTotals, setPlannedTotals] = useState<Record<string, number>>({});
   const handleDestinationUpdate = (updated: Destination) => {
     if (!usedTrip) return;
-    updateTrip({
+    effectiveUpdateTrip({
       ...usedTrip,
       destinations: (usedTrip.destinations ?? []).map((d) => (d.id === updated.id ? updated : d)),
     });

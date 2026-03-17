@@ -14,9 +14,10 @@ type Tab = "itinerary" | "budget" | "calendar";
 
 interface SummaryPageProps {
   trip?: Trip | null;
+  onUpdateTrip?: (trip: Trip) => void;
 }
 
-export const SummaryPage = ({ trip }: SummaryPageProps): ReactElement => {
+export const SummaryPage = ({ trip, onUpdateTrip }: SummaryPageProps): ReactElement => {
   const [tab, setTab] = useState<Tab>("itinerary");
 
   return (
@@ -44,7 +45,7 @@ export const SummaryPage = ({ trip }: SummaryPageProps): ReactElement => {
       </ToggleButtonGroup>
 
       {tab === "itinerary" && <ItineraryPage trip={trip ?? undefined} />}
-      {tab === "budget" && <BudgetPage trip={trip ?? undefined} />}
+      {tab === "budget" && <BudgetPage trip={trip ?? undefined} onUpdateTrip={onUpdateTrip} />}
       {tab === "calendar" && <CalendarPage />}
     </Box>
   );

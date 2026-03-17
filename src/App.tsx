@@ -502,15 +502,19 @@ const AppShell = ({
 const TripContentLayout = ({ summaryMode }: { summaryMode: boolean }): ReactElement => {
   const context = useOutletContext();
   const [displayTrip, setDisplayTripState] = useState<Trip | null>(null);
+  const [updateDisplayTrip, setUpdateDisplayTripState] = useState<((trip: Trip) => void) | null>(null);
   const setDisplayTrip = useCallback((trip: Trip | null) => setDisplayTripState(trip), []);
+  const setUpdateDisplayTrip = useCallback((updateTrip: ((trip: Trip) => void) | null) => {
+    setUpdateDisplayTripState(() => updateTrip);
+  }, []);
   return (
     <>
       <Box sx={{ display: summaryMode ? "none" : "contents" }}>
-        <Outlet context={{ ...context as object, setDisplayTrip }} />
+        <Outlet context={{ ...context as object, setDisplayTrip, setUpdateDisplayTrip }} />
       </Box>
       {summaryMode && (
         <Suspense fallback={<Box sx={{ p: 3 }}>Loading...</Box>}>
-          <SummaryPage trip={displayTrip} />
+          <SummaryPage trip={displayTrip} onUpdateTrip={updateDisplayTrip ?? undefined} />
         </Suspense>
       )}
     </>

@@ -22,10 +22,11 @@ interface OutletContext {
   showInfoButton: boolean;
   setShowInfoButton: (value: boolean) => void;
   setDisplayTrip: (trip: Trip | null) => void;
+  setUpdateDisplayTrip: (updateTrip: ((trip: Trip) => void) | null) => void;
 }
 
 export const DemoPage = (): ReactElement => {
-  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton, setDisplayTrip } = useOutletContext<OutletContext>();
+  const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton, setDisplayTrip, setUpdateDisplayTrip } = useOutletContext<OutletContext>();
   const [demoTrip, setDemoTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +77,14 @@ export const DemoPage = (): ReactElement => {
   useEffect(() => {
     setDisplayTrip(demoTrip);
   }, [demoTrip, setDisplayTrip]);
+
+  useEffect(() => {
+    setUpdateDisplayTrip(setDemoTrip);
+
+    return () => {
+      setUpdateDisplayTrip(null);
+    };
+  }, [setUpdateDisplayTrip]);
 
   useEffect(() => {
     setActions(
@@ -138,7 +147,7 @@ export const DemoPage = (): ReactElement => {
     <TripView
       key={tripInstance}
       trip={demoTrip}
-      updateTrip={(t) => setDemoTrip(t)}
+      updateTrip={setDemoTrip}
       viewMode={viewMode}
       layoutMode={layoutMode}
       columns={columns}
