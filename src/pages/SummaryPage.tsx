@@ -46,7 +46,7 @@ export const SummaryPage = ({ trip, onUpdateTrip }: SummaryPageProps): ReactElem
 
       {tab === "itinerary" && <ItineraryPage trip={trip ?? undefined} />}
       {tab === "budget" && <BudgetPage trip={trip ?? undefined} onUpdateTrip={onUpdateTrip} />}
-      {tab === "calendar" && <CalendarPage />}
+      {tab === "calendar" && <CalendarPage trip={trip ?? undefined} onUpdateTrip={onUpdateTrip} />}
     </Box>
   );
 };
