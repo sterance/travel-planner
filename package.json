@@ -18,6 +18,10 @@
     "@mui/material": "^7.3.8",
     "@mui/x-date-pickers": "^8.27.2",
     "@react-pdf/renderer": "^4.3.2",
+    "@schedule-x/calendar": "^4.0.0",
+    "@schedule-x/events-service": "^4.0.0",
+    "@schedule-x/react": "^4.0.0",
+    "@schedule-x/theme-default": "^4.0.0",
     "airports-json": "^1.0.0",
     "country-to-currency": "^2.0.2",
     "dayjs": "^1.11.19",
@@ -25,14 +29,10 @@
     "leaflet": "^1.9.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.4",
-    "@schedule-x/calendar": "^4.0.0",
-    "@schedule-x/events-service": "^4.0.0",
-    "@schedule-x/react": "^4.0.0",
-    "@schedule-x/theme-default": "^4.0.0",
     "react-leaflet": "^5.0.0",
-    "temporal-polyfill": "^0.3.0",
     "react-router-dom": "^7.13.0",
-    "react-swipeable": "^7.0.2"
+    "react-swipeable": "^7.0.2",
+    "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
