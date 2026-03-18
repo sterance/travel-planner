@@ -1,5 +1,13 @@
 import { db } from "../db.js";
 
+function tryExec(sql: string): void {
+  try {
+    db.exec(sql);
+  } catch {
+    // ignore (typically: column already exists)
+  }
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
@@ -38,6 +46,8 @@ db.exec(`
     FOREIGN KEY (trip_user_id, trip_id) REFERENCES trips(user_id, id) ON DELETE CASCADE
   )
 `);
+
+tryExec(`ALTER TABLE destinations ADD COLUMN destination_currency_json TEXT`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS place_details (
@@ -78,6 +88,9 @@ db.exec(`
   )
 `);
 
+tryExec(`ALTER TABLE transport_details ADD COLUMN costs_json TEXT`);
+tryExec(`ALTER TABLE transport_details ADD COLUMN paid_int INTEGER`);
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS weather_details (
     trip_user_id TEXT NOT NULL,
@@ -109,6 +122,9 @@ db.exec(`
   )
 `);
 
+tryExec(`ALTER TABLE accommodations ADD COLUMN costs_json TEXT`);
+tryExec(`ALTER TABLE accommodations ADD COLUMN paid_int INTEGER`);
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS activities (
     trip_user_id TEXT NOT NULL,
@@ -119,6 +135,23 @@ db.exec(`
     address TEXT,
     start_date_time TEXT,
     end_date_time TEXT,
+    PRIMARY KEY (trip_user_id, trip_id, destination_id, id),
+    FOREIGN KEY (trip_user_id, trip_id, destination_id) REFERENCES destinations(trip_user_id, trip_id, id) ON DELETE CASCADE
+  )
+`);
+
+tryExec(`ALTER TABLE activities ADD COLUMN costs_json TEXT`);
+tryExec(`ALTER TABLE activities ADD COLUMN paid_int INTEGER`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS custom_budget_items (
+    trip_user_id TEXT NOT NULL,
+    trip_id TEXT NOT NULL,
+    destination_id TEXT NOT NULL,
+    id TEXT NOT NULL,
+    label TEXT,
+    costs_json TEXT,
+    paid_int INTEGER,
     PRIMARY KEY (trip_user_id, trip_id, destination_id, id),
     FOREIGN KEY (trip_user_id, trip_id, destination_id) REFERENCES destinations(trip_user_id, trip_id, id) ON DELETE CASCADE
   )

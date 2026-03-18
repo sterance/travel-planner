@@ -99,7 +99,8 @@ const MoneyInput = ({ value, onChange, currencyCode = "USD", displayDecimalPlace
           return;
         }
 
-        onChange(createDineroFromDecimal(parsed, currencyCode));
+        const next = createDineroFromDecimal(parsed, currencyCode);
+        onChange(next);
       }}
       onFocus={() => {
         setIsFocused(true);

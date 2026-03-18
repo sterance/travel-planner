@@ -11,6 +11,26 @@ const num = (r: Record<string, unknown>, k: string): number | null => {
   return null;
 };
 const str = (r: Record<string, unknown>, k: string): string | null => (r[k] != null ? String(r[k]) : null);
+const json = (r: Record<string, unknown>, k: string): unknown => {
+  const v = r[k];
+  if (v == null) return null;
+  if (typeof v !== "string" || !v) return null;
+  try {
+    return JSON.parse(v) as unknown;
+  } catch {
+    return null;
+  }
+};
+const jsonStr = (value: unknown): string | null => {
+  if (value == null) return null;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return null;
+  }
+};
+const boolInt = (value: unknown): number | null => (value === true ? 1 : value === false ? 0 : null);
+const intBool = (value: unknown): boolean | undefined => (value === 1 || value === "1" ? true : value === 0 || value === "0" ? false : undefined);
 
 function parseNights(value: unknown): number | "none" | "dates" | null {
   if (value == null || value === "") return null;
@@ -42,7 +62,7 @@ export function getTripForUser(userId: string, tripId: string): Record<string, u
 function assembleTrip(userId: string, tripId: string, row: Record<string, unknown>): Record<string, unknown> {
   const destRows = db
     .prepare(
-      "SELECT id, name, display_name, nights, arrival_date, arrival_time, departure_date FROM destinations WHERE trip_user_id = ? AND trip_id = ? ORDER BY sort_order, arrival_date",
+      "SELECT id, name, display_name, nights, arrival_date, arrival_time, departure_date, destination_currency_json FROM destinations WHERE trip_user_id = ? AND trip_id = ? ORDER BY sort_order, arrival_date",
     )
     .all(userId, tripId) as Record<string, unknown>[];
   const destinations = destRows.map((d) => assembleDestination(userId, tripId, uid(d, "id"), d));
@@ -70,7 +90,7 @@ function assembleDestination(
     .get(userId, tripId, destId) as Record<string, unknown> | undefined;
   const td = db
     .prepare(
-      "SELECT mode, departure_location, arrival_location, booking_number, departure_date_time, arrival_date_time FROM transport_details WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ?",
+      "SELECT mode, departure_location, arrival_location, booking_number, departure_date_time, arrival_date_time, costs_json, paid_int FROM transport_details WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ?",
     )
     .get(userId, tripId, destId) as Record<string, unknown> | undefined;
   const wd = db
@@ -80,12 +100,17 @@ function assembleDestination(
     .get(userId, tripId, destId) as Record<string, unknown> | undefined;
   const accRows = db
     .prepare(
-      "SELECT id, name, address, check_in_date_time, check_out_date_time FROM accommodations WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ?",
+      "SELECT id, name, address, check_in_date_time, check_out_date_time, costs_json, paid_int FROM accommodations WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ?",
     )
     .all(userId, tripId, destId) as Record<string, unknown>[];
   const actRows = db
     .prepare(
-      "SELECT id, name, address, start_date_time, end_date_time FROM activities WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ?",
+      "SELECT id, name, address, start_date_time, end_date_time, costs_json, paid_int FROM activities WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ?",
+    )
+    .all(userId, tripId, destId) as Record<string, unknown>[];
+  const otherRows = db
+    .prepare(
+      "SELECT id, label, costs_json, paid_int FROM custom_budget_items WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ? ORDER BY rowid",
     )
     .all(userId, tripId, destId) as Record<string, unknown>[];
   const dest: Record<string, unknown> = {
@@ -102,6 +127,8 @@ function assembleDestination(
       address: a.address,
       checkInDateTime: a.check_in_date_time,
       checkOutDateTime: a.check_out_date_time,
+      costs: json(a, "costs_json"),
+      paid: intBool(a.paid_int),
     })),
     activities: actRows.map((a) => ({
       id: a.id,
@@ -109,6 +136,15 @@ function assembleDestination(
       address: a.address,
       startDateTime: a.start_date_time,
       endDateTime: a.end_date_time,
+      costs: json(a, "costs_json"),
+      paid: intBool(a.paid_int),
+    })),
+    destinationCurrency: json(row, "destination_currency_json"),
+    customBudgetItems: otherRows.map((o) => ({
+      id: o.id,
+      label: o.label,
+      costs: json(o, "costs_json"),
+      paid: intBool(o.paid_int) === true,
     })),
   };
   if (pd) {
@@ -137,6 +173,8 @@ function assembleDestination(
       bookingNumber: td.booking_number,
       departureDateTime: td.departure_date_time,
       arrivalDateTime: td.arrival_date_time,
+      costs: json(td, "costs_json"),
+      paid: intBool(td.paid_int),
     };
   }
   if (wd) {
@@ -174,7 +212,7 @@ function insertDestination(
 ): void {
   const id = typeof d.id === "string" ? d.id : "";
   db.prepare(
-    "INSERT INTO destinations (trip_user_id, trip_id, id, name, display_name, nights, arrival_date, arrival_time, departure_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO destinations (trip_user_id, trip_id, id, name, display_name, nights, arrival_date, arrival_time, departure_date, sort_order, destination_currency_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
   ).run(
     userId,
     tripId,
@@ -186,6 +224,7 @@ function insertDestination(
     d.arrivalTime != null ? String(d.arrivalTime) : null,
     d.departureDate != null ? String(d.departureDate) : null,
     sortOrder,
+    jsonStr((d as any).destinationCurrency),
   );
   const pd = d.placeDetails as Record<string, unknown> | undefined;
   if (pd) {
@@ -215,7 +254,7 @@ function insertDestination(
   const td = d.transportDetails as Record<string, unknown> | undefined;
   if (td) {
     db.prepare(
-      "INSERT INTO transport_details (trip_user_id, trip_id, destination_id, mode, departure_location, arrival_location, booking_number, departure_date_time, arrival_date_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO transport_details (trip_user_id, trip_id, destination_id, mode, departure_location, arrival_location, booking_number, departure_date_time, arrival_date_time, costs_json, paid_int) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     ).run(
       userId,
       tripId,
@@ -226,6 +265,8 @@ function insertDestination(
       str(td, "bookingNumber"),
       td.departureDateTime != null ? String(td.departureDateTime) : null,
       td.arrivalDateTime != null ? String(td.arrivalDateTime) : null,
+      jsonStr((td as any).costs),
+      boolInt((td as any).paid),
     );
   }
   const wd = d.weatherDetails as Record<string, unknown> | undefined;
@@ -247,7 +288,7 @@ function insertDestination(
   ((d.accommodations as Record<string, unknown>[]) ?? []).forEach((a) => {
     const aid = typeof a.id === "string" ? a.id : "";
     db.prepare(
-      "INSERT INTO accommodations (trip_user_id, trip_id, destination_id, id, name, address, check_in_date_time, check_out_date_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO accommodations (trip_user_id, trip_id, destination_id, id, name, address, check_in_date_time, check_out_date_time, costs_json, paid_int) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     ).run(
       userId,
       tripId,
@@ -257,12 +298,14 @@ function insertDestination(
       a.address != null ? String(a.address) : null,
       a.checkInDateTime != null ? String(a.checkInDateTime) : null,
       a.checkOutDateTime != null ? String(a.checkOutDateTime) : null,
+      jsonStr((a as any).costs),
+      boolInt((a as any).paid),
     );
   });
   ((d.activities as Record<string, unknown>[]) ?? []).forEach((a) => {
     const aid = typeof a.id === "string" ? a.id : "";
     db.prepare(
-      "INSERT INTO activities (trip_user_id, trip_id, destination_id, id, name, address, start_date_time, end_date_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO activities (trip_user_id, trip_id, destination_id, id, name, address, start_date_time, end_date_time, costs_json, paid_int) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     ).run(
       userId,
       tripId,
@@ -272,6 +315,24 @@ function insertDestination(
       a.address != null ? String(a.address) : null,
       a.startDateTime != null ? String(a.startDateTime) : null,
       a.endDateTime != null ? String(a.endDateTime) : null,
+      jsonStr((a as any).costs),
+      boolInt((a as any).paid),
+    );
+  });
+
+  ((d.customBudgetItems as Record<string, unknown>[]) ?? []).forEach((o) => {
+    const oid = typeof o.id === "string" ? o.id : "";
+    if (!oid) return;
+    db.prepare(
+      "INSERT INTO custom_budget_items (trip_user_id, trip_id, destination_id, id, label, costs_json, paid_int) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      userId,
+      tripId,
+      id,
+      oid,
+      (o as any).label != null ? String((o as any).label) : null,
+      jsonStr((o as any).costs),
+      boolInt((o as any).paid),
     );
   });
 }
