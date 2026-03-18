@@ -180,14 +180,13 @@ export const SettingsPage = (): ReactElement => {
                         display: "flex",
                         alignItems: "center",
                         gap: 1,
-                        flexWrap: "wrap",
                         p: 1,
                         borderRadius: 2,
                         boxShadow: (theme) => theme.shadows[1],
                         bgcolor: (theme) => (theme.palette.mode === "dark" ? "#121212" : "background.default"),
                       }}
                     >
-                      <Typography variant="body2" sx={{ minWidth: 100 }}>
+                      <Typography variant="body2" sx={{ minWidth: 160 }}>
                         {entry.countryName}
                       </Typography>
                       <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -197,7 +196,7 @@ export const SettingsPage = (): ReactElement => {
                           onChange={(d) => updatePassportExpiration(entry.countryName, d ?? null)}
                           format={dateFormat}
                           minDate={dayjs()}
-                          slotProps={{ textField: { size: "small", sx: { minWidth: 160 } } }}
+                          slotProps={{ textField: { size: "small", sx: { minWidth: 100 } } }}
                         />
                       </LocalizationProvider>
                       <IconButton size="small" onClick={() => removePassport(entry.countryName)} aria-label={`Remove ${entry.countryName}`}>
@@ -223,36 +222,39 @@ export const SettingsPage = (): ReactElement => {
             }
           />
           <CardContent>
-            <Autocomplete
-              options={currencyList}
-              getOptionLabel={(option) => `${option.code} -- ${option.name}`}
-              value={currencyList.find((c) => c.code === homeCurrency) ?? null}
-              onChange={(_, newValue) => {
-                if (newValue) setHomeCurrency(newValue.code);
-              }}
-              isOptionEqualToValue={(option, value) => option.code === value.code}
-              slotProps={{
-                listbox: {
-                  sx: getThemedScrollbarSx,
-                },
-              }}
-              renderInput={(params) => <TextField {...params} label="Home Currency" size="small" />}
-            />
-            <TextField
-              select
-              label="Decimal places"
-              size="small"
-              value={currencyDisplayDecimals}
-              onChange={(e) => setCurrencyDisplayDecimals(e.target.value)}
-              sx={{ mt: 2, minWidth: 180 }}
-            >
-              <MenuItem value="auto">Auto</MenuItem>
-              <MenuItem value={0}>0</MenuItem>
-              <MenuItem value={1}>1</MenuItem>
-              <MenuItem value={2}>2</MenuItem>
-              <MenuItem value={3}>3</MenuItem>
-              <MenuItem value={4}>4</MenuItem>
-            </TextField>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+              <Autocomplete
+                options={currencyList}
+                getOptionLabel={(option) => `${option.code} -- ${option.name}`}
+                value={currencyList.find((c) => c.code === homeCurrency) ?? null}
+                onChange={(_, newValue) => {
+                  if (newValue) setHomeCurrency(newValue.code);
+                }}
+                isOptionEqualToValue={(option, value) => option.code === value.code}
+                slotProps={{
+                  listbox: {
+                    sx: getThemedScrollbarSx,
+                  },
+                }}
+                renderInput={(params) => <TextField {...params} label="Home Currency" size="small" />}
+                sx={{ flex: 2, minWidth: 0 }}
+              />
+              <TextField
+                select
+                label="Decimal places"
+                size="small"
+                value={currencyDisplayDecimals}
+                onChange={(e) => setCurrencyDisplayDecimals(e.target.value)}
+                sx={{ flex: 1, minWidth: 0 }}
+              >
+                <MenuItem value="auto">Auto</MenuItem>
+                <MenuItem value={0}>0</MenuItem>
+                <MenuItem value={1}>1</MenuItem>
+                <MenuItem value={2}>2</MenuItem>
+                <MenuItem value={3}>3</MenuItem>
+                <MenuItem value={4}>4</MenuItem>
+              </TextField>
+            </Box>
           </CardContent>
         </Card>
         <Card>
@@ -268,9 +270,38 @@ export const SettingsPage = (): ReactElement => {
               row
               value={dateFormat}
               onChange={(e) => setDateFormat(e.target.value as DateFormatPreference)}
+              sx={{ width: "100%", gap: 2 }}
             >
-              <FormControlLabel value="DD/MM/YYYY" control={<Radio />} label="DD/MM/YYYY" />
-              <FormControlLabel value="MM/DD/YYYY" control={<Radio />} label="MM/DD/YYYY" />
+              <FormControlLabel
+                value="DD/MM/YYYY"
+                control={<Radio />}
+                label={
+                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                    <Typography variant="body1" component="span" sx={{ display: "flex", alignItems: "center", minHeight: 24, lineHeight: 1.2 }}>
+                      DD/MM/YYYY
+                    </Typography>
+                    <Typography variant="caption" component="span" color="text.secondary" sx={{ lineHeight: 1.2, mt: 0.25 }}>
+                      31/12/2026
+                    </Typography>
+                  </Box>
+                }
+                sx={{ flex: 1, minWidth: 0, m: 0, alignItems: "center" }}
+              />
+              <FormControlLabel
+                value="MM/DD/YYYY"
+                control={<Radio />}
+                label={
+                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                    <Typography variant="body1" component="span" sx={{ display: "flex", alignItems: "center", minHeight: 24, lineHeight: 1.2 }}>
+                      MM/DD/YYYY
+                    </Typography>
+                    <Typography variant="caption" component="span" color="text.secondary" sx={{ lineHeight: 1.2, mt: 0.25 }}>
+                      12/31/2026
+                    </Typography>
+                  </Box>
+                }
+                sx={{ flex: 1, minWidth: 0, m: 0, alignItems: "center" }}
+              />
             </RadioGroup>
           </CardContent>
         </Card>
@@ -283,9 +314,17 @@ export const SettingsPage = (): ReactElement => {
             }
           />
           <CardContent>
-            <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
-              <FormControlLabel control={<Checkbox checked={showExploreButton} onChange={(e) => setShowExploreButton(e.target.checked)} />} label="Show explore button" />
-              <FormControlLabel control={<Checkbox checked={showInfoButton} onChange={(e) => setShowInfoButton(e.target.checked)} />} label="Show info button" />
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 1, width: "100%" }}>
+              <FormControlLabel
+                control={<Checkbox checked={showExploreButton} onChange={(e) => setShowExploreButton(e.target.checked)} />}
+                label="Show explore button"
+                sx={{ flex: 1, minWidth: 0, m: 0 }}
+              />
+              <FormControlLabel
+                control={<Checkbox checked={showInfoButton} onChange={(e) => setShowInfoButton(e.target.checked)} />}
+                label="Show info button"
+                sx={{ flex: 1, minWidth: 0, m: 0 }}
+              />
             </Box>
           </CardContent>
         </Card>
