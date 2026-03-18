@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "DejaVuSans-Bold",
     textAlign: "center",
-    marginBottom: 4,
+    marginBottom: 12,
   },
   tripDates: {
     fontSize: 10,
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
   },
   transportSection: {
     paddingLeft: 12,
-    marginBottom: 6,
+    marginBottom: 0,
   },
   transportHeaderRow: {
     flexDirection: "row",
@@ -81,25 +81,19 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: "#777",
   },
-  dateNightsRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  dateNightsBlock: {
     paddingLeft: 14,
     marginBottom: 4,
-    gap: 8,
   },
   dateText: {
     fontSize: 9,
     color: "#666",
   },
-  nightsBadge: {
-    fontSize: 8,
-    color: "#555",
-    borderWidth: 0.5,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+  nightsText: {
+    fontSize: 9,
+    fontFamily: "DejaVuSans-Bold",
+    color: "#444",
+    marginTop: 1,
   },
   subSectionHeader: {
     flexDirection: "row",

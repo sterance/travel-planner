@@ -163,9 +163,9 @@ const PdfDestinationSection = ({
       </View>
 
       {/* Date range & nights */}
-      <View style={styles.dateNightsRow}>
+      <View style={styles.dateNightsBlock}>
         {dateRange && <Text style={styles.dateText}>{dateRange}</Text>}
-        <Text style={styles.nightsBadge}>{formatNights(destination.nights)}</Text>
+        <Text style={styles.nightsText}>{formatNights(destination.nights)}</Text>
       </View>
 
       {/* Accommodation */}

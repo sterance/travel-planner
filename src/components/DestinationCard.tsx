@@ -218,12 +218,12 @@ export const DestinationCard = ({
                 ? {
                     left: "50%",
                     transform: "translateX(-50%)",
-                    borderTopLeftRadius: theme.shape.borderRadius,
-                    borderTopRightRadius: theme.shape.borderRadius,
+                    borderTopLeftRadius: 0,
+                    borderTopRightRadius: 0,
                     "&::before": {
                       content: '""',
                       position: "absolute",
-                      right: "100%",
+                      right: "calc(100% - 0.5px)",
                       top: 0,
                       width: "100%",
                       height: "100%",
@@ -235,7 +235,7 @@ export const DestinationCard = ({
                     "&::after": {
                       content: '""',
                       position: "absolute",
-                      left: "100%",
+                      left: "calc(100% - 0.5px)",
                       top: 0,
                       width: "100%",
                       height: "100%",
