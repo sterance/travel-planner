@@ -24,7 +24,7 @@
     "@schedule-x/theme-default": "^4.0.0",
     "airports-json": "^1.0.0",
     "country-to-currency": "^2.0.2",
-    "dayjs": "^1.11.19",
+    "dayjs": "^1.11.20",
     "dinero.js": "^2.0.1",
     "leaflet": "^1.9.4",
     "react": "^19.2.0",
