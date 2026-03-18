@@ -92,6 +92,7 @@ function App(): ReactElement {
     return stored === "DD/MM/YYYY" || stored === "MM/DD/YYYY" ? stored : "DD/MM/YYYY";
   });
   const [homeCurrency, setHomeCurrencyState] = useState(() => getStringItem("homeCurrency", "USD"));
+  const [currencyDisplayDecimals, setCurrencyDisplayDecimalsState] = useState(() => getStringItem("currencyDisplayDecimals", "auto"));
   const { mode, toggleTheme } = useThemeMode();
   const { user, logout } = useAuth();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
@@ -169,6 +170,11 @@ function App(): ReactElement {
     setStringItem("homeCurrency", code);
   };
 
+  const handleCurrencyDisplayDecimalsChange = (value: string): void => {
+    setCurrencyDisplayDecimalsState(value);
+    setStringItem("currencyDisplayDecimals", value);
+  };
+
   const persistPassports = (updated: PassportEntry[]): void => {
     setPassports(updated);
     const toStore = updated.map((p) => ({
@@ -238,6 +244,8 @@ function App(): ReactElement {
         handleDateFormatChange={handleDateFormatChange}
         homeCurrency={homeCurrency}
         setHomeCurrency={handleHomeCurrencyChange}
+        currencyDisplayDecimals={currencyDisplayDecimals}
+        setCurrencyDisplayDecimals={handleCurrencyDisplayDecimalsChange}
         passports={passports}
         handleAddPassport={handleAddPassport}
         handleRemovePassport={handleRemovePassport}
@@ -283,6 +291,8 @@ interface AppShellProps {
   handleDateFormatChange: (format: DateFormatPreference) => void;
   homeCurrency: string;
   setHomeCurrency: (code: string) => void;
+  currencyDisplayDecimals: string;
+  setCurrencyDisplayDecimals: (value: string) => void;
   passports: PassportEntry[];
   handleAddPassport: (countryName: string, expirationDate?: Dayjs | null) => void;
   handleRemovePassport: (countryName: string) => void;
@@ -325,6 +335,8 @@ const AppShell = ({
   handleDateFormatChange,
   homeCurrency,
   setHomeCurrency,
+  currencyDisplayDecimals,
+  setCurrencyDisplayDecimals,
   passports,
   handleAddPassport,
   handleRemovePassport,
@@ -461,6 +473,8 @@ const AppShell = ({
                     setDateFormat: handleDateFormatChange,
                     homeCurrency,
                     setHomeCurrency,
+                    currencyDisplayDecimals,
+                    setCurrencyDisplayDecimals,
                     passports,
                     addPassport: handleAddPassport,
                     removePassport: handleRemovePassport,

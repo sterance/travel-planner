@@ -70,8 +70,13 @@ export function getCurrencyExponent(code: string): number {
   return c?.exponent ?? 2;
 }
 
-export function formatCurrencyAmount(value: number, code: string): string {
-  const exp = getCurrencyExponent(code);
+export function formatCurrencyAmount(value: number, code: string, decimalPlaces?: number | "auto" | string): string {
+  const exp =
+    decimalPlaces === undefined || decimalPlaces === "auto"
+      ? getCurrencyExponent(code)
+      : Number.isFinite(Number(decimalPlaces))
+        ? Number(decimalPlaces)
+        : getCurrencyExponent(code);
   const fixed = exp === 0 ? Math.round(value).toString() : value.toFixed(exp);
   return `${formatCurrencySymbol(code)}${fixed}`;
 }

@@ -22,14 +22,13 @@ export const Footer = (): ReactElement => {
         borderTop: 1,
         borderColor: "divider",
         bgcolor: "background.paper",
-        display: "flex",
-        flexWrap: "wrap",
+        display: "grid",
+        gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
-        justifyContent: "space-between",
-        gap: 1,
+        columnGap: 1,
       }}
     >
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="text.secondary" sx={{ justifySelf: "start" }}>
         © Chris Smith, {new Date().getFullYear()}
       </Typography>
       <IconButton
@@ -40,10 +39,16 @@ export const Footer = (): ReactElement => {
         aria-label="GitHub repository"
         size="small"
         color="inherit"
+        sx={{ justifySelf: "center" }}
       >
         <GitHubIcon />
       </IconButton>
-      <Typography variant="body2" color="text.secondary" component="span">
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        component="span"
+        sx={{ justifySelf: "end", textAlign: "right" }}
+      >
         Issues? Report them {" "}
         <Link href={ISSUES_URL} target="_blank" rel="noopener noreferrer">
           here

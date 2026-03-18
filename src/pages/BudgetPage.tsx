@@ -17,6 +17,7 @@ import type { Destination } from "../types/destination";
 import type { Trip } from "../types/trip";
 import CircularProgress from "@mui/material/CircularProgress";
 import { formatTransportMode } from "../utils/itineraryFormatters";
+import { getThemedScrollbarSx } from "../theme/scrollbarSx";
 import {
   buildCurrencyOptions,
   formatCurrencySymbol,
@@ -34,35 +35,79 @@ interface MoneyInputProps {
   value: Dinero<number> | null | undefined;
   onChange: (v: Dinero<number> | null) => void;
   currencyCode?: string;
+  displayDecimalPlaces?: string;
 }
 
-const MoneyInput = ({ value, onChange, currencyCode = "USD" }: MoneyInputProps) => {
+const MoneyInput = ({ value, onChange, currencyCode = "USD", displayDecimalPlaces = "auto" }: MoneyInputProps) => {
   const exponent = getCurrencyExponent(currencyCode);
+  const resolvedDisplayDecimals = displayDecimalPlaces === "auto" ? exponent : Number(displayDecimalPlaces);
   const decimal = value ? dineroToDecimal(value) : null;
-  const displayValue = decimal == null ? "" : exponent === 0 ? String(Math.round(decimal)) : decimal.toFixed(exponent);
+  const formatValue = (input: number | null): string => {
+    if (input == null) return "";
+    return resolvedDisplayDecimals === 0 ? String(Math.round(input)) : input.toFixed(resolvedDisplayDecimals);
+  };
+  const [draftValue, setDraftValue] = useState(() => formatValue(decimal));
+  const [isFocused, setIsFocused] = useState(false);
   const symbol = formatCurrencySymbol(currencyCode);
+
+  useEffect(() => {
+    if (isFocused) return;
+    setDraftValue(formatValue(decimal));
+  }, [decimal, resolvedDisplayDecimals, isFocused]);
+
+  const commitValue = (raw: string): void => {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      onChange(null);
+      setDraftValue("");
+      return;
+    }
+
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed)) {
+      onChange(null);
+      setDraftValue("");
+      return;
+    }
+
+    const next = createDineroFromDecimal(parsed, currencyCode);
+    onChange(next);
+    setDraftValue(formatValue(next ? dineroToDecimal(next) : null));
+  };
 
   return (
     <TextField
-      type="number"
+      type="text"
+      inputMode="decimal"
       size="small"
       slotProps={{
-        htmlInput: { step: exponent === 0 ? 1 : Math.pow(10, -exponent), min: 0 },
+        htmlInput: { min: 0 },
         input: { startAdornment: <span style={{ marginRight: 4 }}>{symbol}</span> }
       }}
-      value={displayValue}
+      value={isFocused ? draftValue : formatValue(decimal)}
       onChange={(e) => {
         const raw = e.target.value;
-        if (!raw.trim()) {
+        setDraftValue(raw);
+        const trimmed = raw.trim();
+        if (!trimmed) {
           onChange(null);
           return;
         }
-        const parsed = Number(raw);
+
+        const parsed = Number(trimmed);
         if (!Number.isFinite(parsed)) {
-          onChange(null);
           return;
         }
+
         onChange(createDineroFromDecimal(parsed, currencyCode));
+      }}
+      onFocus={() => {
+        setIsFocused(true);
+        setDraftValue(decimal == null ? "" : String(decimal));
+      }}
+      onBlur={(e) => {
+        setIsFocused(false);
+        commitValue(e.currentTarget.value);
       }}
       sx={{
         width: 100,
@@ -84,6 +129,7 @@ const MoneyInput = ({ value, onChange, currencyCode = "USD" }: MoneyInputProps) 
 interface DestinationBudgetTableProps {
   destination: Destination;
   homeCurrency: string;
+  displayDecimalPlaces: string;
   outboundMode?: string;
   showOnwards?: boolean;
   onTotalChange?: (id: string, total: number) => void;
@@ -94,6 +140,7 @@ interface DestinationBudgetTableProps {
 const DestinationBudgetTable = ({
   destination,
   homeCurrency,
+  displayDecimalPlaces,
   outboundMode,
   showOnwards,
   onTotalChange,
@@ -118,6 +165,7 @@ const DestinationBudgetTable = ({
     destination.placeDetails?.countryCode
   );
   const selectedOption = currencyOptions.find((c) => c.code === selectedCurrency) ?? currencyOptions[0];
+  const [isCurrencyFocused, setIsCurrencyFocused] = useState(false);
 
   const otherItems = destination.customBudgetItems ?? [];
   const [editingOtherId, setEditingOtherId] = useState<string | null>(null);
@@ -234,14 +282,21 @@ const DestinationBudgetTable = ({
             onDestinationChange({ ...destination, destinationCurrency: next });
           }}
           isOptionEqualToValue={(option, value) => option.code === value.code}
+          slotProps={{
+            listbox: {
+              sx: getThemedScrollbarSx,
+            },
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
               label="Currency"
+              onFocus={() => setIsCurrencyFocused(true)}
+              onBlur={() => setIsCurrencyFocused(false)}
               slotProps={{
                 htmlInput: {
                   ...params.inputProps,
-                  value: selectedOption ? selectedOption.code : "",
+                  value: isCurrencyFocused ? params.inputProps.value : selectedOption ? selectedOption.code : "",
                   style: {
                     ...(typeof params.inputProps?.style === "object" && params.inputProps.style),
                     overflow: "visible",
@@ -286,6 +341,7 @@ const DestinationBudgetTable = ({
                     )
                   }
                   currencyCode={selectedCurrency}
+                  displayDecimalPlaces={displayDecimalPlaces}
                 />
               </TableCell>
               <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
@@ -327,6 +383,7 @@ const DestinationBudgetTable = ({
                     )
                   }
                   currencyCode={selectedCurrency}
+                  displayDecimalPlaces={displayDecimalPlaces}
                 />
               </TableCell>
               <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
@@ -421,6 +478,7 @@ const DestinationBudgetTable = ({
                     value={item.costs}
                     onChange={(val) => handleOtherCostChange(item.id, val)}
                     currencyCode={selectedCurrency}
+                    displayDecimalPlaces={displayDecimalPlaces}
                   />
                 </TableCell>
                 <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
@@ -504,6 +562,7 @@ const DestinationBudgetTable = ({
                           });
                         }}
                         currencyCode={selectedCurrency}
+                        displayDecimalPlaces={displayDecimalPlaces}
                       />
                     </TableCell>
                     <TableCell align="center" sx={{ px: 0.5, width: 0 }}>
@@ -546,7 +605,7 @@ const DestinationBudgetTable = ({
           {destination.displayName || destination.name} total:
         </Typography>
         <Typography variant="h6">
-          {formatCurrencyAmount(totalCost, selectedCurrency)}
+          {formatCurrencyAmount(totalCost, selectedCurrency, displayDecimalPlaces)}
         </Typography>
       </Box>
       
@@ -556,10 +615,11 @@ const DestinationBudgetTable = ({
 
 interface BudgetOutletContext {
   homeCurrency: string;
+  currencyDisplayDecimals: string;
 }
 
 export function BudgetPage({ trip, onUpdateTrip }: { trip?: Trip; onUpdateTrip?: (trip: Trip) => void }) {
-  const { homeCurrency } = useOutletContext<BudgetOutletContext>();
+  const { homeCurrency, currencyDisplayDecimals } = useOutletContext<BudgetOutletContext>();
   const { currentTrip, tripsLoading, updateTrip } = useTripContext();
   const usedTrip = trip ?? currentTrip;
   const effectiveUpdateTrip = onUpdateTrip ?? updateTrip;
@@ -630,6 +690,7 @@ export function BudgetPage({ trip, onUpdateTrip }: { trip?: Trip; onUpdateTrip?:
               key={dest.id}
               destination={dest}
               homeCurrency={homeCurrency}
+              displayDecimalPlaces={currencyDisplayDecimals}
               outboundMode={destinations[index + 1]?.transportDetails?.mode}
               showOnwards={index < destinations.length - 1}
               onTotalChange={handleDestinationTotalChange}
@@ -650,7 +711,7 @@ export function BudgetPage({ trip, onUpdateTrip }: { trip?: Trip; onUpdateTrip?:
                         {dest.displayName || dest.name}
                       </TableCell>
                       <TableCell align="right">
-                        {formatCurrencyAmount(destinationTotals[dest.id] ?? 0, currencyCode)}
+                        {formatCurrencyAmount(destinationTotals[dest.id] ?? 0, currencyCode, currencyDisplayDecimals)}
                       </TableCell>
                     </TableRow>
                   );
@@ -670,7 +731,7 @@ export function BudgetPage({ trip, onUpdateTrip }: { trip?: Trip; onUpdateTrip?:
                 Outstanding:
               </Typography>
               <Typography variant="h6">
-                {formatCurrencyAmount(outstandingTotal, homeCurrency)}
+                {formatCurrencyAmount(outstandingTotal, homeCurrency, currencyDisplayDecimals)}
               </Typography>
             </Box>
             <Box
@@ -686,7 +747,7 @@ export function BudgetPage({ trip, onUpdateTrip }: { trip?: Trip; onUpdateTrip?:
                 Total:
               </Typography>
               <Typography variant="h6">
-                {formatCurrencyAmount(grandTotal, homeCurrency)}
+                {formatCurrencyAmount(grandTotal, homeCurrency, currencyDisplayDecimals)}
               </Typography>
             </Box>
             

@@ -10,6 +10,7 @@ import Checkbox from "@mui/material/Checkbox";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
 import RadioGroup from "@mui/material/RadioGroup";
 import Radio from "@mui/material/Radio";
 import IconButton from "@mui/material/IconButton";
@@ -21,6 +22,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import { type ArrivalWeatherBackgroundMode, type DateFormatPreference, type PassportEntry } from "../App";
 import { searchCountries, type Country } from "../services/passportService";
 import { currencyList } from "../utils/currency";
+import { getThemedScrollbarSx } from "../theme/scrollbarSx";
 import { Footer } from "../components/Footer";
 
 interface OutletContext {
@@ -34,6 +36,8 @@ interface OutletContext {
   setDateFormat: (value: DateFormatPreference) => void;
   homeCurrency: string;
   setHomeCurrency: (code: string) => void;
+  currencyDisplayDecimals: string;
+  setCurrencyDisplayDecimals: (value: string) => void;
   passports: PassportEntry[];
   addPassport: (countryName: string, expirationDate?: Dayjs | null) => void;
   removePassport: (countryName: string) => void;
@@ -50,6 +54,8 @@ export const SettingsPage = (): ReactElement => {
     setDateFormat,
     homeCurrency,
     setHomeCurrency,
+    currencyDisplayDecimals,
+    setCurrencyDisplayDecimals,
     passports,
     addPassport,
     removePassport,
@@ -212,21 +218,6 @@ export const SettingsPage = (): ReactElement => {
           <CardHeader
             title={
               <Typography variant="h5" component="div">
-                Button visibility
-              </Typography>
-            }
-          />
-          <CardContent>
-            <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
-              <FormControlLabel control={<Checkbox checked={showExploreButton} onChange={(e) => setShowExploreButton(e.target.checked)} />} label="Show explore button" />
-              <FormControlLabel control={<Checkbox checked={showInfoButton} onChange={(e) => setShowInfoButton(e.target.checked)} />} label="Show info button" />
-            </Box>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader
-            title={
-              <Typography variant="h5" component="div">
                 Currency
               </Typography>
             }
@@ -240,8 +231,28 @@ export const SettingsPage = (): ReactElement => {
                 if (newValue) setHomeCurrency(newValue.code);
               }}
               isOptionEqualToValue={(option, value) => option.code === value.code}
+              slotProps={{
+                listbox: {
+                  sx: getThemedScrollbarSx,
+                },
+              }}
               renderInput={(params) => <TextField {...params} label="Home Currency" size="small" />}
             />
+            <TextField
+              select
+              label="Decimal places"
+              size="small"
+              value={currencyDisplayDecimals}
+              onChange={(e) => setCurrencyDisplayDecimals(e.target.value)}
+              sx={{ mt: 2, minWidth: 180 }}
+            >
+              <MenuItem value="auto">Auto</MenuItem>
+              <MenuItem value={0}>0</MenuItem>
+              <MenuItem value={1}>1</MenuItem>
+              <MenuItem value={2}>2</MenuItem>
+              <MenuItem value={3}>3</MenuItem>
+              <MenuItem value={4}>4</MenuItem>
+            </TextField>
           </CardContent>
         </Card>
         <Card>
@@ -261,6 +272,21 @@ export const SettingsPage = (): ReactElement => {
               <FormControlLabel value="DD/MM/YYYY" control={<Radio />} label="DD/MM/YYYY" />
               <FormControlLabel value="MM/DD/YYYY" control={<Radio />} label="MM/DD/YYYY" />
             </RadioGroup>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader
+            title={
+              <Typography variant="h5" component="div">
+                Button visibility
+              </Typography>
+            }
+          />
+          <CardContent>
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 1 }}>
+              <FormControlLabel control={<Checkbox checked={showExploreButton} onChange={(e) => setShowExploreButton(e.target.checked)} />} label="Show explore button" />
+              <FormControlLabel control={<Checkbox checked={showInfoButton} onChange={(e) => setShowInfoButton(e.target.checked)} />} label="Show info button" />
+            </Box>
           </CardContent>
         </Card>
       </Box>
