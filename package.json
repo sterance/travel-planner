@@ -25,7 +25,7 @@
     "airports-json": "^1.0.0",
     "country-to-currency": "^2.0.2",
     "dayjs": "^1.11.20",
-    "dinero.js": "^2.0.1",
+    "dinero.js": "^2.0.2",
     "leaflet": "^1.9.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.4",
