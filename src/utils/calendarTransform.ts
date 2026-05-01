@@ -1,6 +1,7 @@
 import type { Dayjs } from "dayjs";
 import type { Trip } from "../types/trip";
 import { computeDestinationTimeline } from "./dateCalculation";
+import { getDestinationZone } from "./timeZone";
 
 export const CALENDAR_IDS = {
   destination: "destination",
@@ -37,11 +38,6 @@ export interface CalendarEventInput {
   calendarId: (typeof CALENDAR_IDS)[keyof typeof CALENDAR_IDS];
 }
 
-function toDateString(d: Dayjs): string | null {
-  if (!d?.isValid?.()) return null;
-  return d.format("YYYY-MM-DD");
-}
-
 function toIsoString(d: Dayjs): string | null {
   if (!d?.isValid?.()) return null;
   const iso = d.toISOString();
@@ -54,11 +50,14 @@ export function transformTripToCalendarEvents(trip: Trip | null | undefined): Ca
   const events: CalendarEventInput[] = [];
   const { destinationsWithTimeline } = computeDestinationTimeline(trip.startDate, trip.destinations);
 
-  for (const dest of destinationsWithTimeline) {
+  for (let i = 0; i < destinationsWithTimeline.length; i++) {
+    const dest = destinationsWithTimeline[i];
+    const nextDest = destinationsWithTimeline[i + 1];
     const displayName = dest.displayName || dest.name || "Destination";
+    const destZone = getDestinationZone(dest);
 
-    const arrivalStr = dest.arrivalDate ? toDateString(dest.arrivalDate) : null;
-    const departureStr = dest.departureDate ? toDateString(dest.departureDate) : null;
+    const arrivalStr = dest.arrivalDate?.isValid() ? dest.arrivalDate.tz(destZone).format("YYYY-MM-DD") : null;
+    const departureStr = dest.departureDate?.isValid() ? dest.departureDate.tz(destZone).format("YYYY-MM-DD") : null;
     if (arrivalStr && departureStr) {
       events.push({
         id: `destination_${dest.id}`,
@@ -71,7 +70,7 @@ export function transformTripToCalendarEvents(trip: Trip | null | undefined): Ca
     }
 
     const transport = dest.transportDetails;
-    if (transport?.departureDateTime && transport?.arrivalDateTime) {
+    if (transport?.departureDateTime && transport?.arrivalDateTime && nextDest) {
       const start = toIsoString(transport.departureDateTime);
       const end = toIsoString(transport.arrivalDateTime);
       if (start && end) {

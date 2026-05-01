@@ -32,7 +32,8 @@
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.13.0",
     "react-swipeable": "^7.0.2",
-    "temporal-polyfill": "^0.3.0"
+    "temporal-polyfill": "^0.3.0",
+    "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

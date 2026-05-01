@@ -14,6 +14,7 @@ export interface Destination {
   id: string;
   name: string;
   displayName: string;
+  timeZone?: string;
   nights?: number | "none" | "dates" | null;
   arrivalDate?: Dayjs | null;
   arrivalTime?: Dayjs | null;

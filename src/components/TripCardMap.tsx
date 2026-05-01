@@ -13,6 +13,7 @@ import "leaflet/dist/leaflet.css";
 import { type Destination } from "../types/destination";
 import { type LayoutMode } from "../App";
 import { getStringItem, setStringItem } from "../services/storageService";
+import { formatTransportMode } from "../utils/itineraryFormatters";
 
 interface TripCardMapProps {
   destinations: Destination[];
@@ -25,6 +26,24 @@ interface TripCardMapProps {
 
 const STORAGE_KEY = "travel_map_height";
 const DEFAULT_HEIGHT = 400;
+
+const formatPopupLabel = ({
+  toMode,
+  placeName,
+  fromMode,
+}: {
+  toMode?: string;
+  placeName: string;
+  fromMode?: string;
+}): ReactElement => {
+  return (
+    <>
+      {toMode && `${formatTransportMode(toMode)} ￫ `}
+      <strong>{placeName}</strong>
+      {fromMode && ` ￫ ${formatTransportMode(fromMode)}`}
+    </>
+  );
+};
 
 const MapBounds = ({ bounds }: { bounds: L.LatLngBoundsExpression }): null => {
   const map = useMap();
@@ -179,14 +198,22 @@ export const TripCardMap = ({ destinations, layoutMode, headerOnly = false, body
         {polylinePositions.length > 1 && (
           <Polyline positions={polylinePositions} color="#1976d2" weight={3} />
         )}
-        {destinationsWithCoordinates.map((destination) => (
-          <Marker
-            key={destination.id}
-            position={[destination.placeDetails!.coordinates[1], destination.placeDetails!.coordinates[0]]}
-          >
-            <Popup>{destination.displayName || destination.name}</Popup>
-          </Marker>
-        ))}
+        {destinationsWithCoordinates.map((destination) => {
+          const placeName = destination.displayName || destination.name;
+          const toMode = destination.transportDetails?.mode;
+          const destinationIndex = destinations.findIndex((dest) => dest.id === destination.id);
+          const fromMode = destinationIndex >= 0 ? destinations[destinationIndex + 1]?.transportDetails?.mode : undefined;
+          const popupLabel = formatPopupLabel({ toMode, placeName, fromMode });
+
+          return (
+            <Marker
+              key={destination.id}
+              position={[destination.placeDetails!.coordinates[1], destination.placeDetails!.coordinates[0]]}
+            >
+              <Popup>{popupLabel}</Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </Box>
   );

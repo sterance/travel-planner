@@ -15,7 +15,7 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import { TransportIcon } from "../components/utility/TransportIcon";
 import { pdf } from "@react-pdf/renderer";
 import { ItineraryPdfDocument } from "../components/ItineraryPdf";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import type { Destination, TransportDetails, AccommodationDetails, ActivityDetails } from "../types/destination";
 import type { Trip } from "../types/trip";
 import type { DateFormatPreference } from "../App";
@@ -23,33 +23,34 @@ import { useTripContext } from "../hooks/useTripContext";
 import { useDateFormat } from "../hooks/useDateFormat";
 import { computeDestinationTimeline } from "../utils/dateCalculation";
 import { formatTransportMode, formatNights, getTotalNights, formatDate } from "../utils/itineraryFormatters";
+import { getDestinationZone } from "../utils/timeZone";
 
 const DateRange = ({
   from,
   to,
   dateFormat,
   includeTime,
+  fromTimeZone,
+  toTimeZone,
 }: {
   from: Dayjs | null | undefined;
   to: Dayjs | null | undefined;
   dateFormat: DateFormatPreference;
   includeTime?: boolean;
+  fromTimeZone?: string;
+  toTimeZone?: string;
 }): ReactElement | null => {
-  const f = formatDate({ date: from, dateFormat, includeTime });
-  const t = formatDate({ date: to, dateFormat, includeTime });
+  const f = formatDate({ date: from, dateFormat, includeTime, timeZone: fromTimeZone });
+  const t = formatDate({ date: to, dateFormat, includeTime, timeZone: toTimeZone ?? fromTimeZone });
   if (!f && !t) return null;
 
-  // If both dates fall on the same day and time is shown, omit the repeated date from "to"
   let displayTo = t;
-  if (
-    includeTime &&
-    from &&
-    to &&
-    from.isValid() &&
-    to.isValid() &&
-    from.format("YYYY-MM-DD") === to.format("YYYY-MM-DD")
-  ) {
-    displayTo = to.format("hh:mm A");
+  if (includeTime && from && to && from.isValid() && to.isValid()) {
+    const zf = fromTimeZone ? dayjs(from).tz(fromTimeZone) : dayjs(from);
+    const zt = toTimeZone ? dayjs(to).tz(toTimeZone) : dayjs(to);
+    if (zf.format("YYYY-MM-DD") === zt.format("YYYY-MM-DD")) {
+      displayTo = zt.format("hh:mm A");
+    }
   }
 
   return (
@@ -63,10 +64,14 @@ const TransportSection = ({
   transport,
   dateFormat,
   modeOverride,
+  departureTimeZone,
+  arrivalTimeZone,
 }: {
   transport: TransportDetails;
   dateFormat: DateFormatPreference;
   modeOverride?: string;
+  departureTimeZone: string;
+  arrivalTimeZone: string;
 }): ReactElement => {
   const displayMode = modeOverride ?? transport.mode;
   return (
@@ -97,6 +102,8 @@ const TransportSection = ({
             to={transport.arrivalDateTime}
             dateFormat={dateFormat}
             includeTime
+            fromTimeZone={departureTimeZone}
+            toTimeZone={arrivalTimeZone}
           />
         </Box>
       )}
@@ -107,9 +114,11 @@ const TransportSection = ({
 const AccommodationSection = ({
   accommodations,
   dateFormat,
+  timeZone,
 }: {
   accommodations: AccommodationDetails[];
   dateFormat: DateFormatPreference;
+  timeZone: string;
 }): ReactElement => (
   <Box sx={{ pl: 3.5, mt: 1.5 }}>
     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
@@ -129,7 +138,14 @@ const AccommodationSection = ({
           </Typography>
         )}
         {(acc.checkInDateTime || acc.checkOutDateTime) && (
-          <DateRange from={acc.checkInDateTime} to={acc.checkOutDateTime} dateFormat={dateFormat} includeTime />
+          <DateRange
+            from={acc.checkInDateTime}
+            to={acc.checkOutDateTime}
+            dateFormat={dateFormat}
+            includeTime
+            fromTimeZone={timeZone}
+            toTimeZone={timeZone}
+          />
         )}
       </Box>
     ))}
@@ -139,9 +155,11 @@ const AccommodationSection = ({
 const ActivitiesSection = ({
   activities,
   dateFormat,
+  timeZone,
 }: {
   activities: ActivityDetails[];
   dateFormat: DateFormatPreference;
+  timeZone: string;
 }): ReactElement => (
   <Box sx={{ pl: 3.5, mt: 1.5 }}>
     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
@@ -161,7 +179,14 @@ const ActivitiesSection = ({
           </Typography>
         )}
         {(act.startDateTime || act.endDateTime) && (
-          <DateRange from={act.startDateTime} to={act.endDateTime} dateFormat={dateFormat} includeTime />
+          <DateRange
+            from={act.startDateTime}
+            to={act.endDateTime}
+            dateFormat={dateFormat}
+            includeTime
+            fromTimeZone={timeZone}
+            toTimeZone={timeZone}
+          />
         )}
       </Box>
     ))}
@@ -173,12 +198,14 @@ const DestinationSection = ({
   index,
   total,
   inboundTransport,
+  previousDestination,
   dateFormat,
 }: {
   destination: Destination;
   index: number;
   total: number;
   inboundTransport: TransportDetails | undefined;
+  previousDestination: Destination | undefined;
   dateFormat: DateFormatPreference;
 }): ReactElement => {
   const label = destination.displayName || destination.name;
@@ -189,9 +216,15 @@ const DestinationSection = ({
   return (
     <Box sx={{ mb: 2 }}>
       {/* Inbound transport (how you get here) */}
-      {inboundTransport && (
+      {inboundTransport && previousDestination && (
         <Box sx={{ mb: 1.5 }}>
-          <TransportSection transport={inboundTransport} dateFormat={dateFormat} modeOverride={destination.transportDetails?.mode} />
+          <TransportSection
+            transport={inboundTransport}
+            dateFormat={dateFormat}
+            modeOverride={destination.transportDetails?.mode}
+            departureTimeZone={getDestinationZone(previousDestination)}
+            arrivalTimeZone={getDestinationZone(destination)}
+          />
           <Divider sx={{ mt: 1.5 }} />
         </Box>
       )}
@@ -218,11 +251,17 @@ const DestinationSection = ({
 
       {/* Accommodation */}
       {hasAccommodations && (
-        <AccommodationSection accommodations={destination.accommodations!} dateFormat={dateFormat} />
+        <AccommodationSection
+          accommodations={destination.accommodations!}
+          dateFormat={dateFormat}
+          timeZone={getDestinationZone(destination)}
+        />
       )}
 
       {/* Activities */}
-      {hasActivities && <ActivitiesSection activities={destination.activities!} dateFormat={dateFormat} />}
+      {hasActivities && (
+        <ActivitiesSection activities={destination.activities!} dateFormat={dateFormat} timeZone={getDestinationZone(destination)} />
+      )}
 
       {/* Separator unless last */}
       {index < total - 1 && <Divider sx={{ mt: 2 }} />}
@@ -324,6 +363,7 @@ export const ItineraryPage = ({ trip: tripProp }: ItineraryPageProps): ReactElem
             index={i}
             total={destinationsWithTimeline.length}
             inboundTransport={i > 0 ? destinations[i - 1].transportDetails : undefined}
+            previousDestination={i > 0 ? destinationsWithTimeline[i - 1] : undefined}
             dateFormat={dateFormat}
           />
         ))

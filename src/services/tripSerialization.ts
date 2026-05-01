@@ -42,6 +42,7 @@ function serializeDestination(d: Destination): Record<string, unknown> {
     id: d.id,
     name: d.name,
     displayName: d.displayName,
+    timeZone: typeof d.timeZone === "string" ? d.timeZone : undefined,
     nights: d.nights,
     arrivalDate: toIso(d.arrivalDate),
     arrivalTime: toIso(d.arrivalTime),
@@ -140,6 +141,7 @@ function hydrateDestination(destination: Record<string, unknown>): Destination {
     : [];
   return {
     ...destination,
+    timeZone: typeof destination.timeZone === "string" ? destination.timeZone : undefined,
     arrivalDate: destination.arrivalDate ? dayjs(destination.arrivalDate as string) : null,
     arrivalTime: destination.arrivalTime ? dayjs(destination.arrivalTime as string) : null,
     departureDate: destination.departureDate ? dayjs(destination.departureDate as string) : null,

@@ -1,5 +1,9 @@
 # Deployment
 
+## Data reset (per-destination timezones)
+
+After upgrading to per-destination IANA timezones, **guest mode** clears `localStorage` trips once when the stored schema version is older than the app expects (see `STORAGE_VERSION_KEY` in `src/services/storageService.ts`). **Authenticated SQLite trips** keep existing rows; new `time_zone` on `destinations` is filled from the client on save. To discard incompatible pre-upgrade server data, delete the SQLite file (e.g. `server/data/travel.db`) or wipe trips for affected users, then run `npm run migrate` in `server/` so the `time_zone` column exists.
+
 ## Overview
 
 - **Frontend**: Static site (Vite build) can be deployed to Cloudflare Pages. Guest mode works without a backend.

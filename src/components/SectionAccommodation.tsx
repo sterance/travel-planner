@@ -16,6 +16,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { Dayjs } from "dayjs";
 import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
+import { getDestinationZone, pickerValueInZone, storePickerAsZoneWall } from "../utils/timeZone";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { useSectionItemList } from "../hooks/useSectionItemList";
 import { useDateFormat, getDateTimeFormat } from "../hooks/useDateFormat";
@@ -30,6 +31,7 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
   const links = buildAccommodationLinks(destination);
   const dateFormat = useDateFormat();
   const dateTimeFormat = getDateTimeFormat(dateFormat);
+  const destZone = getDestinationZone(destination);
 
   const accommodations = destination.accommodations ?? [];
 
@@ -103,7 +105,14 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
                   key={accommodation.id}
                   primaryText={accommodation.name || "Accommodation"}
                   secondaryText={accommodation.address}
-                  tertiaryText={formatDateTimeRange(accommodation.checkInDateTime, accommodation.checkOutDateTime, "No check in", "No check out")}
+                  tertiaryText={formatDateTimeRange(
+                    accommodation.checkInDateTime,
+                    accommodation.checkOutDateTime,
+                    "No check in",
+                    "No check out",
+                    destZone,
+                    destZone
+                  )}
                   onEdit={() => openForEdit(index)}
                 />
               ))}
@@ -133,8 +142,8 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
             <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth variant="outlined" />
             <DateTimePicker
               label="Check-in date & time"
-              value={getSafeDayjsValue(startDateTime)}
-              onChange={(newValue) => setStartDateTime(getSafeDayjsValue(newValue))}
+              value={getSafeDayjsValue(pickerValueInZone(startDateTime, destZone))}
+              onChange={(newValue) => setStartDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), destZone))}
               format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
@@ -146,8 +155,8 @@ export const SectionAccommodation = ({ destination, onDestinationChange, arrival
             />
             <DateTimePicker
               label="Check-out date & time"
-              value={getSafeDayjsValue(endDateTime)}
-              onChange={(newValue) => setEndDateTime(getSafeDayjsValue(newValue))}
+              value={getSafeDayjsValue(pickerValueInZone(endDateTime, destZone))}
+              onChange={(newValue) => setEndDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), destZone))}
               format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{

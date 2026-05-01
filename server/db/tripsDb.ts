@@ -1,3 +1,4 @@
+import tzlookup from "tz-lookup";
 import { db } from "../db.js";
 
 const uid = (r: Record<string, unknown>, k: string): string => (r[k] as string) ?? "";
@@ -62,7 +63,7 @@ export function getTripForUser(userId: string, tripId: string): Record<string, u
 function assembleTrip(userId: string, tripId: string, row: Record<string, unknown>): Record<string, unknown> {
   const destRows = db
     .prepare(
-      "SELECT id, name, display_name, nights, arrival_date, arrival_time, departure_date, destination_currency_json FROM destinations WHERE trip_user_id = ? AND trip_id = ? ORDER BY sort_order, arrival_date",
+      "SELECT id, name, display_name, nights, arrival_date, arrival_time, departure_date, destination_currency_json, time_zone FROM destinations WHERE trip_user_id = ? AND trip_id = ? ORDER BY sort_order, arrival_date",
     )
     .all(userId, tripId) as Record<string, unknown>[];
   const destinations = destRows.map((d) => assembleDestination(userId, tripId, uid(d, "id"), d));
@@ -113,6 +114,7 @@ function assembleDestination(
       "SELECT id, label, costs_json, paid_int FROM custom_budget_items WHERE trip_user_id = ? AND trip_id = ? AND destination_id = ? ORDER BY rowid",
     )
     .all(userId, tripId, destId) as Record<string, unknown>[];
+  let timeZone = str(row, "time_zone") ?? undefined;
   const dest: Record<string, unknown> = {
     id: destId,
     name: row.name,
@@ -150,6 +152,13 @@ function assembleDestination(
   if (pd) {
     const lat = num(pd, "lat");
     const lng = num(pd, "lng");
+    if (!timeZone && lat != null && lng != null) {
+      try {
+        timeZone = tzlookup(lng, lat);
+      } catch {
+        timeZone = undefined;
+      }
+    }
     dest.placeDetails = {
       osmId: pd.osm_id,
       osmType: pd.osm_type,
@@ -164,6 +173,11 @@ function assembleDestination(
           ? [num(pd, "extent_min_x")!, num(pd, "extent_min_y")!, num(pd, "extent_max_x")!, num(pd, "extent_max_y")!]
           : undefined,
     };
+    if (timeZone) {
+      dest.timeZone = timeZone;
+    }
+  } else if (timeZone) {
+    dest.timeZone = timeZone;
   }
   if (td) {
     dest.transportDetails = {
@@ -212,7 +226,7 @@ function insertDestination(
 ): void {
   const id = typeof d.id === "string" ? d.id : "";
   db.prepare(
-    "INSERT INTO destinations (trip_user_id, trip_id, id, name, display_name, nights, arrival_date, arrival_time, departure_date, sort_order, destination_currency_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO destinations (trip_user_id, trip_id, id, name, display_name, nights, arrival_date, arrival_time, departure_date, sort_order, destination_currency_json, time_zone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
   ).run(
     userId,
     tripId,
@@ -225,6 +239,7 @@ function insertDestination(
     d.departureDate != null ? String(d.departureDate) : null,
     sortOrder,
     jsonStr((d as any).destinationCurrency),
+    d.timeZone != null ? String(d.timeZone) : null,
   );
   const pd = d.placeDetails as Record<string, unknown> | undefined;
   if (pd) {

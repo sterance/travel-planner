@@ -14,6 +14,7 @@ import { SectionCard } from "./utility/SectionCard";
 import { DetailsModal } from "./utility/DetailsModal";
 import { type Destination } from "../types/destination";
 import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
+import { getTransportZones, pickerValueInZone, storePickerAsZoneWall } from "../utils/timeZone";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { ListCard } from "./ListCard";
 import { SELF_TRANSPORT_MODES } from "../utils/transportConfig";
@@ -110,6 +111,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
     clear: clearModal,
   } = modalState;
 
+  const { departure: depTz, arrival: arrTz } = getTransportZones(destination, nextDestination);
+
   const onwardsModal = (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DetailsModal
@@ -156,8 +159,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
               />
               <DateTimePicker
                 label="Departure Date & Time"
-                value={getSafeDayjsValue(departureDateTime)}
-                onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                value={getSafeDayjsValue(pickerValueInZone(departureDateTime, depTz))}
+                onChange={(newValue) => setDepartureDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), depTz))}
                 format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
@@ -177,8 +180,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
               />
               <DateTimePicker
                 label="Arrival Date & Time"
-                value={getSafeDayjsValue(arrivalDateTime)}
-                onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                value={getSafeDayjsValue(pickerValueInZone(arrivalDateTime, arrTz))}
+                onChange={(newValue) => setArrivalDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), arrTz))}
                 format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
@@ -198,8 +201,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
               />
               <DateTimePicker
                 label="Departure Date & Time"
-                value={getSafeDayjsValue(departureDateTime)}
-                onChange={(newValue) => setDepartureDateTime(getSafeDayjsValue(newValue))}
+                value={getSafeDayjsValue(pickerValueInZone(departureDateTime, depTz))}
+                onChange={(newValue) => setDepartureDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), depTz))}
                 format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
@@ -213,8 +216,8 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
               />
               <DateTimePicker
                 label="Arrival Date & Time"
-                value={getSafeDayjsValue(arrivalDateTime)}
-                onChange={(newValue) => setArrivalDateTime(getSafeDayjsValue(newValue))}
+                value={getSafeDayjsValue(pickerValueInZone(arrivalDateTime, arrTz))}
+                onChange={(newValue) => setArrivalDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), arrTz))}
                 format={dateTimeFormat}
                 referenceDate={referenceDate ?? undefined}
                 slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
@@ -254,7 +257,14 @@ export const SectionOnwards = ({ destination, nextDestination, onDestinationChan
           <ListCard
             primaryText={destination.transportDetails.bookingNumber ?? ""}
             secondaryText={`${formatLocationDisplay(destination.transportDetails.departureLocation, nextMode) || "Origin"} ￫ ${formatLocationDisplay(destination.transportDetails.arrivalLocation, nextMode) || "Destination"}`}
-            tertiaryText={formatDateTimeRange(destination.transportDetails.departureDateTime, destination.transportDetails.arrivalDateTime, "No departure time", "No arrival time")}
+            tertiaryText={formatDateTimeRange(
+              destination.transportDetails.departureDateTime,
+              destination.transportDetails.arrivalDateTime,
+              "No departure time",
+              "No arrival time",
+              depTz,
+              arrTz
+            )}
             onEdit={modalState.open}
             centerPrimary
           />

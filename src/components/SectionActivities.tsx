@@ -15,6 +15,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { Dayjs } from "dayjs";
 import { type Destination, type ActivityDetails } from "../types/destination";
 import { formatDateTimeRange, getSafeDayjsValue } from "../utils/dateUtils";
+import { getDestinationZone, pickerValueInZone, storePickerAsZoneWall } from "../utils/timeZone";
 import { ExternalLinksGrid } from "./utility/ExternalLinksGrid";
 import { useSectionItemList } from "../hooks/useSectionItemList";
 import { useDateFormat, getDateTimeFormat } from "../hooks/useDateFormat";
@@ -28,6 +29,7 @@ interface SectionActivitiesProps {
 export const SectionActivities = ({ destination, onDestinationChange, arrivalDate }: SectionActivitiesProps): ReactElement => {
   const dateFormat = useDateFormat();
   const dateTimeFormat = getDateTimeFormat(dateFormat);
+  const destZone = getDestinationZone(destination);
   const activityButtons = [
     {
       label: "TripAdvisor",
@@ -104,7 +106,7 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
                   key={activity.id}
                   primaryText={activity.name || "Activity"}
                   secondaryText={activity.address}
-                  tertiaryText={formatDateTimeRange(activity.startDateTime, activity.endDateTime, "No start", "No end")}
+                  tertiaryText={formatDateTimeRange(activity.startDateTime, activity.endDateTime, "No start", "No end", destZone, destZone)}
                   onEdit={() => openForEdit(index)}
                 />
               ))}
@@ -132,8 +134,8 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
             <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth variant="outlined" />
             <DateTimePicker
               label="Start date & time"
-              value={getSafeDayjsValue(startDateTime)}
-              onChange={(newValue) => setStartDateTime(getSafeDayjsValue(newValue))}
+              value={getSafeDayjsValue(pickerValueInZone(startDateTime, destZone))}
+              onChange={(newValue) => setStartDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), destZone))}
               format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{
@@ -145,8 +147,8 @@ export const SectionActivities = ({ destination, onDestinationChange, arrivalDat
             />
             <DateTimePicker
               label="End date & time"
-              value={getSafeDayjsValue(endDateTime)}
-              onChange={(newValue) => setEndDateTime(getSafeDayjsValue(newValue))}
+              value={getSafeDayjsValue(pickerValueInZone(endDateTime, destZone))}
+              onChange={(newValue) => setEndDateTime(storePickerAsZoneWall(getSafeDayjsValue(newValue), destZone))}
               format={dateTimeFormat}
               referenceDate={arrivalDate ?? undefined}
               slotProps={{

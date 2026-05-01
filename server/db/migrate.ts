@@ -48,6 +48,7 @@ db.exec(`
 `);
 
 tryExec(`ALTER TABLE destinations ADD COLUMN destination_currency_json TEXT`);
+tryExec(`ALTER TABLE destinations ADD COLUMN time_zone TEXT`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS place_details (

@@ -1,4 +1,4 @@
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import type { Destination } from "../types/destination";
 import type { DateFormatPreference } from "../App";
 
@@ -30,15 +30,21 @@ export const getTotalNights = (destinations: Destination[]): number | null => {
 
 export const formatDate = ({
   date,
+  dateFormat,
   includeTime,
+  timeZone,
 }: {
   date: Dayjs | null | undefined;
   dateFormat: DateFormatPreference;
   includeTime?: boolean;
+  timeZone?: string;
 }): string => {
+  void dateFormat;
   if (!date || !date.isValid()) return "";
-  if (includeTime) return date.format("MMM DD, YYYY hh:mm A");
-  return date.format("MMM DD, YYYY");
+  const d = timeZone ? dayjs(date).tz(timeZone) : dayjs(date);
+  if (!d.isValid()) return "";
+  if (includeTime) return d.format("MMM DD, YYYY hh:mm A");
+  return d.format("MMM DD, YYYY");
 };
 
 export const formatDateRange = ({
@@ -46,26 +52,27 @@ export const formatDateRange = ({
   to,
   dateFormat,
   includeTime,
+  fromTimeZone,
+  toTimeZone,
 }: {
   from: Dayjs | null | undefined;
   to: Dayjs | null | undefined;
   dateFormat: DateFormatPreference;
   includeTime?: boolean;
+  fromTimeZone?: string;
+  toTimeZone?: string;
 }): string => {
-  const f = formatDate({ date: from, dateFormat, includeTime });
-  const t = formatDate({ date: to, dateFormat, includeTime });
+  const f = formatDate({ date: from, dateFormat, includeTime, timeZone: fromTimeZone });
+  const t = formatDate({ date: to, dateFormat, includeTime, timeZone: toTimeZone ?? fromTimeZone });
   if (!f && !t) return "";
 
   let displayTo = t;
-  if (
-    includeTime &&
-    from &&
-    to &&
-    from.isValid() &&
-    to.isValid() &&
-    from.format("YYYY-MM-DD") === to.format("YYYY-MM-DD")
-  ) {
-    displayTo = to.format("hh:mm A");
+  if (includeTime && from && to && from.isValid() && to.isValid()) {
+    const zf = fromTimeZone ? dayjs(from).tz(fromTimeZone) : dayjs(from);
+    const zt = toTimeZone ? dayjs(to).tz(toTimeZone) : dayjs(to);
+    if (zf.format("YYYY-MM-DD") === zt.format("YYYY-MM-DD")) {
+      displayTo = zt.format("hh:mm A");
+    }
   }
 
   return `${f || "?"} ￫ ${displayTo || "?"}`;
