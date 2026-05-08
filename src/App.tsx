@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type ReactElement, lazy, Suspense } from "react";
-import { Routes, Route, Navigate, Outlet, useNavigate, useOutletContext } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
@@ -42,6 +42,7 @@ const DemoPage = lazy(async () => {
 
 const DRAWER_WIDTH = 240;
 const ASPECT_RATIO_BREAKPOINT = 1;
+const SUMMARY_SUFFIX = "/summary";
 
 export type ViewMode = "list" | "carousel";
 export type LayoutMode = "portrait" | "desktop";
@@ -52,6 +53,38 @@ export interface PassportEntry {
   countryName: string;
   expirationDate: Dayjs | null;
 }
+
+interface SummaryPathState {
+  basePath: string;
+  isSummaryPath: boolean;
+  normalizedPath: string;
+}
+
+const getSummaryPathState = (pathname: string): SummaryPathState | null => {
+  const demoMatch = pathname.match(/^\/demo(?:\/summary)?\/?$/);
+  if (demoMatch) {
+    const isSummaryPath = pathname.includes(SUMMARY_SUFFIX);
+    const basePath = "/demo";
+    return {
+      basePath,
+      isSummaryPath,
+      normalizedPath: isSummaryPath ? `${basePath}${SUMMARY_SUFFIX}` : basePath,
+    };
+  }
+
+  const tripMatch = pathname.match(/^\/trip\/([^/]+)(?:\/summary)?\/?$/);
+  if (tripMatch) {
+    const isSummaryPath = pathname.includes(SUMMARY_SUFFIX);
+    const basePath = `/trip/${tripMatch[1]}`;
+    return {
+      basePath,
+      isSummaryPath,
+      normalizedPath: isSummaryPath ? `${basePath}${SUMMARY_SUFFIX}` : basePath,
+    };
+  }
+
+  return null;
+};
 
 function App(): ReactElement {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -96,7 +129,9 @@ function App(): ReactElement {
   const { mode, toggleTheme } = useThemeMode();
   const { user, logout } = useAuth();
   const { trips, currentTripId, createTrip, setCurrentTrip, renameTrip, deleteTrip, editingTripId, setEditingTripId } = useTripContext();
+  const location = useLocation();
   const navigate = useNavigate();
+  const summaryPathState = getSummaryPathState(location.pathname);
 
   const openDrawer = (): void => {
     setDrawerOpen(true);
@@ -108,17 +143,29 @@ function App(): ReactElement {
 
   const handleTripSelect = (tripId: string): void => {
     setCurrentTrip(tripId);
-    navigate(`/trip/${tripId}`);
+    const baseTripPath = `/trip/${tripId}`;
+    navigate(summaryMode ? `${baseTripPath}${SUMMARY_SUFFIX}` : baseTripPath);
     setDrawerOpen(false);
   };
 
   const handleNewTrip = (): void => {
     const newTrip = createTrip();
-    navigate(`/trip/${newTrip.id}`);
+    const baseTripPath = `/trip/${newTrip.id}`;
+    navigate(summaryMode ? `${baseTripPath}${SUMMARY_SUFFIX}` : baseTripPath);
   };
 
   const handleSummaryModeToggle = (): void => {
-    setSummaryMode((prev) => !prev);
+    const nextSummaryMode = !summaryMode;
+    setSummaryMode(nextSummaryMode);
+
+    if (!summaryPathState) {
+      return;
+    }
+
+    const targetPath = nextSummaryMode ? `${summaryPathState.basePath}${SUMMARY_SUFFIX}` : summaryPathState.basePath;
+    if (location.pathname !== targetPath) {
+      navigate(targetPath);
+    }
   };
 
   const handleViewModeToggle = (): void => {
@@ -217,6 +264,24 @@ function App(): ReactElement {
       window.removeEventListener("resize", updateLayoutMode);
     };
   }, []);
+
+  useEffect(() => {
+    if (!summaryPathState) {
+      return;
+    }
+
+    const shouldNormalizeSummaryTrailingSlash = summaryPathState.isSummaryPath && location.pathname.endsWith("/");
+    if (shouldNormalizeSummaryTrailingSlash && location.pathname !== summaryPathState.normalizedPath) {
+      navigate(summaryPathState.normalizedPath, { replace: true });
+    }
+  }, [location.pathname, navigate, summaryPathState]);
+
+  useEffect(() => {
+    if (!summaryPathState || summaryMode === summaryPathState.isSummaryPath) {
+      return;
+    }
+    setSummaryMode(summaryPathState.isSummaryPath);
+  }, [summaryMode, summaryPathState]);
 
   return (
     <ToolbarActionsProvider>
@@ -495,7 +560,23 @@ const AppShell = ({
                   }
                 />
                 <Route
+                  path="/demo/summary"
+                  element={
+                    <Suspense fallback={<Box sx={{ p: 3 }}>Loading demo...</Box>}>
+                      <DemoPage />
+                    </Suspense>
+                  }
+                />
+                <Route
                   path="/trip/:tripId"
+                  element={
+                    <Suspense fallback={<Box sx={{ p: 3 }}>Loading trip...</Box>}>
+                      <TripPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/trip/:tripId/summary"
                   element={
                     <Suspense fallback={<Box sx={{ p: 3 }}>Loading trip...</Box>}>
                       <TripPage />

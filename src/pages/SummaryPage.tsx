@@ -9,8 +9,16 @@ import { ItineraryPage } from "./ItineraryPage";
 import { BudgetPage } from "./BudgetPage";
 import { CalendarPage } from "./CalendarPage";
 import { type Trip } from "../types/trip";
+import { getStringItem, setStringItem } from "../services/storageService";
 
 type Tab = "itinerary" | "budget" | "calendar";
+const SUMMARY_TAB_STORAGE_KEY = "summaryLastVisitedTab";
+const DEFAULT_TAB: Tab = "itinerary";
+
+const getInitialTab = (): Tab => {
+  const stored = getStringItem(SUMMARY_TAB_STORAGE_KEY, DEFAULT_TAB);
+  return stored === "itinerary" || stored === "budget" || stored === "calendar" ? stored : DEFAULT_TAB;
+};
 
 interface SummaryPageProps {
   trip?: Trip | null;
@@ -18,7 +26,7 @@ interface SummaryPageProps {
 }
 
 export const SummaryPage = ({ trip, onUpdateTrip }: SummaryPageProps): ReactElement => {
-  const [tab, setTab] = useState<Tab>("itinerary");
+  const [tab, setTab] = useState<Tab>(getInitialTab);
 
   return (
     <Box sx={{ p: 1 }}>
@@ -26,7 +34,10 @@ export const SummaryPage = ({ trip, onUpdateTrip }: SummaryPageProps): ReactElem
         value={tab}
         exclusive
         onChange={(_e, value: Tab | null) => {
-          if (value !== null) setTab(value);
+          if (value !== null) {
+            setTab(value);
+            setStringItem(SUMMARY_TAB_STORAGE_KEY, value);
+          }
         }}
         sx={{ width: "100%" }}
       >
