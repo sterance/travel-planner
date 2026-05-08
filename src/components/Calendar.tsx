@@ -117,7 +117,7 @@ export const Calendar = ({
 
   const calendar = useCalendarApp({
     views: [createViewDay(), createViewWeek(), createViewMonthGrid(), createViewMonthAgenda()],
-    defaultView: createViewMonthGrid().name,
+    defaultView: createViewWeek().name,
     selectedDate,
     isDark,
     calendars,
