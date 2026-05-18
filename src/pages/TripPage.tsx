@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, lazy, Suspense, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense, type ReactElement } from "react";
 import { useOutletContext, useParams, Navigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -15,6 +15,11 @@ import { useTripKeyNav } from "../hooks/useTripKeyNav";
 import { type TripHeaderProps } from "../components/TripHeader";
 import { type ViewMode, type LayoutMode, type ArrivalWeatherBackgroundMode } from "../App";
 import { useTripContext } from "../hooks/useTripContext";
+import { useAuth } from "../contexts/AuthContext";
+import { useToolbarActions } from "../contexts/ToolbarActionsContext";
+import { ShareLinkDialog } from "../components/ShareLinkDialog";
+import { createShare } from "../services/sharedTripsApi";
+import { updateTripApi } from "../services/tripsApi";
 
 const TripLayoutCarousel = lazy(async () => {
   const module = await import("../components/TripLayoutCarousel");
@@ -341,6 +346,42 @@ export const TripPage = (): ReactElement => {
   const { viewMode, layoutMode, columns, setColumns, arrivalWeatherBackgroundMode, showExploreButton, showInfoButton, setDisplayTrip, setUpdateDisplayTrip } = useOutletContext<OutletContext>();
   const { tripId } = useParams<{ tripId: string }>();
   const { trips, currentTrip, updateTrip, setCurrentTrip } = useTripContext();
+  const { user, token } = useAuth();
+  const { setOnShare, setShareDisabled } = useToolbarActions();
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareId, setShareId] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+
+  const handleShare = useCallback(async (): Promise<void> => {
+    if (!token || !currentTrip || sharing) return;
+    setSharing(true);
+    try {
+      await updateTripApi(token, currentTrip);
+      const { id } = await createShare(token, currentTrip.id);
+      setShareId(id);
+      setShareDialogOpen(true);
+    } catch (error) {
+      console.error("Failed to create share link:", error);
+    } finally {
+      setSharing(false);
+    }
+  }, [token, currentTrip, sharing]);
+
+  useEffect(() => {
+    if (!user || !token || !currentTrip) {
+      setShareDisabled(true);
+      setOnShare(null);
+      return;
+    }
+    setShareDisabled(sharing);
+    setOnShare(() => {
+      void handleShare();
+    });
+    return () => {
+      setOnShare(null);
+      setShareDisabled(true);
+    };
+  }, [user, token, currentTrip, sharing, handleShare, setOnShare, setShareDisabled]);
 
   useEffect(() => {
     if (tripId && tripId !== currentTrip?.id) {
@@ -368,16 +409,23 @@ export const TripPage = (): ReactElement => {
   }
 
   return (
-    <TripView
-      trip={currentTrip}
-      updateTrip={updateTrip}
-      viewMode={viewMode}
-      layoutMode={layoutMode}
-      columns={columns}
-      setColumns={setColumns}
-      arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
-      showExploreButton={showExploreButton}
-      showInfoButton={showInfoButton}
-    />
+    <>
+      <TripView
+        trip={currentTrip}
+        updateTrip={updateTrip}
+        viewMode={viewMode}
+        layoutMode={layoutMode}
+        columns={columns}
+        setColumns={setColumns}
+        arrivalWeatherBackgroundMode={arrivalWeatherBackgroundMode}
+        showExploreButton={showExploreButton}
+        showInfoButton={showInfoButton}
+      />
+      <ShareLinkDialog
+        open={shareDialogOpen}
+        shareId={shareId}
+        onClose={() => setShareDialogOpen(false)}
+      />
+    </>
   );
 };

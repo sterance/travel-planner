@@ -40,6 +40,11 @@ const DemoPage = lazy(async () => {
   return { default: module.DemoPage };
 });
 
+const ShareTripPage = lazy(async () => {
+  const module = await import("./pages/ShareTripPage.tsx");
+  return { default: module.ShareTripPage };
+});
+
 const DRAWER_WIDTH = 240;
 const ASPECT_RATIO_BREAKPOINT = 1;
 const SUMMARY_SUFFIX = "/summary";
@@ -76,6 +81,17 @@ const getSummaryPathState = (pathname: string): SummaryPathState | null => {
   if (tripMatch) {
     const isSummaryPath = pathname.includes(SUMMARY_SUFFIX);
     const basePath = `/trip/${tripMatch[1]}`;
+    return {
+      basePath,
+      isSummaryPath,
+      normalizedPath: isSummaryPath ? `${basePath}${SUMMARY_SUFFIX}` : basePath,
+    };
+  }
+
+  const shareMatch = pathname.match(/^\/share\/([^/]+)(?:\/summary)?\/?$/);
+  if (shareMatch) {
+    const isSummaryPath = pathname.includes(SUMMARY_SUFFIX);
+    const basePath = `/share/${shareMatch[1]}`;
     return {
       basePath,
       isSummaryPath,
@@ -419,7 +435,7 @@ const AppShell = ({
   handleLogoutClick,
   handleLoginClick,
 }: AppShellProps): ReactElement => {
-  const { actions } = useToolbarActions();
+  const { actions, onShare, shareDisabled } = useToolbarActions();
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -435,6 +451,8 @@ const AppShell = ({
         themeMode={mode}
         onThemeToggle={toggleTheme}
         actions={actions}
+        onShareClick={onShare ?? undefined}
+        shareDisabled={shareDisabled}
       />
       <Drawer
         variant="temporary"
@@ -580,6 +598,22 @@ const AppShell = ({
                   element={
                     <Suspense fallback={<Box sx={{ p: 3 }}>Loading trip...</Box>}>
                       <TripPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/share/:shareId"
+                  element={
+                    <Suspense fallback={<Box sx={{ p: 3 }}>Loading shared trip...</Box>}>
+                      <ShareTripPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/share/:shareId/summary"
+                  element={
+                    <Suspense fallback={<Box sx={{ p: 3 }}>Loading shared trip...</Box>}>
+                      <ShareTripPage />
                     </Suspense>
                   }
                 />
