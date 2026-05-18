@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import dayjs, { type Dayjs } from "dayjs";
 import type { Destination, WeatherDetails } from "../types/destination";
 import { getWeatherForecast, peekWeatherForecast, type WeatherForecast } from "../services/weatherService";
+import { getDestinationZone } from "../utils/timeZone";
 
 interface UseArrivalWeatherConfig {
   destination: Destination;
@@ -36,6 +37,7 @@ export const useArrivalWeather = ({
   onArrivalTimeChange,
   onWeatherDetailsUpdate,
 }: UseArrivalWeatherConfig): UseArrivalWeatherResult => {
+  const destZone = getDestinationZone(destination);
   const [isEditing, setIsEditing] = useState(false);
   const [timeValue, setTimeValue] = useState("");
   const [weather, setWeather] = useState<WeatherForecast | null>(null);
@@ -60,13 +62,12 @@ export const useArrivalWeather = ({
   useEffect(() => {
     if (!isEditing) {
       if (effectiveArrivalTime && effectiveArrivalTime.isValid()) {
-        const timeStr = effectiveArrivalTime.format("HH:mm");
-        setTimeValue(timeStr);
+        setTimeValue(effectiveArrivalTime.tz(destZone).format("HH:mm"));
       } else {
         setTimeValue("");
       }
     }
-  }, [effectiveArrivalTime, isEditing]);
+  }, [effectiveArrivalTime, isEditing, destZone]);
 
   const latitude = useMemo(() => {
     return destination.placeDetails?.coordinates?.[1];
@@ -81,8 +82,10 @@ export const useArrivalWeather = ({
       return null;
     }
 
-    return arrivalDate.hour(effectiveArrivalTime.hour()).minute(effectiveArrivalTime.minute()).second(0).millisecond(0);
-  }, [arrivalDate?.valueOf() ?? null, effectiveArrivalTime?.valueOf() ?? null]);
+    const dateStr = arrivalDate.format("YYYY-MM-DD");
+    const wall = effectiveArrivalTime.tz(destZone);
+    return dayjs.tz(`${dateStr}T${wall.format("HH:mm:ss")}`, destZone);
+  }, [arrivalDate?.valueOf() ?? null, effectiveArrivalTime?.valueOf() ?? null, destZone]);
 
   useEffect(() => {
     if (!dateTimeToFetch || !dateTimeToFetch.isValid()) {
@@ -107,7 +110,7 @@ export const useArrivalWeather = ({
       stored.latitude === latitude &&
       stored.longitude === longitude &&
       stored.dateTime.isValid() &&
-      stored.dateTime.format("YYYY-MM-DD-HH") === dateTimeToFetch.format("YYYY-MM-DD-HH")
+      stored.dateTime.utc().format("YYYY-MM-DD-HH") === dateTimeToFetch.utc().format("YYYY-MM-DD-HH")
     ) {
       setWeather(stored);
       setIsLoadingWeather(false);
@@ -180,28 +183,27 @@ export const useArrivalWeather = ({
       return;
     }
 
-    const [hours, minutes] = timeValue.split(":").map(Number);
-    const newDateTime = arrivalDate.hour(hours).minute(minutes).second(0).millisecond(0);
+    const dateStr = arrivalDate.format("YYYY-MM-DD");
+    const newDateTime = dayjs.tz(`${dateStr}T${timeValue}:00`, destZone);
     onArrivalTimeChange(newDateTime);
     setIsEditing(false);
   };
 
   const handleCancel = (): void => {
     if (effectiveArrivalTime && effectiveArrivalTime.isValid()) {
-      const timeStr = effectiveArrivalTime.format("HH:mm");
-      setTimeValue(timeStr);
+      setTimeValue(effectiveArrivalTime.tz(destZone).format("HH:mm"));
     }
     setIsEditing(false);
   };
 
   const handleReset = (): void => {
     if (defaultArrivalTime && defaultArrivalTime.isValid()) {
-      const timeStr = defaultArrivalTime.format("HH:mm");
-      setTimeValue(timeStr);
+      setTimeValue(defaultArrivalTime.tz(destZone).format("HH:mm"));
     }
   };
 
-  const displayTime = effectiveArrivalTime && effectiveArrivalTime.isValid() ? effectiveArrivalTime.format("h:mm A") : "??:??";
+  const displayTime =
+    effectiveArrivalTime && effectiveArrivalTime.isValid() ? effectiveArrivalTime.tz(destZone).format("h:mm A") : "??:??";
 
   const hasDefault = defaultArrivalTime !== null && defaultArrivalTime.isValid();
 

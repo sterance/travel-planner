@@ -10,6 +10,7 @@
     "migrate": "tsx db/migrate.ts"
   },
   "dependencies": {
+    "tz-lookup": "^6.1.25",
     "dotenv": "^16.4.5",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^11.6.0",

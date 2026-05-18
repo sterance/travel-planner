@@ -26,9 +26,12 @@ db.exec(`
     end_date TEXT,
     created_at TEXT,
     updated_at TEXT,
+    is_shared INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id, id)
   )
 `);
+
+tryExec(`ALTER TABLE trips ADD COLUMN is_shared INTEGER NOT NULL DEFAULT 0`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS destinations (
@@ -48,6 +51,7 @@ db.exec(`
 `);
 
 tryExec(`ALTER TABLE destinations ADD COLUMN destination_currency_json TEXT`);
+tryExec(`ALTER TABLE destinations ADD COLUMN time_zone TEXT`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS place_details (
@@ -156,5 +160,88 @@ db.exec(`
     FOREIGN KEY (trip_user_id, trip_id, destination_id) REFERENCES destinations(trip_user_id, trip_id, id) ON DELETE CASCADE
   )
 `);
+
+function migrateLegacySharedTrips(): void {
+  const legacySharedTrips = db
+    .prepare(`SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = 'shared_trips'`)
+    .get() as Record<string, unknown> | undefined;
+  if (!legacySharedTrips) return;
+
+  db.exec(`BEGIN IMMEDIATE`);
+  try {
+    db.exec(`
+      INSERT OR IGNORE INTO trips (user_id, id, name, start_date, end_date, created_at, updated_at, is_shared)
+      SELECT user_id, id, name, start_date, end_date, created_at, updated_at, 1 FROM shared_trips;
+
+      INSERT OR IGNORE INTO destinations (
+        trip_user_id, trip_id, id, name, display_name, nights, arrival_date, arrival_time, departure_date, sort_order, destination_currency_json, time_zone
+      )
+      SELECT
+        trip_user_id, trip_id, id, name, display_name, nights, arrival_date, arrival_time, departure_date, sort_order, destination_currency_json, time_zone
+      FROM shared_destinations;
+
+      INSERT OR IGNORE INTO place_details (
+        trip_user_id, trip_id, destination_id, osm_id, osm_type, place_type, lat, lng, city, state, country, country_code, extent_min_x, extent_min_y, extent_max_x, extent_max_y
+      )
+      SELECT
+        trip_user_id, trip_id, destination_id, osm_id, osm_type, place_type, lat, lng, city, state, country, country_code, extent_min_x, extent_min_y, extent_max_x, extent_max_y
+      FROM shared_place_details;
+
+      INSERT OR IGNORE INTO transport_details (
+        trip_user_id, trip_id, destination_id, mode, departure_location, arrival_location, booking_number, departure_date_time, arrival_date_time, costs_json, paid_int
+      )
+      SELECT
+        trip_user_id, trip_id, destination_id, mode, departure_location, arrival_location, booking_number, departure_date_time, arrival_date_time, costs_json, paid_int
+      FROM shared_transport_details;
+
+      INSERT OR IGNORE INTO weather_details (
+        trip_user_id, trip_id, destination_id, temperature, condition, weather_code, latitude, longitude, date_time
+      )
+      SELECT
+        trip_user_id, trip_id, destination_id, temperature, condition, weather_code, latitude, longitude, date_time
+      FROM shared_weather_details;
+
+      INSERT OR IGNORE INTO accommodations (
+        trip_user_id, trip_id, destination_id, id, name, address, check_in_date_time, check_out_date_time, costs_json, paid_int
+      )
+      SELECT
+        trip_user_id, trip_id, destination_id, id, name, address, check_in_date_time, check_out_date_time, costs_json, paid_int
+      FROM shared_accommodations;
+
+      INSERT OR IGNORE INTO activities (
+        trip_user_id, trip_id, destination_id, id, name, address, start_date_time, end_date_time, costs_json, paid_int
+      )
+      SELECT
+        trip_user_id, trip_id, destination_id, id, name, address, start_date_time, end_date_time, costs_json, paid_int
+      FROM shared_activities;
+
+      INSERT OR IGNORE INTO custom_budget_items (
+        trip_user_id, trip_id, destination_id, id, label, costs_json, paid_int
+      )
+      SELECT
+        trip_user_id, trip_id, destination_id, id, label, costs_json, paid_int
+      FROM shared_custom_budget_items;
+
+      DROP TABLE IF EXISTS shared_custom_budget_items;
+      DROP TABLE IF EXISTS shared_activities;
+      DROP TABLE IF EXISTS shared_accommodations;
+      DROP TABLE IF EXISTS shared_weather_details;
+      DROP TABLE IF EXISTS shared_transport_details;
+      DROP TABLE IF EXISTS shared_place_details;
+      DROP TABLE IF EXISTS shared_destinations;
+      DROP TABLE IF EXISTS shared_trips;
+    `);
+    db.exec(`COMMIT`);
+  } catch (err) {
+    try {
+      db.exec(`ROLLBACK`);
+    } catch {
+      // ignore rollback errors
+    }
+    throw err;
+  }
+}
+
+migrateLegacySharedTrips();
 
 console.log("migration complete");

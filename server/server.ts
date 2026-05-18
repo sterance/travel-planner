@@ -5,6 +5,7 @@ import cors from "cors";
 import authRouter from "./routes/auth.js";
 import healthRouter from "./routes/health.js";
 import tripsRouter from "./routes/trips.js";
+import sharedTripsRouter from "./routes/sharedTrips.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const rawOrigins = process.env.CORS_ORIGINS ?? "http://localhost:5173";
@@ -28,6 +29,7 @@ app.use(
 app.use(healthRouter);
 app.use(authRouter);
 app.use(tripsRouter);
+app.use(sharedTripsRouter);
 
 app.listen(PORT, () => {
   console.log(`server listening on port ${PORT}`);

@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import tzlookup from "tz-lookup";
 import { searchPlaces, type PlaceSuggestion } from "../services/placeService";
 import { type Destination as DestinationType } from "../types/destination";
+
+const timeZoneFromPlaceDetails = (placeDetails: PlaceSuggestion["placeDetails"]): string | undefined => {
+  const coords = placeDetails?.coordinates;
+  if (!coords || coords.length < 2) return undefined;
+  const [lng, lat] = coords;
+  try {
+    return tzlookup(lat, lng);
+  } catch {
+    return undefined;
+  }
+};
 
 interface UseDestinationSearchParams {
   destination: DestinationType;
@@ -75,6 +87,7 @@ export const useDestinationSearch = ({ destination, onDestinationChange, shouldF
         name: value.name,
         displayName: value.displayName,
         placeDetails: value.placeDetails,
+        timeZone: timeZoneFromPlaceDetails(value.placeDetails),
       });
       setIsEditing(false);
     } else if (typeof value === "string") {
@@ -84,6 +97,7 @@ export const useDestinationSearch = ({ destination, onDestinationChange, shouldF
         name: value,
         displayName: cityName,
         placeDetails: undefined,
+        timeZone: undefined,
       });
     }
   };

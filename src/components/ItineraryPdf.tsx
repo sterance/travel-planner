@@ -9,6 +9,7 @@ import {
   getTotalNights,
   formatDateRange,
 } from "../utils/itineraryFormatters";
+import { getDestinationZone } from "../utils/timeZone";
 import { styles } from "../theme/ItineraryPdf.styles";
 
 /** Replace characters unsupported by Helvetica with PDF-safe equivalents */
@@ -37,10 +38,14 @@ const PdfTransportSection = ({
   transport,
   dateFormat,
   modeOverride,
+  departureTimeZone,
+  arrivalTimeZone,
 }: {
   transport: TransportDetails;
   dateFormat: DateFormatPreference;
   modeOverride?: string;
+  departureTimeZone: string;
+  arrivalTimeZone: string;
 }) => {
   const displayMode = modeOverride ?? transport.mode;
   const dateRange = pdfSafe(formatDateRange({
@@ -48,6 +53,8 @@ const PdfTransportSection = ({
     to: transport.arrivalDateTime,
     dateFormat,
     includeTime: true,
+    fromTimeZone: departureTimeZone,
+    toTimeZone: arrivalTimeZone,
   }));
 
   return (
@@ -71,9 +78,11 @@ const PdfTransportSection = ({
 const PdfAccommodationSection = ({
   accommodations,
   dateFormat,
+  timeZone,
 }: {
   accommodations: AccommodationDetails[];
   dateFormat: DateFormatPreference;
+  timeZone: string;
 }) => (
   <View>
     <View style={styles.subSectionHeader}>
@@ -85,6 +94,8 @@ const PdfAccommodationSection = ({
         to: acc.checkOutDateTime,
         dateFormat,
         includeTime: true,
+        fromTimeZone: timeZone,
+        toTimeZone: timeZone,
       }));
       return (
         <View key={acc.id} style={styles.itemBlock}>
@@ -100,9 +111,11 @@ const PdfAccommodationSection = ({
 const PdfActivitiesSection = ({
   activities,
   dateFormat,
+  timeZone,
 }: {
   activities: ActivityDetails[];
   dateFormat: DateFormatPreference;
+  timeZone: string;
 }) => (
   <View>
     <View style={styles.subSectionHeader}>
@@ -114,6 +127,8 @@ const PdfActivitiesSection = ({
         to: act.endDateTime,
         dateFormat,
         includeTime: true,
+        fromTimeZone: timeZone,
+        toTimeZone: timeZone,
       }));
       return (
         <View key={act.id} style={styles.itemBlock}>
@@ -132,6 +147,7 @@ const PdfDestinationSection = ({
   total,
   outboundTransport,
   outboundModeOverride,
+  nextDestination,
   dateFormat,
 }: {
   destination: Destination;
@@ -139,12 +155,14 @@ const PdfDestinationSection = ({
   total: number;
   outboundTransport: TransportDetails | undefined;
   outboundModeOverride?: string;
+  nextDestination: Destination | undefined;
   dateFormat: DateFormatPreference;
 }) => {
   const label = destination.displayName || destination.name;
   const country = destination.placeDetails?.country;
   const hasAccommodations = destination.accommodations && destination.accommodations.length > 0;
   const hasActivities = destination.activities && destination.activities.length > 0;
+  const destZone = getDestinationZone(destination);
 
   const dateRange = pdfSafe(formatDateRange({
     from: destination.arrivalDate,
@@ -170,22 +188,24 @@ const PdfDestinationSection = ({
 
       {/* Accommodation */}
       {hasAccommodations && (
-        <PdfAccommodationSection accommodations={destination.accommodations!} dateFormat={dateFormat} />
+        <PdfAccommodationSection accommodations={destination.accommodations!} dateFormat={dateFormat} timeZone={destZone} />
       )}
 
       {/* Activities */}
       {hasActivities && (
-        <PdfActivitiesSection activities={destination.activities!} dateFormat={dateFormat} />
+        <PdfActivitiesSection activities={destination.activities!} dateFormat={dateFormat} timeZone={destZone} />
       )}
 
       {/* Outbound transport */}
-      {outboundTransport && (
+      {outboundTransport && nextDestination && (
         <View style={styles.outboundTransportBlock}>
           <View style={styles.sectionDivider} />
           <PdfTransportSection
             transport={outboundTransport}
             dateFormat={dateFormat}
             modeOverride={outboundModeOverride}
+            departureTimeZone={getDestinationZone(destination)}
+            arrivalTimeZone={getDestinationZone(nextDestination)}
           />
         </View>
       )}
@@ -237,6 +257,7 @@ export const ItineraryPdfDocument = ({ trip, dateFormat }: ItineraryPdfDocumentP
               total={destinationsWithTimeline.length}
               outboundTransport={i < destinationsWithTimeline.length - 1 ? dest.transportDetails : undefined}
               outboundModeOverride={i < destinationsWithTimeline.length - 1 ? destinationsWithTimeline[i + 1]?.transportDetails?.mode : undefined}
+              nextDestination={i < destinationsWithTimeline.length - 1 ? destinationsWithTimeline[i + 1] : undefined}
               dateFormat={dateFormat}
             />
           ))

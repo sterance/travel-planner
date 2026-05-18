@@ -2,7 +2,24 @@ import dayjs from "dayjs";
 import { type Trip } from "../types/trip";
 import { hydrateTrip } from "./tripSerialization";
 
-const TRIPS_STORAGE_KEY = 'trips';
+const TRIPS_STORAGE_KEY = "trips";
+const STORAGE_VERSION_KEY = "travel_planner_storage_version";
+const STORAGE_VERSION = 2;
+
+const migrateTripsStorageIfNeeded = (): void => {
+  try {
+    const v = localStorage.getItem(STORAGE_VERSION_KEY);
+    if (v === String(STORAGE_VERSION)) return;
+    if (v !== null && Number(v) < STORAGE_VERSION) {
+      localStorage.removeItem(TRIPS_STORAGE_KEY);
+    } else if (v === null && localStorage.getItem(TRIPS_STORAGE_KEY)) {
+      localStorage.removeItem(TRIPS_STORAGE_KEY);
+    }
+    localStorage.setItem(STORAGE_VERSION_KEY, String(STORAGE_VERSION));
+  } catch {
+    // ignore
+  }
+};
 
 export const getItem = <T>(key: string, defaultValue: T): T => {
   try {
@@ -52,6 +69,7 @@ export const setStringItem = (key: string, value: string): void => {
 };
 
 export const loadTrips = (): Trip[] => {
+  migrateTripsStorageIfNeeded();
   const rawTrips = getItem<any[]>(TRIPS_STORAGE_KEY, []);
   return rawTrips.map((t) => hydrateTrip(t as Record<string, unknown>));
 };

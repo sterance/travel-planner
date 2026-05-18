@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useTripContext } from "../hooks/useTripContext";
+import { useCalendarViewZone } from "../hooks/useCalendarViewZone";
 import { transformTripToCalendarEvents } from "../utils/calendarTransform";
 import { Calendar } from "../components/Calendar";
 import type { Trip } from "../types/trip";
@@ -15,6 +16,7 @@ interface CalendarPageProps {
 export const CalendarPage = ({ trip: tripProp, onUpdateTrip: _onUpdateTrip }: CalendarPageProps): ReactElement => {
   const { currentTrip, tripsLoading } = useTripContext();
   const trip = tripProp ?? currentTrip;
+  const [calendarTimeZone, setCalendarTimeZone, { explicitOverride }] = useCalendarViewZone();
 
   const events = useMemo(() => transformTripToCalendarEvents(trip), [trip]);
   const initialDate = trip?.startDate?.isValid() ? trip.startDate.format("YYYY-MM-DD") : null;
@@ -39,7 +41,15 @@ export const CalendarPage = ({ trip: tripProp, onUpdateTrip: _onUpdateTrip }: Ca
 
   return (
     <Box sx={{ p: 1, my: 2 }}>
-      <Calendar events={events} initialDate={initialDate} />
+      <Calendar
+        key={calendarTimeZone}
+        events={events}
+        destinations={trip.destinations}
+        initialDate={initialDate}
+        timeZone={calendarTimeZone}
+        explicitOverride={explicitOverride}
+        onTimeZoneChange={setCalendarTimeZone}
+      />
     </Box>
   );
 };

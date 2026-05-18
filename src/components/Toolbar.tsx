@@ -13,6 +13,7 @@ import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
 import ArticleIcon from '@mui/icons-material/Article';
 import MapIcon from '@mui/icons-material/Map';
+import IosShareIcon from '@mui/icons-material/IosShare';
 import type { LayoutMode, ViewMode } from "../App";
 
 interface AppToolbarProps {
@@ -27,6 +28,8 @@ interface AppToolbarProps {
   themeMode: "light" | "dark";
   onThemeToggle: () => void;
   actions?: ReactNode;
+  onShareClick?: () => void;
+  shareDisabled?: boolean;
 }
 
 export const AppToolbar = ({
@@ -41,7 +44,10 @@ export const AppToolbar = ({
   themeMode,
   onThemeToggle,
   actions,
+  onShareClick,
+  shareDisabled = true,
 }: AppToolbarProps): ReactElement => {
+  const shareHidden = shareDisabled || !onShareClick;
   return (
     <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar>
@@ -56,6 +62,9 @@ export const AppToolbar = ({
           {/* layout mode indicator is disabled and hidden for now */}
           <IconButton color="inherit" disabled onClick={onLayoutModeToggle} sx={{ display: "none" }}>
             {layoutMode === "desktop" ? <DesktopWindowsOutlinedIcon /> : <PhoneAndroidIcon />}
+          </IconButton>
+          <IconButton color="inherit" onClick={onShareClick} disabled={shareHidden} sx={shareHidden ? { display: "none" } : undefined}>
+            <IosShareIcon />
           </IconButton>
           <IconButton color="inherit" onClick={onSummaryModeToggle}>
             {summaryMode ? <MapIcon /> : <ArticleIcon />}
