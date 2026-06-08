@@ -5,8 +5,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeContextProvider } from './theme/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { TripContextProvider } from './hooks/useTripContext';
+import { registerServiceWorker } from './registerSW';
 import App from './App.tsx';
-
+ 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
@@ -20,3 +21,5 @@ createRoot(document.getElementById('root')!).render(
     </BrowserRouter>
   </StrictMode>,
 );
+ 
+registerServiceWorker();

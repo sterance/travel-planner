@@ -1,10 +1,31 @@
 import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import react from '@vitejs/plugin-react';
+import { copyFileSync, mkdirSync } from 'fs';
+import { resolve } from 'path';
+
+// Custom plugin: copies sw.js from project root into dist/ verbatim so it
+// doesn't go through Rollup bundling and keeps its correct scope ("/").
+function copyServiceWorker() {
+  return {
+    name: 'copy-service-worker',
+    closeBundle() {
+      const src = resolve(__dirname, 'sw.js');
+      const dest = resolve(__dirname, 'dist/sw.js');
+      try {
+        mkdirSync(resolve(__dirname, 'dist'), { recursive: true });
+        copyFileSync(src, dest);
+      } catch (err) {
+        console.warn('[copy-service-worker] Could not copy sw.js:', err);
+      }
+    },
+  };
+}
 
 export default defineConfig({
   plugins: [
     react(),
+    copyServiceWorker(),
     visualizer({
       filename: 'dist/artifacts/stats.html',
       gzipSize: true,
